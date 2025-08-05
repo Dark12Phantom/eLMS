@@ -55,6 +55,10 @@ body {
   background: #000;
 }
 
+#account-popup {
+  display: flex;
+}
+
 #nav-list {
   width: 60%;
   align-items: center;
@@ -115,9 +119,17 @@ body {
   background-color: #bdbdbd;
 }
 
+#dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 a .content {
+  position: absolute;
   text-decoration: none;
-  color: black;
+  color: #ff9102;
   display: none;
   position: absolute;
   width: 300px;
@@ -129,12 +141,22 @@ a .content.show {
 }
 .content li {
   display: flex;
-  background: rgb(139, 139, 139);
+  border-radius: 5px;
+  background: #1c4c648a;
   align-items: center;
   justify-content: space-evenly;
+  transition: all 0.5s ease;
+}
+
+.content li:hover {
+  background: #025883;
 }
 
 /* MAIN CONTENT STYLES */
+
+main {
+  position: relative;
+}
 
 #home {
   display: flex;
@@ -175,17 +197,17 @@ a .content.show {
 }
 
 #home .mv .mission h1,
-#home .mv .vision h1{
+#home .mv .vision h1 {
   font-size: 2rem;
   color: #ff9102;
 }
 
 #home .mv .mission p,
-#home .mv .vision p{
+#home .mv .vision p {
   font-size: 1.5rem;
 }
 
-#about h1{
+#about h1 {
   text-align: center;
   font-size: 2rem;
   color: #ff9102;
@@ -210,12 +232,12 @@ a .content.show {
   align-items: center;
 }
 
-#courses h1{
+#courses h1 {
   color: #ff9102;
   font-size: 2rem;
 }
 
-#courses #card-scroll{
+#courses #card-scroll {
   height: 100%;
   width: 100%;
   display: flex;
@@ -224,7 +246,7 @@ a .content.show {
   gap: 20px;
 }
 
-#card-scroll .card{
+#card-scroll .card {
   width: 100px;
   height: 400px;
   border: solid black 1px;
@@ -235,14 +257,14 @@ a .content.show {
   position: relative;
 }
 
-#card-scroll .card.active{
+#card-scroll .card.active {
   width: 900px;
   height: 500px;
   transition: all linear 0.6s;
 }
 
-#card-scroll .card::before{
-  content: '';
+#card-scroll .card::before {
+  content: "";
   width: 100%;
   height: 100%;
   position: absolute;
@@ -251,13 +273,13 @@ a .content.show {
   background: #00000073;
 }
 
-#card-scroll .card>img{
+#card-scroll .card > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-#card-scroll .card .description{
+#card-scroll .card .description {
   position: absolute;
   height: 75px;
   bottom: 60px;
@@ -267,34 +289,34 @@ a .content.show {
   width: 90%;
 }
 
-#card-scroll .card .description .list{
+#card-scroll .card .description .list {
   position: absolute;
   top: -350px;
   left: -20px;
   width: 320px;
 }
 
-#card-scroll .card .description .list li{
+#card-scroll .card .description .list li {
   margin-left: 30px;
 }
 
-#card-scroll .card .description h2{
+#card-scroll .card .description h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: -10px;
   margin-left: 400px;
 }
-#card-scroll .card .description .desc{
+#card-scroll .card .description .desc {
   font-size: 1.2rem;
   margin-left: 400px;
 }
 
-#card-scroll .card .description .list ul li p{
+#card-scroll .card .description .list ul li p {
   font-size: 1.2rem;
   font-weight: 600;
 }
 
-#card-scroll .card.active .description{
+#card-scroll .card.active .description {
   opacity: 1;
 }
 
@@ -305,14 +327,15 @@ a .content.show {
   gap: 40px;
 }
 
-#contact .mail, #contact .phone{
+#contact .mail,
+#contact .phone {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-#contact p{
+#contact p {
   font-size: 1.2rem;
 }
 
@@ -323,4 +346,191 @@ footer {
   justify-content: center;
   display: flex;
   align-items: center;
+}
+
+.account-modal {
+  position: fixed;
+  top: 50px;
+  left: 25vw;
+  display: none;
+  padding: 20px 40px;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  height: max-content;
+  background: #bdbdbd00;
+  box-shadow: 0 0 15px 5px #004364;
+  border-radius: 10px;
+  backdrop-filter: blur(20px);
+}
+
+.account-modal.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-modal #login,
+.account-modal #signup {
+  display: none;
+}
+
+.account-modal #login.active,
+.account-modal #signup.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.account-modal #signup h1,
+.account-modal #login h1 {
+  color: #ff9102;
+}
+
+.account-modal #signup p a,
+.account-modal #login p a {
+  text-decoration: underline;
+  color: #ff9100;
+  letter-spacing: 1px;
+}
+
+.account-modal #signup {
+  width: 765px;
+  height: 800px;
+}
+
+.account-modal #signup form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: max-content max-content;
+  gap: 20px;
+  grid-template-areas:
+    "grid1 grid2"
+    "grid3 grid3";
+}
+
+.account-modal #signup form .basic-info {
+  grid-area: grid1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.account-modal #signup form .login-info {
+  grid-area: grid2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-modal #signup form .basic-info input,
+.account-modal #signup form .login-info input {
+  width: 90%;
+  height: 2rem;
+  padding: 2px 0 2px 9px;
+  color: #ff9102;
+  background: #bdbdbd00;
+  border: none;
+  border-bottom: 1px solid #ff9102;
+  transition: 0.3s ease;
+}
+
+.account-modal #signup form .basic-info input::placeholder,
+.account-modal #signup form .login-info input::placeholder {
+  color: #8b4f00;
+  letter-spacing: 2px;
+}
+
+.account-modal #signup form .basic-info input:focus,
+.account-modal #signup form .login-info input:focus {
+  border-bottom: 3px solid #ff9102;
+  outline: 1px #ff9102 dashed;
+}
+
+.account-modal #login form input{
+  width: 90%;
+  height: 4rem;
+  padding: 2px 0 2px 9px;
+  color: #ff9102;
+  background: #bdbdbd00;
+  border: none;
+  border-bottom: 1px solid #ff9102;
+  transition: 0.5s ease;
+  letter-spacing: 2px;
+  font-size: 1.2rem;
+}
+
+.account-modal #login form input::placeholder{
+  color: #8b4f00;
+  letter-spacing: 2px;
+}
+
+.account-modal #login form input:focus{
+  border-bottom: 3px solid #ff9102;
+}
+
+.account-modal #signup form .basic-info select {
+  width: 90%;
+  height: 2.5rem;
+  padding: 2px 9px;
+  border: none;
+  border-bottom: 1px solid #ff9102;
+  background: #00000000;
+  color: #8b4f00;
+  letter-spacing: 2px;
+}
+
+.account-modal #signup form .submit {
+  grid-area: grid3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.account-modal #signup form .submit input {
+  width: 80%;
+  height: 2rem;
+  border: 0px #ff9102;
+  border-radius: 20px;
+  background: none;
+  border-bottom: 1px solid #ff9102;
+  font-family: "Outfit", sans-serif;
+  letter-spacing: 3px;
+  transition: all 0.5s ease;
+}
+
+.account-modal #login form input[type='submit']{
+  width: 80%;
+  height: 4rem;
+  border: 0px #ff9102;
+  border-radius: 30px;
+  background: none;
+  border-bottom: 1px solid #ff9102;
+  font-family: "Outfit", sans-serif;
+  letter-spacing: 3px;
+  transition: all 0.5s ease;
+}
+
+.account-modal #signup form .submit input:hover,
+.account-modal #login form input[type='submit']:hover {
+  font-weight: 600;
+  box-shadow: 2px 2px 2px 0 #553000, -2px 2px 2px 0 #553000,
+    inset 0 1px 0 0 #ff9100;
+}
+
+.account-modal #login.active {
+  width: 765px;
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.account-modal #login form{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 500px;
+  width: 90%;
 }
