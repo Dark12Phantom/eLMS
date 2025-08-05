@@ -381,6 +381,19 @@
 
       <div class="account-modal">
         <div id="signup" class="active">
+          <div class="close">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#FF9102"
+            >
+              <path
+                d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+              />
+            </svg>
+          </div>
           <h1>Signup</h1>
           <form action="">
             <div class="basic-info">
@@ -449,6 +462,19 @@
           <p>Have an account? || <a href="#login">Login instead.</a></p>
         </div>
         <div id="login">
+          <div class="close">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#FF9102"
+            >
+              <path
+                d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+              />
+            </svg>
+          </div>
           <h1>Login</h1>
           <form action="">
             <input id="username" type="text" placeholder="Username" required />
@@ -485,30 +511,37 @@
   <script>
     const accountPopup = document.querySelector("#account-popup");
     const accountModal = document.querySelector(".account-modal");
-    accountPopup.addEventListener('click', () => {
-      if(accountModal.classList.contains('active')){
-        accountModal.classList.remove('active');
-      }else{
-        accountModal.classList.add('active')
-        content.classList.remove('show')
+    const closePages = document.getElementsByClassName("close");
+    for (let i = 0; i < closePages.length; i++) {
+      closePages[i].addEventListener("click", () => {
+        accountModal.classList.remove("active");
+        loginPage.classList.remove("active");
+      });
+    }
+    accountPopup.addEventListener("click", () => {
+      if (accountModal.classList.contains("active")) {
+        accountModal.classList.remove("active");
+      } else {
+        accountModal.classList.add("active");
+        content.classList.remove("show");
       }
-    })
+    });
   </script>
   <!-- LOGIN SIGNUP LOGIC -->
   <script>
-    const loginPage = document.querySelector("#login")
-    const signupPage = document.querySelector("#signup")
-    document.querySelector("#login > p > a").addEventListener('click', () => {
-      if(loginPage.classList.contains('active')){
-        loginPage.classList.remove('active')
-        signupPage.classList.add('active')
+    const loginPage = document.querySelector("#login");
+    const signupPage = document.querySelector("#signup");
+    document.querySelector("#login > p > a").addEventListener("click", () => {
+      if (loginPage.classList.contains("active")) {
+        loginPage.classList.remove("active");
+        signupPage.classList.add("active");
       }
-    })
-    document.querySelector("#signup > p > a").addEventListener('click', () => {
-      if(signupPage.classList.contains('active')){
-        signupPage.classList.remove('active')
-        loginPage.classList.add('active')
+    });
+    document.querySelector("#signup > p > a").addEventListener("click", () => {
+      if (signupPage.classList.contains("active")) {
+        signupPage.classList.remove("active");
+        loginPage.classList.add("active");
       }
-    })
+    });
   </script>
 </html>
