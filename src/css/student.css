@@ -112,6 +112,7 @@ main {
   grid-template-columns: 1fr 0.2fr;
   grid-template-areas: 
   "main catalog";
+  gap: 35px;
 }
 
 #dashboard{
@@ -126,10 +127,13 @@ main {
 
 #main-section{
   grid-area: main;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  height: 880px;
 }
 
 .container{
-  width: 100%;
+  width: 96%;
   height: max-content;
   margin: 10px;
 }
@@ -166,6 +170,7 @@ main {
   background: grey;
   height: max-content;
   flex-direction: column;
+  height: 3000px;
 }
 
 .tab-content p{
@@ -209,6 +214,11 @@ tbody tr:nth-child(odd){
 
 #catalog{
   grid-area: catalog;
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  padding-left: 20px;
+  position: relative;
 }
 
 #news{
@@ -249,4 +259,50 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.calendar-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: sticky;
+  right: 0;
+}
+
+#calendar-header{
+  font-weight: 600;
+  font-size: 1.2rem;
+  display: flex;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  color: #0eed3f;
+  justify-content: space-evenly;
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 30px);
+  gap: 10px 0;
+  width: 140px;
+}
+
+.day{
+  text-align: center;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+}
+
+.holiday{
+  color: rgb(255, 217, 0);
+}
+.sunday{
+  color: #ff2222;
+}
+
+.day.today {
+    border: 2px solid #0eed3f;
+    background-color: #06acff;
+    color: #ff9102;
+    border-radius: 5px;
 }
