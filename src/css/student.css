@@ -15,6 +15,7 @@ body {
   grid-template-areas:
     "nav main"
     "nav footer";
+  overflow-x: hidden;
   width: 100vw;
   height: 100vh;
   background: #06acff;
@@ -97,11 +98,147 @@ nav #student-profile img {
   transform-origin: bottom left;
 }
 
+#navigation ul li a.active::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
 main {
   grid-area: main;
   width: 100%;
   height: 100%;
   background: #696969;
+  display: grid;
+  grid-template-columns: 1fr 0.2fr;
+  grid-template-areas: 
+  "main catalog";
+}
+
+#dashboard{
+  display: none;
+}
+
+#dashboard.active{
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#main-section{
+  grid-area: main;
+}
+
+.container{
+  width: 100%;
+  height: max-content;
+  margin: 10px;
+}
+
+.tab-pane{
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  height: max-content;
+  padding: 20px 20px 5px;
+  background: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.tab-pane .tab{
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.tab-pane .tab:hover{
+  color: #ff9102;
+}
+
+.tab-pane .tab.active{
+  text-decoration: underline;
+  color: #ff9102;
+  transform: translateY(-2px);
+}
+
+.tab-content.active{
+  width: 100%;
+  padding: 20px;
+  background: grey;
+  height: max-content;
+  flex-direction: column;
+}
+
+.tab-content p{
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ff9102;
+}
+
+table{
+  font-size: 1.3rem;
+}
+
+thead tr th{
+  color: #ff9102;
+}
+
+th, td{
+  text-align: center;
+}
+
+tbody tr:nth-child(even){
+  background-color: #4929008a
+}
+tbody tr:nth-child(odd){
+  background-color: #b164009f
+}
+
+#tab1{
+  display: none;
+}
+#tab1.active{
+  display: flex;
+}
+
+#tab2{
+  display: none;
+}
+#tab2.active{
+  display: flex;
+}
+
+#catalog{
+  grid-area: catalog;
+}
+
+#news{
+  display: none;
+}
+#news.active{
+  display: flex;
+  background: #ffffff;
+  width: 100%;
+  height: 100%;
+}
+
+#courses{
+  display: none;
+}
+#courses.active{
+  display: flex;
+  background: #ff0000;
+  width: 100%;
+  height: 100%;
+}
+
+#trainers{
+  display: none;
+}
+#trainers.active{
+  display: flex;
+  background: #000;
+  width: 100%;
+  height: 100%;
 }
 
 footer {
