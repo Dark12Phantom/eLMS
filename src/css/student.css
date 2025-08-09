@@ -71,7 +71,7 @@ nav #student-profile img {
   list-style: none;
 }
 
-#navigation ul li a {
+#navigation ul li a, .logout a  {
   text-decoration: none;
   padding: 9px 0;
   font-size: 1.5rem;
@@ -80,7 +80,22 @@ nav #student-profile img {
   position: relative;
 }
 
-#navigation ul li a::after {
+.logout{
+  display: flex;
+  width: 90%;
+  justify-content: flex-end;
+}
+
+.logout a{
+  display: flex;
+  width: 150px;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+
+
+#navigation ul li a::after, .logout a::after {
   content: "";
   position: absolute;
   width: 100%;
@@ -93,7 +108,7 @@ nav #student-profile img {
   transition: transform 0.25s ease-out;
 }
 
-#navigation ul li a:hover::after {
+#navigation ul li a:hover::after, .logout a:hover::after {
   transform: scaleX(1);
   transform-origin: bottom left;
 }

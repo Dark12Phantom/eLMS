@@ -369,18 +369,30 @@ footer {
   flex-direction: column;
 }
 
-.account-modal #login,
+.account-modal #login {
+  display: none;
+}
 .account-modal #signup {
   display: none;
 }
 
-.account-modal #login.active,
+.account-modal #login.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
 .account-modal #signup.active {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
+}
+
+.account-modal #login.active form .submit input{
+  display: flex;
 }
 
 .account-modal #signup h1,
@@ -446,8 +458,15 @@ footer {
   border-bottom: 3px solid #ff9102;
   outline: 1px #ff9102 dashed;
 }
+.account-modal #login form .userInput {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: space-evenly;
+}
 
-.account-modal #login form input{
+.account-modal #login form .userInput input {
   width: 90%;
   height: 4rem;
   padding: 2px 0 2px 9px;
@@ -460,12 +479,12 @@ footer {
   font-size: 1.2rem;
 }
 
-.account-modal #login form input::placeholder{
+.account-modal #login form input::placeholder {
   color: #8b4f00;
   letter-spacing: 2px;
 }
 
-.account-modal #login form input:focus{
+.account-modal #login form input:focus {
   border-bottom: 3px solid #ff9102;
 }
 
@@ -500,9 +519,16 @@ footer {
   transition: all 0.5s ease;
 }
 
-.account-modal #login form input[type='submit']{
+.account-modal #login form .submit {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100px;
+}
+
+.account-modal #login form .submit input {
   width: 80%;
-  height: 4rem;
+  height: 100%;
   border: 0px #ff9102;
   border-radius: 30px;
   background: none;
@@ -513,7 +539,7 @@ footer {
 }
 
 .account-modal #signup form .submit input:hover,
-.account-modal #login form input[type='submit']:hover {
+.account-modal #login form .submit input:hover {
   font-weight: 600;
   box-shadow: 2px 2px 2px 0 #553000, -2px 2px 2px 0 #553000,
     inset 0 1px 0 0 #ff9100;
@@ -527,7 +553,7 @@ footer {
   justify-content: space-between;
 }
 
-.account-modal #login form{
+.account-modal #login form {
   display: flex;
   flex-direction: column;
   align-items: center;
