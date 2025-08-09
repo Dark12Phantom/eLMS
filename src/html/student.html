@@ -12,16 +12,18 @@
         <h1>BTS eLMS</h1>
       </div>
       <div id="student-profile">
-        <img src="" alt="Student Profile Picture" />
+        <img src="" />
         <h3 class="name">Student Name</h3>
+        <p>Trainee</p>
         <p class="student-id-number">123456789</p>
       </div>
       <div id="navigation">
         <ul>
           <li><a class="dashboard active" href="#dashboard">Dashboard</a></li>
-          <li><a class="news" href="#news">News</a></li>
-          <li><a class="courses" href="#courses">Courses</a></li>
-          <li><a class="trainers" href="#trainers">Trainers</a></li>
+          <li><a class="courses" href="#courses">My Courses</a></li>
+          <li><a class="activities" href="#activities">My Activities</a></li>
+          <li><a class="enrollment" href="#enrollment">Enrollment</a></li>
+          <li><a class="profile" href="#profile">Profile</a></li>
         </ul>
       </div>
       <div class="logout">
@@ -32,7 +34,7 @@
             height="24px"
             viewBox="0 -960 960 960"
             width="24px"
-            fill="#FF9102"
+            fill="#006dda"
           >
             <path
               d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"
@@ -46,55 +48,95 @@
       <div id="main-section">
         <section id="dashboard">
           <div class="container">
-            <div class="tab-pane">
-              <div class="tab tab1 active" data-tab="tab1">Current Courses</div>
-              <div class="tab tab2" data-tab="tab2">Credited Courses</div>
-            </div>
-            <div class="tab-content ongoing-content active" id="tab1">
-              <p>Current Courses</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Course Name</th>
-                    <th>Course Code</th>
-                    <th>Schedule</th>
-                    <th>Instructor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Agricultural Crops Production NC II</td>
-                    <td>ACPNC2</td>
-                    <td>MF 5:00-7:00</td>
-                    <td>John Doe</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-content finished-content" id="tab2">
-              <p>Credited Courses</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Course Name</th>
-                    <th>Course Code</th>
-                    <th>Scores</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Driving NC II</td>
-                    <td>DNC2</td>
-                    <td>88.69%</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div id="dash-cards">
+              <div class="card c1">
+                <h3>Enrolled Courses</h3>
+                <h2>2</h2>
+                <p><i>Courses</i></p>
+              </div>
+              <div class="card c2">
+                <h3>Hours Studied</h3>
+                <h2>42</h2>
+                <p><i>Hours</i></p>
+              </div>
+              <div class="card c3">
+                <h3>Average Grade</h3>
+                <h2>84%</h2>
+                <p><i>Avg</i></p>
+              </div>
+              <div class="card c4">
+                <h3>My Courses (Quick Access)</h3>
+                <div class="inside-container">
+                  <div class="wrapper">
+                    <div class="infos">
+                      <h4>Agricultural Crops Production NC II</h4>
+                      <p class="trainer"><i>John Doe (Trainer)</i></p>
+                    </div>
+                    <button class="materials">Materials</button>
+                  </div>
+                  <div class="wrapper">
+                    <div class="infos">
+                      <h4>Agricultural Crops Production NC II</h4>
+                      <p class="trainer"><i>John Doe (Trainer)</i></p>
+                    </div>
+                    <button class="materials">Materials</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card c5">
+                <h3>Enrollment Requests</h3>
+                <p>No pending requests</p>
+                <button><i>Self-Enroll</i></button>
+              </div>
             </div>
           </div>
         </section>
-        <section id="news"></section>
-        <section id="courses"></section>
-        <section id="trainers"></section>
+        <section id="courses">
+          <div class="container">
+            <h2>My Courses</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Instructor</th>
+                  <th>Progress</th>
+                  <th>Materials</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Agricultural Crops Production NC II</td>
+                  <td>John Doe (Trainer)</td>
+                  <td>50%</td>
+                  <td>
+                    <div class="content">
+                      <a href="">Chapter-1.pdf</a>
+                    </div>
+                    <div class="content">
+                      <a href="">Slides-CH1.pdf</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Agricultural Crops Production NC II</td>
+                  <td>John Doe (Trainer)</td>
+                  <td>50%</td>
+                  <td>
+                    <div class="content">
+                      <a href="">Chapter-1.pdf</a>
+                    </div>
+                    <div class="content">
+                      <a href="">Slides-CH1.pdf</a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="activities"></section>
+        <section id="enrollment"></section>
+        <section id="profile"></section>
       </div>
       <div id="catalog">
         <div class="calendar-container">
@@ -111,10 +153,10 @@
     <!-- NAVIGATION TABS -->
     <script>
       const tabElements = document.querySelectorAll(
-        ".dashboard, .news, .courses, .trainers"
+        ".dashboard, .courses, .activities, .enrollment, .profile"
       );
       const sectionElements = document.querySelectorAll(
-        "#dashboard, #news, #courses, #trainers"
+        "#dashboard, #courses, #activities, #enrollment, #profile"
       );
 
       function handleTabAndSectionClick(clickedTab) {
@@ -137,27 +179,6 @@
 
       tabElements.forEach((tab) => {
         tab.addEventListener("click", () => handleTabAndSectionClick(tab));
-      });
-    </script>
-
-    <!-- DASHBOARD TABS -->
-    <script>
-      const tabSelectors = document.querySelectorAll(".tab");
-      const tabContents = document.querySelectorAll(".tab-content");
-
-      function handleSwitchingTabs(tabClicked) {
-        const targetId = tabClicked.dataset.tab;
-        const matchingSection = document.getElementById(targetId);
-
-        tabSelectors.forEach((el) => el.classList.remove("active"));
-        tabContents.forEach((el) => el.classList.remove("active"));
-
-        tabClicked.classList.add("active");
-        if (matchingSection) matchingSection.classList.add("active");
-      }
-
-      tabSelectors.forEach((tab) => {
-        tab.addEventListener("click", () => handleSwitchingTabs(tab));
       });
     </script>
 

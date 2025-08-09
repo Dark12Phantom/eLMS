@@ -7,6 +7,7 @@ html {
 }
 
 body {
+  box-sizing: border-box;
   padding: 0;
   margin: 0;
   display: grid;
@@ -18,19 +19,21 @@ body {
   overflow-x: hidden;
   width: 100vw;
   height: 100vh;
-  background: #06acff;
+  background: #1d3557;
 }
 
 nav {
-  background: #06acff;
+  background: #1d3557;
   grid-area: nav;
   width: 100%;
-  height: 90vh;
+  height: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-evenly;
+  color: #fff;
   padding: 3rem 1px;
-  gap: 5em;
+  gap: 2em;
 }
 
 nav .logo {
@@ -50,7 +53,8 @@ nav #student-profile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-evenly;
+  height: max-content;
 }
 
 nav #student-profile img {
@@ -76,13 +80,13 @@ nav #student-profile img {
   padding: 9px 0;
   font-size: 1.5rem;
   font-weight: 500;
-  color: #000;
+  color: #fff;
   position: relative;
 }
 
 .logout{
   display: flex;
-  width: 90%;
+  width: 65%;
   justify-content: flex-end;
 }
 
@@ -93,8 +97,6 @@ nav #student-profile img {
   align-items: center;
 }
 
-
-
 #navigation ul li a::after, .logout a::after {
   content: "";
   position: absolute;
@@ -103,7 +105,7 @@ nav #student-profile img {
   height: 3px;
   bottom: 0;
   left: 0;
-  background-color: #ff9102;
+  background-color: #006dda;
   transform-origin: bottom right;
   transition: transform 0.25s ease-out;
 }
@@ -122,12 +124,20 @@ main {
   grid-area: main;
   width: 100%;
   height: 100%;
-  background: #696969;
+  background: #fff;
   display: grid;
   grid-template-columns: 1fr 0.2fr;
   grid-template-areas: 
   "main catalog";
   gap: 35px;
+}
+
+#main-section{
+  grid-area: main;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  height: 880px;
+  box-sizing: border-box;
 }
 
 #dashboard{
@@ -136,95 +146,190 @@ main {
 
 #dashboard.active{
   display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#dashboard .container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+#dash-cards{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 32% 32% 32%;
+  grid-template-rows: max-content max-content;
+  gap: 10px;
+  grid-template-areas: 
+  "c1 c2 c3"
+  "c4 c4 c5"
+  ;
+}
+
+.card {
+  background-image: linear-gradient(to bottom,#00000017, #00000052);
+  padding: 10px 20px;
+  border-radius: 8px 8px 5px 5px;
+}
+
+.card h3{
+  color: #006dda;
+}
+.c1 {
+  grid-area: c1;
+}
+.c2 {
+  grid-area: c2;
+}
+.c3 {
+  grid-area: c3;
+}
+.c4 {
+  grid-area: c4;
+}
+.c4 .wrapper{
+  display: flex;
+  width: auto;
+  background: #79797969;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.c4 h4{
+  color: #000000;
+}
+
+.c4 p{
+  color: #444444;
+}
+
+.c4 button{
+  width: auto;
+  height: max-content;
+  border: none;
+  background: #006dda;
+  padding: 10px;
+  font-weight: 700;
+  border-radius: 6px;
+  color: white;
+}
+
+.c4 .inside-container{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.c4 .wrapper .infos{
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+.c5 {
+  grid-area: c5;
+}
+
+.c5 button{
+  width: auto;
+  height: max-content;
+  border: none;
+  background: #006dda;
+  padding: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  color: white;
+}
+
+
+#courses{
+  display: none;
+}
+#courses.active{
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#courses .container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+#courses .container h2{
+  color: #004080;
+}
+
+table thead{
+  background-image: linear-gradient(to bottom, #cfe6ff, #cfe6ff9c, #cfe6ff3d);
+  border: none;
+}
+
+table thead tr{
+  text-align: left;
+}
+
+table thead tr th{
+  padding: 10px;
+  color: #004080;
+}
+
+table{
+  border-spacing: 0;
+}
+
+table tbody tr td{
+  padding: 10px;
+}
+
+#activities{
+  display: none;
+}
+#activities.active{
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#enrollment{
+  display: none;
+}
+#enrollment.active{
+  display: flex;
+  background: #000;
   width: 100%;
   height: 100%;
 }
 
-#main-section{
-  grid-area: main;
-  overflow-y: scroll;
-  scrollbar-width: none;
-  height: 880px;
-}
-
-.container{
-  width: 96%;
-  height: max-content;
-  margin: 10px;
-}
-
-.tab-pane{
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  height: max-content;
-  padding: 20px 20px 5px;
-  background: white;
-  border-radius: 10px 10px 0 0;
-}
-
-.tab-pane .tab{
-  cursor: pointer;
-  transition: 0.3s ease;
-  font-size: 1.2rem;
-}
-
-.tab-pane .tab:hover{
-  color: #ff9102;
-}
-
-.tab-pane .tab.active{
-  text-decoration: underline;
-  color: #ff9102;
-  transform: translateY(-2px);
-}
-
-.tab-content.active{
-  width: 100%;
-  padding: 20px;
-  background: grey;
-  height: max-content;
-  flex-direction: column;
-  height: 3000px;
-}
-
-.tab-content p{
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #ff9102;
-}
-
-table{
-  font-size: 1.3rem;
-}
-
-thead tr th{
-  color: #ff9102;
-}
-
-th, td{
-  text-align: center;
-}
-
-tbody tr:nth-child(even){
-  background-color: #4929008a
-}
-tbody tr:nth-child(odd){
-  background-color: #b164009f
-}
-
-#tab1{
+#profile{
   display: none;
 }
-#tab1.active{
+#profile.active{
   display: flex;
+  background: #ff9102;
+  width: 100%;
+  height: 100%;
 }
 
-#tab2{
-  display: none;
-}
-#tab2.active{
+footer {
+  background: #1d3557;
+  color: #fff;
+  grid-area: footer;
+  width: 100%;
+  height: 100%;
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #catalog{
@@ -234,46 +339,6 @@ tbody tr:nth-child(odd){
   width: 90%;
   padding-left: 20px;
   position: relative;
-}
-
-#news{
-  display: none;
-}
-#news.active{
-  display: flex;
-  background: #ffffff;
-  width: 100%;
-  height: 100%;
-}
-
-#courses{
-  display: none;
-}
-#courses.active{
-  display: flex;
-  background: #ff0000;
-  width: 100%;
-  height: 100%;
-}
-
-#trainers{
-  display: none;
-}
-#trainers.active{
-  display: flex;
-  background: #000;
-  width: 100%;
-  height: 100%;
-}
-
-footer {
-  background: #06acff;
-  grid-area: footer;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .calendar-container{
@@ -290,8 +355,9 @@ footer {
   display: flex;
   padding-top: 20px;
   padding-bottom: 10px;
-  color: #0eed3f;
-  justify-content: space-evenly;
+  padding-right: 40px;
+  color: #1d3557;
+  justify-content: flex-end;
 }
 
 #calendar {
@@ -304,20 +370,20 @@ footer {
 .day{
   text-align: center;
   font-size: 18px;
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
 }
 
 .holiday{
-  color: rgb(255, 217, 0);
+  color: #ff2222;
 }
 .sunday{
   color: #ff2222;
 }
 
 .day.today {
-    border: 2px solid #0eed3f;
-    background-color: #06acff;
-    color: #ff9102;
+    border: 2px solid #006aff;
+    background-color: #1d3557;
+    color: #85b8ff;
     border-radius: 5px;
 }
