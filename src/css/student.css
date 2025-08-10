@@ -75,7 +75,8 @@ nav #student-profile img {
   list-style: none;
 }
 
-#navigation ul li a, .logout a  {
+#navigation ul li a,
+.logout a {
   text-decoration: none;
   padding: 9px 0;
   font-size: 1.5rem;
@@ -84,20 +85,21 @@ nav #student-profile img {
   position: relative;
 }
 
-.logout{
+.logout {
   display: flex;
   width: 65%;
   justify-content: flex-end;
 }
 
-.logout a{
+.logout a {
   display: flex;
   width: 150px;
   justify-content: space-evenly;
   align-items: center;
 }
 
-#navigation ul li a::after, .logout a::after {
+#navigation ul li a::after,
+.logout a::after {
   content: "";
   position: absolute;
   width: 100%;
@@ -110,7 +112,8 @@ nav #student-profile img {
   transition: transform 0.25s ease-out;
 }
 
-#navigation ul li a:hover::after, .logout a:hover::after {
+#navigation ul li a:hover::after,
+.logout a:hover::after {
   transform: scaleX(1);
   transform-origin: bottom left;
 }
@@ -127,12 +130,11 @@ main {
   background: #fff;
   display: grid;
   grid-template-columns: 1fr 0.2fr;
-  grid-template-areas: 
-  "main catalog";
+  grid-template-areas: "main catalog";
   gap: 35px;
 }
 
-#main-section{
+#main-section {
   grid-area: main;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -140,42 +142,41 @@ main {
   box-sizing: border-box;
 }
 
-#dashboard{
+#dashboard {
   display: none;
 }
 
-#dashboard.active{
+#dashboard.active {
   display: flex;
   width: 96%;
   height: 100%;
   margin: 20px;
 }
 
-#dashboard .container{
+#dashboard .container {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-#dash-cards{
+#dash-cards {
   width: 100%;
   display: grid;
   grid-template-columns: 32% 32% 32%;
   grid-template-rows: max-content max-content;
   gap: 10px;
-  grid-template-areas: 
-  "c1 c2 c3"
-  "c4 c4 c5"
-  ;
+  grid-template-areas:
+    "c1 c2 c3"
+    "c4 c4 c5";
 }
 
 .card {
-  background-image: linear-gradient(to bottom,#00000017, #00000052);
+  background-image: linear-gradient(to bottom, #00000017, #00000052);
   padding: 10px 20px;
   border-radius: 8px 8px 5px 5px;
 }
 
-.card h3{
+.card h3 {
   color: #006dda;
 }
 .c1 {
@@ -190,7 +191,7 @@ main {
 .c4 {
   grid-area: c4;
 }
-.c4 .wrapper{
+.c4 .wrapper {
   display: flex;
   width: auto;
   background: #79797969;
@@ -200,15 +201,15 @@ main {
   border-radius: 10px;
 }
 
-.c4 h4{
+.c4 h4 {
   color: #000000;
 }
 
-.c4 p{
+.c4 p {
   color: #444444;
 }
 
-.c4 button{
+.c4 button {
   width: auto;
   height: max-content;
   border: none;
@@ -219,13 +220,13 @@ main {
   color: white;
 }
 
-.c4 .inside-container{
+.c4 .inside-container {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.c4 .wrapper .infos{
+.c4 .wrapper .infos {
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -237,7 +238,7 @@ main {
   grid-area: c5;
 }
 
-.c5 button{
+.c5 button {
   width: auto;
   height: max-content;
   border: none;
@@ -248,73 +249,164 @@ main {
   color: white;
 }
 
-
-#courses{
+#courses {
   display: none;
 }
-#courses.active{
+#courses.active {
   display: flex;
   width: 96%;
   height: 100%;
   margin: 20px;
 }
 
-#courses .container{
+#courses .container {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-#courses .container h2{
+#courses .container h2 {
   color: #004080;
 }
 
-table thead{
+table thead {
   background-image: linear-gradient(to bottom, #cfe6ff, #cfe6ff9c, #cfe6ff3d);
   border: none;
 }
 
-table thead tr{
+table thead tr {
   text-align: left;
 }
 
-table thead tr th{
+table thead tr th {
   padding: 10px;
   color: #004080;
 }
 
-table{
+table {
   border-spacing: 0;
 }
 
-table tbody tr td{
+table tbody tr td {
   padding: 10px;
 }
 
-#activities{
+#activities {
   display: none;
 }
-#activities.active{
+#activities.active {
   display: flex;
   width: 96%;
   height: 100%;
   margin: 20px;
 }
 
-#enrollment{
+#activities .container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#activities .container h2 {
+  color: #004080;
+}
+
+#activities .container .button {
+  position: relative;
+}
+
+#activities .container .button #popup p {
+  color: #006dda;
+}
+
+#activities .container .button #popup {
   display: none;
 }
-#enrollment.active{
+
+#activities .container .button #popup.active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  position: absolute;
+  background: #80808083;
+  padding: 10px;
+  backdrop-filter: blur(20px);
+  height: 100px;
+  width: 150px;
+  z-index: 1;
+  transform: translate(-25%, -25%);
+}
+
+#activities .container .button #popup .button-group {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  border-radius: 20px;
+  cursor: pointer;
+  align-items: center;
+  background-color: #fff;
+  padding: 10px;
+}
+
+#activities .container .button #popup .button-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 20px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#activities .container .button #popup .button-group label span {
+  display: inline-block;
+  max-width: calc(100%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+#activities .container .button #popup .button-group input {
+  display: none;
+}
+
+#activities .container button {
+  width: max-content;
+  height: max-content;
+  background-color: #006aff;
+  padding: 8px;
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+#activities .container button:disabled {
+  color: #222222;
+  background-color: #919191;
+}
+
+#enrollment {
+  display: none;
+}
+#enrollment.active {
   display: flex;
   background: #000;
   width: 100%;
   height: 100%;
 }
 
-#profile{
+#profile {
   display: none;
 }
-#profile.active{
+#profile.active {
   display: flex;
   background: #ff9102;
   width: 100%;
@@ -332,7 +424,7 @@ footer {
   align-items: center;
 }
 
-#catalog{
+#catalog {
   grid-area: catalog;
   display: flex;
   justify-content: center;
@@ -341,7 +433,7 @@ footer {
   position: relative;
 }
 
-.calendar-container{
+.calendar-container {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -349,7 +441,7 @@ footer {
   right: 0;
 }
 
-#calendar-header{
+#calendar-header {
   font-weight: 600;
   font-size: 1.2rem;
   display: flex;
@@ -367,23 +459,23 @@ footer {
   width: 140px;
 }
 
-.day{
+.day {
   text-align: center;
   font-size: 18px;
   width: 23px;
   height: 23px;
 }
 
-.holiday{
+.holiday {
   color: #ff2222;
 }
-.sunday{
+.sunday {
   color: #ff2222;
 }
 
 .day.today {
-    border: 2px solid #006aff;
-    background-color: #1d3557;
-    color: #85b8ff;
-    border-radius: 5px;
+  border: 2px solid #006aff;
+  background-color: #1d3557;
+  color: #85b8ff;
+  border-radius: 5px;
 }

@@ -76,8 +76,8 @@
                   </div>
                   <div class="wrapper">
                     <div class="infos">
-                      <h4>Agricultural Crops Production NC II</h4>
-                      <p class="trainer"><i>John Doe (Trainer)</i></p>
+                      <h4>Automotive Servicing NC I</h4>
+                      <p class="trainer"><i>Juan dela Cruz (Trainer)</i></p>
                     </div>
                     <button class="materials">Materials</button>
                   </div>
@@ -110,23 +110,23 @@
                   <td>50%</td>
                   <td>
                     <div class="content">
-                      <a href="">Chapter-1.pdf</a>
+                      <a href="">Agriculture-1.pdf</a>
                     </div>
                     <div class="content">
-                      <a href="">Slides-CH1.pdf</a>
+                      <a href="">Slides-AgCH1.pptx</a>
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td>Agricultural Crops Production NC II</td>
-                  <td>John Doe (Trainer)</td>
+                  <td>Automotive Servicing NC I</td>
+                  <td>Juan dela Cruz (Trainer)</td>
                   <td>50%</td>
                   <td>
                     <div class="content">
-                      <a href="">Chapter-1.pdf</a>
+                      <a href="">ASNC1-1.pdf</a>
                     </div>
                     <div class="content">
-                      <a href="">Slides-CH1.pdf</a>
+                      <a href="">Slides-ASCH1.pdf</a>
                     </div>
                   </td>
                 </tr>
@@ -134,7 +134,69 @@
             </table>
           </div>
         </section>
-        <section id="activities"></section>
+        <section id="activities">
+          <div class="container">
+            <h2>My Activities</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Activity</th>
+                  <th>Course</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>Quiz 1 Agriculture</td>
+                  <td>Agricultural Crops Production NC II</td>
+                  <td>02-23-2025</td>
+                  <td>Pending</td>
+                  <td>
+                    <div class="button">
+                      <button>Upload</button>
+                      <div id="popup">
+                        <div class="button-group">
+                          <label id="file-label" for="file-input"
+                            ><span id="file-name">Choose File</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#006aff"
+                            >
+                              <path
+                                d="M440-200h80v-167l64 64 56-57-160-160-160 160 57 56 63-63v167ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"
+                              /></svg></label>
+                          <input
+                            type="file"
+                            name="file-input"
+                            id="file-input"
+                          />
+                        </div>
+                        <button>Upload</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Activity 1 - ASNC1</td>
+                  <td>Automotive Servicing NC I</td>
+                  <td>03-30-2025</td>
+                  <td>Submitted</td>
+                  <td>
+                    <div class="button">
+                      <button disabled="disabled">✔ Submitted</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
         <section id="enrollment"></section>
         <section id="profile"></section>
       </div>
@@ -250,6 +312,34 @@
       }
 
       initCalendar(year, month);
+    </script>
+
+    <!-- ACTIVITIES FUNCTIONS -->
+    <script>
+      const popup = document.querySelector("#popup");
+      const button = document.querySelector(".button > button");
+
+      button.addEventListener("click", () => {
+        if (popup.classList.contains("active")) {
+          popup.classList.remove("active");
+        } else {
+          popup.classList.add("active");
+        }
+      });
+
+      const fileInput = document.querySelector("#file-input");
+      const fileName = document.querySelector("#file-name");
+      const fileSVGLabel = document.querySelector("#file-label > svg");
+
+      fileInput.addEventListener("change", function () {
+        if (this.files && this.files.length > 0) {
+          fileName.childNodes[0].nodeValue = this.files[0].name;
+          fileSVGLabel.style.display = "none";
+        } else {
+          fileName.textContent = "Choose File";
+          fileSVGLabel.style.display = "";
+        }
+      });
     </script>
   </body>
 </html>
