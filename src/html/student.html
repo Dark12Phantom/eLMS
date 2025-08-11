@@ -133,6 +133,88 @@
               </tbody>
             </table>
           </div>
+          <div class="container">
+            <h2>Available Courses</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Courses</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <tr>
+                    <td>Agricultural Crops Production NC II</td>
+                    <td>Ongoing</td>
+                    <td>
+                      <button type="button" disabled>Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Automotive Servicing NC I</td>
+                    <td>Ongoing</td>
+                    <td>
+                      <button type="button" disabled>Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Bread and Pastry Production NC II</td>
+                    <td>No Record</td>
+                    <td>
+                      <button type="button">Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Dressmaking NC II</td>
+                    <td>No Redord</td>
+                    <td>
+                      <button type="button">Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Hairdressing NC II</td>
+                    <td>No Record</td>
+                    <td>
+                      <button type="button">Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Japanese Language and Culture</td>
+                    <td>Erolling</td>
+                    <td>
+                      <button type="button" disabled>Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Driving NC II</td>
+                    <td>No Record</td>
+                    <td>
+                      <button type="button">Enroll</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Tailoring NC II</td>
+                    <td>No Record</td>
+                    <td>
+                      <button type="button">Enroll</button>
+                    </td>
+                  </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="popup-enrollment">
+            <div>
+              <h3 id="popupCourseName"></h3>
+              <p>Note: The personal information you provided</p>
+              <p>on your profile will be submitted to the school.</p>
+              <div class="buttons">
+                <button id="closePopup">Close</button>
+                <button id="submitEnrollment">Submit Enrollment</button>
+              </div>
+            </div>
+          </div>
         </section>
         <section id="activities">
           <div class="container">
@@ -197,8 +279,79 @@
             </table>
           </div>
         </section>
-        <section id="enrollment"></section>
-        <section id="profile"></section>
+        <section id="enrollment">
+          <div class="container">
+            <h2>Enrollment History</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Requested Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>Japanese Language and Culture</td>
+                  <td>05-13-25</td>
+                  <td>On Review</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="profile">
+          <h2>My Profile</h2>
+          <div class="container">
+            <form class="capsule">
+              <div class="profile-image">
+                <img src="" alt="" id="profilePic" src="default.jpg" alt="Profile" >
+                <label for="image-edit">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    height="24px" 
+                    viewBox="0 -960 960 960" 
+                    width="24px" 
+                    fill="#ffffff">
+                    <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+                  </svg>
+                </label>
+                <input type="file" name="image-edit" id="image-edit" accept="image/*">
+              </div>
+              <div class="details">
+                <label for="profile-name">Name</label>
+                <input id="profile-name" type="text" disabled value="Ane S. Thesia">
+
+                <label for="profile-mail">Email</label>
+                <input id="profile-mail" type="text" disabled value="anesthesia.d@domain.com">
+
+                <label for="profile-contact">Contact</label>
+                <input id="profile-contact" type="text" disabled value="+63 9690 202 1214">
+
+                <label for="profile-bio">Bio</label>
+                <textarea id="profile-bio" disabled style="height: 100px; overflow-wrap: break-word; justify-content: flex-start; align-items: flex-start; white-space: pre-wrap;">A freelancer aiming to have additional training and expanding knowledge on every existing field.</textarea>
+
+                <button id="editButton" type="button">Edit Profile</button>
+              </div>
+              <div class="details-edit" style="display: none;">
+                <label for="edit-profile-name">Name</label>
+                <input id="edit-profile-name" type="text">
+
+                <label for="edit-profile-mail">Email</label>
+                <input id="edit-profile-mail" type="text">
+
+                <label for="edit-profile-contact">Contact</label>
+                <input id="edit-profile-contact" type="text">
+
+                <label for="edit-profile-bio">Bio</label>
+                <textarea id="edit-profile-bio" style="height: 100px; overflow-wrap: break-word; justify-content: flex-start; align-items: flex-start; white-space: pre-wrap;"></textarea>
+
+                <button id="saveButton" type="button">Save Profile</button>
+              </div>
+            </form>
+          </div>
+        </section>
       </div>
       <div id="catalog">
         <div class="calendar-container">
@@ -314,6 +467,31 @@
       initCalendar(year, month);
     </script>
 
+    <!-- COURSE LOGIC -->
+     <script>
+      let lastClickedButton = null;
+
+      document.querySelectorAll('table tbody button').forEach(button => {
+        button.addEventListener('click', function() {
+          lastClickedButton = this;
+          const courseName = this.closest('tr').querySelector('td').textContent;
+          document.getElementById('popupCourseName').textContent = courseName;
+          document.getElementById('popup-enrollment').style.display = 'flex';
+        });
+      });
+
+      document.getElementById('closePopup').addEventListener('click', () => {
+        document.getElementById('popup-enrollment').style.display = 'none';
+      });
+
+      document.getElementById('submitEnrollment').addEventListener('click', () => {
+        if (lastClickedButton) {
+          lastClickedButton.disabled = true;
+        }
+        document.getElementById('popup-enrollment').style.display = 'none';
+      });
+     </script>
+
     <!-- ACTIVITIES FUNCTIONS -->
     <script>
       const popup = document.querySelector("#popup");
@@ -341,5 +519,43 @@
         }
       });
     </script>
+
+    <!-- PROFILE FUNCTIONS -->
+     <script>
+      const detailsContainer = document.querySelector('.details')
+      const editDetailsContainer = document.querySelector('.details-edit')
+
+      const detailsDisplay = detailsContainer.querySelectorAll('input, textarea');
+      const editDetails = editDetailsContainer.querySelectorAll('input, textarea');
+
+      document.getElementById("editButton").addEventListener("click", () => {
+        detailsDisplay.forEach((input, i) => {
+          editDetails[i].value = input.value
+        })
+
+        detailsContainer.style.display = "none"
+        editDetailsContainer.style.display = "flex"
+      })
+
+      document.getElementById("saveButton").addEventListener("click", () => {
+        editDetails.forEach((input, i) => {
+          detailsDisplay[i].value = input.value
+        })
+
+        detailsContainer.style.display = "flex"
+        editDetailsContainer.style.display = "none"
+      })
+
+      document.getElementById("image-edit").addEventListener("change", function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById("profilePic").src = e.target.result;
+          }
+          reader.readAsDataURL(file);
+        }
+      });
+     </script>
   </body>
 </html>

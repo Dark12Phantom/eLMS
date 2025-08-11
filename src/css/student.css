@@ -254,6 +254,7 @@ main {
 }
 #courses.active {
   display: flex;
+  flex-direction: column;
   width: 96%;
   height: 100%;
   margin: 20px;
@@ -263,10 +264,77 @@ main {
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
 }
 
 #courses .container h2 {
   color: #004080;
+}
+
+#courses .container table button{
+  border-radius: 20px;
+  padding: 5px 10px;
+  border: #0011ff 0.5px solid;
+  background-color: #006dda;
+  font-family: 'Outfit', sans-serif;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+#courses .container table button:disabled{
+  background-color: #919191;
+  border: none;
+  color: black;
+  cursor: not-allowed;
+}
+
+#popup-enrollment{
+  position: absolute;
+  transform: translate(100%, 150%);
+  background: #00000050;
+  padding: 20px;
+  border-radius: 8px;
+  width: max-content;
+  height: max-content;
+  display: none;
+  backdrop-filter: blur(10px);
+}
+
+#popup-enrollment div{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#popup-enrollment div p{
+  line-height: 0;
+}
+
+#popup-enrollment div .buttons{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin-top: 20px;
+  width: 90%;
+}
+
+#popup-enrollment div .buttons button{
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+#popup-enrollment div .buttons #submitEnrollment{
+  border: #0011ff solid 0.5px;
+  background-color: #0011ff;
+  color: white;
 }
 
 table thead {
@@ -398,9 +466,19 @@ table tbody tr td {
 }
 #enrollment.active {
   display: flex;
-  background: #000;
   width: 100%;
   height: 100%;
+}
+
+#enrollment .container{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+}
+
+#enrollment .container h2{
+  color: #004080;
 }
 
 #profile {
@@ -408,9 +486,103 @@ table tbody tr td {
 }
 #profile.active {
   display: flex;
-  background: #ff9102;
   width: 100%;
   height: 100%;
+  flex-direction: column;
+  margin: 15px;
+}
+
+#profile .container{
+  display: flex;
+  width: 90%;
+  height: max-content;
+  justify-content: center;
+  align-items: center;
+}
+
+#profile .container .profile-image{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+#profile .container .profile-image img{
+  width: 200px;
+  height: 200px;
+  border-radius: 100%;
+  background-color: #000;
+  object-fit: cover;
+}
+
+#profile .container .profile-image label{
+  background-color: #0011ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  cursor: pointer;
+  position: absolute;
+  top: 160px;
+  left: 140px;
+}
+
+#profile .container .profile-image input{
+  display: none;
+}
+
+#profile .container .capsule{
+  display: flex;
+  gap: 150px;
+  align-items: center;
+}
+
+#profile .container .capsule .details,
+#profile .container .capsule .details-edit{
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  gap: 5px;
+}
+
+
+#profile .container .capsule .details input,
+#profile .container .capsule .details-edit input{
+  border: #0011ff 1px solid;
+  height: 30px;
+  border-radius: 20px;
+  padding-left: 15px;
+  font-size: 1.1rem;
+  font-family: 'Outfit', sans-serif;
+}
+
+#profile .container .capsule .details textarea,
+#profile .container .capsule .details-edit textarea{
+  border: #0011ff 1px solid;
+  height: 30px;
+  border-radius: 20px;
+  padding-left: 15px;
+  font-size: 1.1rem;
+  font-family: 'Outfit', sans-serif;
+}
+
+#profile .container .capsule .details button,
+#profile .container .capsule .details-edit button{
+  width: max-content;
+  height: max-content;
+  border: #0011ff 0.5px solid;
+  border-radius: 20px;
+  padding: 10px;
+  background-color: #006aff;
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
+  letter-spacing: 1px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 footer {
