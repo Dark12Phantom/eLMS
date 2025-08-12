@@ -562,50 +562,33 @@
   <!-- STATIC USERS -->
   <script>
     const users = [
-      {
-        username: "student",
-        password: "student",
-        page: "./html/student.html",
-      },
-      {
-        username: "trainer",
-        password: "trainer",
-        page: "./html/trainer-page.html",
-      },
-      {
-        username: "admin",
-        password: "admin",
-        page: "./html/admin.html",
-      },
-    ];
+  { username: "student", password: "student", page: "./html/student.html" },
+  { username: "trainer", password: "trainer", page: "./html/trainer-page.html" },
+  { username: "admin", password: "admin", page: "./html/admin.html" }
+];
 
-    const loginButton = document.querySelector("#login-button");
+const loginForm = document.querySelector("#login form");
 
-    function login() {
-      const userInput = document.querySelector("#username");
-      const passwordInput = document.querySelector("#pass");
+loginForm.addEventListener("submit", (e) => {
+  e.preventDefault(); // stop form reload
 
-      console.log("Input Username:", `"${userInput.value.trim()}"`);
-      console.log("Input Password:", `"${passwordInput.value.trim()}"`);
+  const userInput = document.querySelector("#username");
+  const passwordInput = document.querySelector("#pass");
 
-      const matchUser = users.find(
-        (u) =>
-          u.username === userInput.value.trim() &&
-          u.password === passwordInput.value.trim()
-      );
+  const matchUser = users.find(
+    (u) =>
+      u.username === userInput.value.trim() &&
+      u.password === passwordInput.value.trim()
+  );
 
-      if (matchUser) {
-        window.alert("Login Successful");
-        setTimeout(() => {
-          window.location.href = matchUser.page;
-        }, 1500);
-      } else {
-        window.alert("Username or Password doesn't match! Try again.");
-      }
-    }
-
-    loginButton.addEventListener("click", () => {
-      login();
-    });
+  if (matchUser) {
+    window.alert("Login Successful");
+    setTimeout(() => {
+      window.location.href = matchUser.page;
+    }, 1500);
+  } else {
+    window.alert("Username or Password doesn't match! Try again.");
+  }
+});
   </script>
 </html>
