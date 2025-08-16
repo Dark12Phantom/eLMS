@@ -395,29 +395,32 @@
             </svg>
           </div>
           <h1>Signup</h1>
-          <form action="">
+          <form action="./php/register.php" method="POST" id="registerForm">
             <div class="basic-info">
-              <input id="fname" type="text" placeholder="First Name" required />
+              <input name="fname" id="fname" type="text" placeholder="First Name" required />
               <input
+                name="mname"
                 id="mname"
                 type="text"
                 placeholder="Middle Name"
                 required
               />
-              <input id="lname" type="text" placeholder="Last Name" required />
+              <input name="lname" id="lname" type="text" placeholder="Last Name" required />
               <input
+                name="suffix"
                 id="suffix"
                 type="text"
                 placeholder="Name Suffix (Jr., II, III)"
               />
-              <input id="age" type="number" placeholder="Age" required />
-              <input id="address" type="text" placeholder="Address" required />
-              <select name="gender" id="gender" required>
+              <input name="age" id="age" type="number" placeholder="Age" required />
+              <input name="address" id="address" type="text" placeholder="Address" required />
+              <select name="gender" name="gender" id="gender" required>
                 <option value="" selected disabled hidden>Select Gender</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
               <input
+                name="bdate"
                 id="bdate"
                 type="text"
                 onfocus="(this.type='date')"
@@ -425,8 +428,8 @@
                 placeholder="Birthdate"
                 required
               />
-              <input id="email" type="email" placeholder="Email" required />
               <input
+                name="cnum"
                 id="cnum"
                 type="tel"
                 placeholder="Mobile Number"
@@ -446,8 +449,9 @@
               </select>
             </div>
             <div class="login-info">
-              <input id="uname" type="text" placeholder="Username" required />
+              <input name="uname" id="uname" type="text" placeholder="Email (Used to login)" required />
               <input
+                name="password"
                 id="password"
                 type="password"
                 placeholder="Password"
@@ -458,6 +462,7 @@
               <input id="submit" type="submit" value="Register" />
             </div>
           </form>
+          <div id="messageBox"></div>
           <span></span>
           <p>Have an account? || <a href="#login">Login instead.</a></p>
         </div>
@@ -557,6 +562,30 @@
         loginPage.classList.add("active");
       }
     });
+
+    const registerForm = document.getElementById("registerForm");
+    registerForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      const response = await fetch ("./php/register.php", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      const messageBox = document.getElementById('messageBox');
+      messageBox.textContent = result.message;
+      messageBox.style.color = result.status === "success" ? "green" : "red";
+    });
+
+    if (result.status === "success"){
+      setTimeout(() => {
+        window.reload();
+      }, 3000);
+    }
   </script>
 
   <!-- STATIC USERS -->
