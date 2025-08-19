@@ -1,3 +1,8 @@
+<?php
+require_once "../php/authentication.php";
+authenticate();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -37,7 +42,7 @@
         </ul>
       </div>
       <div class="logout">
-        <a href="../index.html"
+        <a href="../php/logout.php"
           >Log out
           <svg
             xmlns="http://www.w3.org/2000/svg"

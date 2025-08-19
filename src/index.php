@@ -1,3 +1,24 @@
+<?php
+session_start();
+
+if (isset($_SESSION['user'])) {
+    $role = $_SESSION['user']['role'];
+    
+    switch ($role) {
+        case 'admin':
+            header("Location: admin_dashboard.php");
+            break;
+        case 'student':
+            header("Location: student_dashboard.php");
+            break;
+        case 'teacher':
+            header("Location: teacher_dashboard.php");
+            break;
+    }
+    exit();
+}
+?>
+
 <!-- LANDING PAGE -->
 <!DOCTYPE html>
 <html lang="en">
@@ -397,7 +418,13 @@
           <h1>Signup</h1>
           <form action="./php/register.php" method="POST" id="registerForm">
             <div class="basic-info">
-              <input name="fname" id="fname" type="text" placeholder="First Name" required />
+              <input
+                name="fname"
+                id="fname"
+                type="text"
+                placeholder="First Name"
+                required
+              />
               <input
                 name="mname"
                 id="mname"
@@ -405,19 +432,37 @@
                 placeholder="Middle Name"
                 required
               />
-              <input name="lname" id="lname" type="text" placeholder="Last Name" required />
+              <input
+                name="lname"
+                id="lname"
+                type="text"
+                placeholder="Last Name"
+                required
+              />
               <input
                 name="suffix"
                 id="suffix"
                 type="text"
                 placeholder="Name Suffix (Jr., II, III)"
               />
-              <input name="age" id="age" type="number" placeholder="Age" required />
-              <input name="address" id="address" type="text" placeholder="Address" required />
+              <input
+                name="age"
+                id="age"
+                type="number"
+                placeholder="Age"
+                required
+              />
+              <input
+                name="address"
+                id="address"
+                type="text"
+                placeholder="Address"
+                required
+              />
               <select name="gender" name="gender" id="gender" required>
                 <option value="" selected disabled hidden>Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
               </select>
               <input
                 name="bdate"
@@ -431,7 +476,7 @@
               <input
                 name="cnum"
                 id="cnum"
-                type="tel"
+                type="number"
                 placeholder="Mobile Number"
                 required
               />
@@ -439,17 +484,23 @@
                 <option value="" selected disabled hidden>
                   Highest Attained Education
                 </option>
-                <option value="elementary">Elementary</option>
-                <option value="jhs">Junior High School</option>
-                <option value="shs">Senior High School</option>
-                <option value="college">College</option>
-                <option value="graduate">
+                <option value="Elementary">Elementary</option>
+                <option value="JHS">Junior High School</option>
+                <option value="SHS">Senior High School</option>
+                <option value="College">College</option>
+                <option value="Graduate">
                   Graduate School (Doctoral, Masteral, etc.)
                 </option>
               </select>
             </div>
             <div class="login-info">
-              <input name="uname" id="uname" type="text" placeholder="Email (Used to login)" required />
+              <input
+                name="uname"
+                id="uname"
+                type="text"
+                placeholder="Email (Used to login)"
+                required
+              />
               <input
                 name="password"
                 id="password"
@@ -481,16 +532,18 @@
             </svg>
           </div>
           <h1>Login</h1>
-          <form action="">
+          <form action="./php/login.php" method="POST" id="loginForm">
             <div class="userInput">
               <input
                 id="username"
+                name="username"
                 type="text"
                 placeholder="Username"
                 required
               />
               <input
                 id="pass"
+                name="pass"
                 type="password"
                 placeholder="Password"
                 required
@@ -534,7 +587,6 @@
     for (let i = 0; i < closePages.length; i++) {
       closePages[i].addEventListener("click", () => {
         accountModal.classList.remove("active");
-        loginPage.classList.remove("active");
       });
     }
     accountPopup.addEventListener("click", () => {
@@ -542,6 +594,8 @@
         accountModal.classList.remove("active");
       } else {
         accountModal.classList.add("active");
+        signupPage.classList.remove("active");
+        loginPage.classList.add("active");
         content.classList.remove("show");
       }
     });
@@ -564,60 +618,51 @@
     });
 
     const registerForm = document.getElementById("registerForm");
-    registerForm.addEventListener("submit", async function(e) {
+    registerForm.addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const formData = new FormData(this);
 
-      const response = await fetch ("./php/register.php", {
+      const response = await fetch("./php/register.php", {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       const result = await response.json();
 
-      const messageBox = document.getElementById('messageBox');
+      const messageBox = document.getElementById("messageBox");
       messageBox.textContent = result.message;
       messageBox.style.color = result.status === "success" ? "green" : "red";
-    });
 
-    if (result.status === "success"){
-      setTimeout(() => {
-        window.reload();
-      }, 3000);
-    }
+      if (result.status === "success") {
+        setTimeout(() => {
+          window.reload();
+        }, 3000);
+      }
+    });
   </script>
 
   <!-- STATIC USERS -->
   <script>
-    const users = [
-  { username: "student", password: "student", page: "./html/student.html" },
-  { username: "trainer", password: "trainer", page: "./html/trainer-page.html" },
-  { username: "admin", password: "admin", page: "./html/admin.html" }
-];
+    const loginForm = document.querySelector("#login form");
 
-const loginForm = document.querySelector("#login form");
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-loginForm.addEventListener("submit", (e) => {
-  e.preventDefault(); // stop form reload
+      const formData = new FormData(loginForm);
 
-  const userInput = document.querySelector("#username");
-  const passwordInput = document.querySelector("#pass");
+      const response = await fetch("./php/login.php", {
+        method: "POST", body: formData
+      });
 
-  const matchUser = users.find(
-    (u) =>
-      u.username === userInput.value.trim() &&
-      u.password === passwordInput.value.trim()
-  );
+      const res = await response.json();
 
-  if (matchUser) {
-    window.alert("Login Successful");
-    setTimeout(() => {
-      window.location.href = matchUser.page;
-    }, 1500);
-  } else {
-    window.alert("Username or Password doesn't match! Try again.");
-  }
-});
+      if(res.status === "success"){
+        alert(`Welcome, ${res.role}! Redirecting...`);
+            setTimeout(function(){
+                window.location.href = res.redirect;
+            }, 3000);
+      }
+    });
   </script>
 </html>

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $role = "trainee";
 
     $cnum = $_POST['cnum'];
-    $mobileNumber = preg_replace('/^0/', '+63', trim($_POST['mobile']));
+    $mobileNumber = preg_replace('/^0/', '+63', trim($cnum));
     $education = trim($_POST['education']);
     $email = trim($_POST['uname']);
     $password = trim($_POST['password']);
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $bio = "Student of Benguet Technical School";
     $prefix = '2025S-';
-    $query = 'SELECT userID FROM usertable ORDER BY id DESC LIMIT 1';
+    $query = 'SELECT userID FROM userstable ORDER BY id DESC LIMIT 1';
     $result = $conn->query( $query );
 
     if($result && $row = $result->fetch_assoc()){
