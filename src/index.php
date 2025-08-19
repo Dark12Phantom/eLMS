@@ -107,7 +107,7 @@ if (isset($_SESSION['user'])) {
             <p>
               Benguet Technical School envisions a community where every learner
               gains equal access to skills, knowledge, and opportunities for
-              lifelong successful.
+              lifelong success.
             </p>
           </div>
         </div>
