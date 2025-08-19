@@ -6,13 +6,13 @@ if (isset($_SESSION['user'])) {
     
     switch ($role) {
         case 'admin':
-            header("Location: admin_dashboard.php");
+            header("Location: ./html/admin_dashboard.php");
             break;
         case 'student':
-            header("Location: student_dashboard.php");
+            header("Location: ./html/student_dashboard.php");
             break;
         case 'teacher':
-            header("Location: teacher_dashboard.php");
+            header("Location: ./html/teacher_dashboard.php");
             break;
     }
     exit();
@@ -26,6 +26,7 @@ if (isset($_SESSION['user'])) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Benguet Technical School eLMS - Home</title>
+    <link rel="icon" href="./images/school.png" type="image/x-icon">
     <link rel="stylesheet" href="./css/index.css" />
   </head>
   <body>
@@ -33,12 +34,13 @@ if (isset($_SESSION['user'])) {
     <nav>
       <div class="nav-container">
         <div id="logo">
-          <img src="" alt="LOGO" />
+          <img src="./images/school.jpg" alt="SCHOOL LOGO" />
           <div class="text-logo">
             <h1><strong>B</strong>enguet</h1>
             <h1><strong>T</strong>echnical</h1>
             <h1><strong>S</strong>chool</h1>
           </div>
+          <img src="./images/province.jpg" alt="PROVINCE LOGO" />
         </div>
         <div id="nav-list">
           <ul>

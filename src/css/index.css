@@ -24,7 +24,9 @@ body {
 #logo {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-left: 2rem;
+  gap: 20px;
 }
 
 #logo .text-logo {
