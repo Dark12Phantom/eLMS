@@ -12,6 +12,7 @@ if (!$userId) {
 
 $fullName = trim($_POST['profile-name'] ?? '');
 $bio = trim($_POST['profile-bio'] ?? '');
+$parts = explode(' ', $fullName);
 
 $nameParts = explode(' ', $fullName);
 
@@ -20,15 +21,24 @@ $middleName = '';
 $lastName = '';
 $suffix = '';
 
-if (count($nameParts) === 2) {
-    $lastName = $nameParts[1];
-} elseif (count($nameParts) === 3) {
-    $middleName = $nameParts[1];
-    $lastName = $nameParts[2];
-} elseif (count($nameParts) >= 4) {
-    $middleName = $nameParts[1];
-    $lastName = $nameParts[2];
-    $suffix = $nameParts[3];
+$suffixes = ['Jr', 'Sr', 'II', 'III', 'IV'];
+
+if (count($parts) === 1) {
+    $firstName = $parts[0];
+} else {
+    $lastPart = array_pop($parts);
+    if (in_array(str_replace('.', '', $lastPart), $suffixes)) {
+        $suffix = $lastPart;
+        $lastName = array_pop($parts) ?? '';
+    } else {
+        $lastName = $lastPart;
+    }
+    if (count($parts) === 1) {
+        $firstName = $parts[0];
+    } elseif (count($parts) > 1) {
+        $firstName = array_shift($parts);
+        $middleName = implode(' ', $parts);
+    }
 }
 
 $profileImagePath = null;
