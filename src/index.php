@@ -430,18 +430,16 @@ if (isset($_SESSION['user'])) {
   const slides = document.querySelector(".slides");
   const slideCount = slides.children.length;
   let index = 0;
-  const pauseTime = 3000;      // 3 seconds pause
-  const transitionTime = 500;   // 0.5s slide transition
+  const pauseTime = 3000;
+  const transitionTime = 500;
 
   function nextSlide() {
     index++;
 
     if (index >= slideCount) {
-      // Reset to first slide immediately
       index = 0;
-      slides.style.transition = "none";         // remove transition
+      slides.style.transition = "none";
       slides.style.transform = `translateX(0px)`;
-      // force reflow so transition works next time
       slides.offsetWidth;
     } else {
       slides.style.transition = `transform ${transitionTime}ms ease`;
@@ -450,7 +448,6 @@ if (isset($_SESSION['user'])) {
     }
   }
 
-  // Auto-scroll
   setInterval(nextSlide, pauseTime + transitionTime);
 </script>
 
