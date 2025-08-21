@@ -43,7 +43,6 @@ if (isset($_SESSION['user'])) {
           <h1><strong>T</strong>echnical</h1>
           <h1><strong>S</strong>chool</h1>
         </div>
-        <img src="./images/province.jpg" alt="PROVINCE LOGO" />
       </div>
       <div id="nav-list">
         <ul>
@@ -53,26 +52,16 @@ if (isset($_SESSION['user'])) {
           <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
-      <div class="dropdown">
-        <button id="dropdown">
-          <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#FF9102">
-            <path
-              d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z" />
-          </svg>
-        </button>
-        <a id="account-popup">
-          <div class="content">
-            <li>
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                fill="#FF9102">
-                <path
-                  d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z" />
-              </svg>
-              <p>Login/Signup</p>
-            </li>
-          </div>
-        </a>
-      </div>
+      <a id="account-popup">
+        <div class="content">
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FF9102">
+              <path
+                d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z" />
+            </svg>
+            <p>Login/Signup</p>
+        </div>
+      </a>
     </div>
   </nav>
 
@@ -98,33 +87,6 @@ if (isset($_SESSION['user'])) {
           </p>
         </div>
       </div>
-
-      <div class="mv">
-        <div class="mission">
-          <h1>Mission</h1>
-          <p>
-            To provide inclusive, industry-relevant, and future-ready
-            education through technology-driven learning that empowers
-            individuals anytime, anywhere.
-          </p>
-        </div>
-        <div class="vision">
-          <h1>Vision</h1>
-          <p>
-            Benguet Technical School envisions a community where every learner
-            gains equal access to skills, knowledge, and opportunities for
-            lifelong success.
-          </p>
-        </div>
-      </div>
-    </section>
-    <section id="about">
-      <h1>About Us</h1>
-      <h2>
-        BENGUET TECHNICAL SCHOOL IS AN LGU-RUN TECHNICAL VOCATIONAL
-        INSTITUTION UNDER THE PROVINCIAL GOVERNMENT OF BENGUET. IT OFFERS
-        VARIOUS PROGRAMS/SHORT COURSES ACCREDITED BY TESDA.
-      </h2>
     </section>
     <section id="courses">
       <h1>Courses Offered</h1>
@@ -190,6 +152,33 @@ if (isset($_SESSION['user'])) {
           $counter++;
         }
         ?>
+      </div>
+    </section>
+    <section id="about">
+      <h1>About Us</h1>
+      <h2>
+        BENGUET TECHNICAL SCHOOL IS AN LGU-RUN TECHNICAL VOCATIONAL
+        INSTITUTION UNDER THE PROVINCIAL GOVERNMENT OF BENGUET. IT OFFERS
+        VARIOUS PROGRAMS/SHORT COURSES ACCREDITED BY TESDA.
+      </h2>
+
+      <div class="mv">
+        <div class="mission">
+          <h1>Mission</h1>
+          <p>
+            To provide inclusive, industry-relevant, and future-ready
+            education through technology-driven learning that empowers
+            individuals anytime, anywhere.
+          </p>
+        </div>
+        <div class="vision">
+          <h1>Vision</h1>
+          <p>
+            Benguet Technical School envisions a community where every learner
+            gains equal access to skills, knowledge, and opportunities for
+            lifelong success.
+          </p>
+        </div>
       </div>
     </section>
     <section id="contact">
@@ -287,14 +276,6 @@ if (isset($_SESSION['user'])) {
     <p>© 2025 Benguet Technical School. All rights reserved.</p>
   </footer>
 </body>
-<!-- NAV ACCOUNT DROPDOWN SCRIPT -->
-<script>
-  const dropdown = document.querySelector("#dropdown");
-  const content = document.querySelector(".content");
-  dropdown.addEventListener("click", () => {
-    content.classList.toggle("show");
-  });
-</script>
 
 <!-- COURSE CARDS -->
 <script>
@@ -354,7 +335,6 @@ if (isset($_SESSION['user'])) {
         accountModal.classList.add("active");
         signupPage.classList.remove("active");
         loginPage.classList.add("active");
-        content.classList.remove("show");
       }
     });
   })
@@ -401,7 +381,7 @@ if (isset($_SESSION['user'])) {
   });
 </script>
 
-<!-- STATIC USERS -->
+<!-- USERS -->
 <script>
   const loginForm = document.querySelector("#login form");
 

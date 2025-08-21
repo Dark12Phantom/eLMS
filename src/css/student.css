@@ -392,6 +392,13 @@ table tbody tr td {
   display: none;
 }
 
+#activities .container table tbody .noData{
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 #activities .container .button #popup.active {
   display: flex;
   flex-direction: column;
