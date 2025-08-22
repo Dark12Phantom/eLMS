@@ -1,8 +1,4 @@
 <?php
-
-require_once "DatabaseConnection.php";
-
-
 $studentID = $_SESSION['userID'] ?? NULL;
 
 
@@ -110,7 +106,5 @@ if ($result->num_rows > 0) {
               <p>No files yet. Activities will appear here!</p></td></tr>
             </tbody>";
 }
-$stmt -> close();
-$conn->close();
 
 ?>

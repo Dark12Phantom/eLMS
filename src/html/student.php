@@ -19,11 +19,29 @@ authenticate();
     <div class="logo">
       <h1>BTS Student</h1>
     </div>
+    <?php
+
+    require_once "../php/DatabaseConnection.php";
+
+    $userId = $_SESSION['userID'];
+
+    $sql = "SELECT firstName, middleName, lastName, suffix, role, profileImage 
+        FROM userstable WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    $fullName = trim("{$user['firstName']} {$user['middleName']} {$user['lastName']} {$user['suffix']}");
+    $role = ucfirst($user['role']);
+    $profileImg = !empty($user['profileImage']) ? "../" . $user['profileImage'] : "../images/school.png";
+    ?>
     <div id="student-profile">
-      <img src="" />
-      <h3 class="name">Ane S. Thesia</h3>
-      <p>Trainee</p>
-      <p class="student-id-number">123456789</p>
+      <img src="<?= htmlspecialchars($profileImg) ?>" alt="Profile Image" />
+      <h3 class="name"><?= htmlspecialchars($fullName) ?></h3>
+      <p><?= htmlspecialchars($role) ?></p>
+      <p class="student-id-number"><?= htmlspecialchars($userId) ?></p>
     </div>
     <div id="navigation">
       <ul>
@@ -51,43 +69,123 @@ authenticate();
           <div id="dash-cards">
             <div class="card c1">
               <h3>Enrolled Courses</h3>
-              <h2>2</h2>
+              <?php
+              require_once "../php/DatabaseConnection.php";
+              $sqlEnrolled = "SELECT COUNT(*) AS total FROM enrolledtable WHERE user_id = ? AND status = 'Approved'";
+              $stmt = $conn->prepare($sqlEnrolled);
+              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->execute();
+              $res = $stmt->get_result();
+              $totalEnrolled = ($row = $res->fetch_assoc()) ? $row['total'] : 0;
+              ?>
+              <h2><?= $totalEnrolled ?></h2>
               <p><i>Courses</i></p>
             </div>
             <div class="card c2">
               <h3>Hours Studied</h3>
-              <h2>42</h2>
+              <?php
+
+              $sqlHours = "SELECT SUM(time) AS totalHours FROM timetracker WHERE user_id = ?";
+              $stmt = $conn->prepare($sqlHours);
+              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->execute();
+              $res = $stmt->get_result();
+              $totalHours = isset($row['totalHours']) ? $row['totalHours'] : 0;
+              ?>
+              <h2><?= $totalHours ?></h2>
               <p><i>Hours</i></p>
             </div>
             <div class="card c3">
               <h3>Average Grade</h3>
-              <h2>84%</h2>
+              <?php
+              $sqlAvg = "SELECT COALESCE(AVG(total_grade), 0) AS avgGrade FROM finalgradestable WHERE user_id = ?";
+              $stmt = $conn->prepare($sqlAvg);
+              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->execute();
+              $res = $stmt->get_result();
+              $row = $res->fetch_assoc();
+              $averageGrade = isset($row['avgGrade']) ? round($row['avgGrade'], 2) : 0; // round to 2 decimals
+              ?>
+              <h2><?= $averageGrade ?>%</h2>
               <p><i>Avg</i></p>
             </div>
             <div class="card c4">
               <h3>My Courses (Quick Access)</h3>
               <div class="inside-container">
-                <div class="wrapper">
-                  <div class="infos">
-                    <h4>Agricultural Crops Production NC II</h4>
-                    <p class="trainer"><i>John Doe (Trainer)</i></p>
-                  </div>
-                  <button class="materials">Materials</button>
-                </div>
-                <div class="wrapper">
-                  <div class="infos">
-                    <h4>Automotive Servicing NC I</h4>
-                    <p class="trainer"><i>Juan dela Cruz (Trainer)</i></p>
-                  </div>
-                  <button class="materials">Materials</button>
-                </div>
+                <?php
+                $userId = $_SESSION['userID'];
+
+                $sqlCourses = "SELECT en.id AS enrollmentId, c.id AS courseId, c.courseName, t.trainerName
+                   FROM enrolledtable en
+                   JOIN coursestable c ON en.course_id = c.id
+                   JOIN assignedcourses ac ON c.id = ac.course_id
+                   JOIN trainerstable t ON ac.trainer_id = t.id
+                   WHERE en.user_id = ? AND en.status = 'Approved'
+                   LIMIT 2";
+
+                $stmt = $conn->prepare($sqlCourses);
+                $stmt->bind_param("i", $userId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result->num_rows > 0) {
+                  while ($course = $result->fetch_assoc()) {
+                    $sqlModule = "SELECT file_path, title FROM modulestable 
+                      WHERE course_id = ? 
+                      ORDER BY created_at DESC 
+                      LIMIT 1";
+                    $stmtMod = $conn->prepare($sqlModule);
+                    $stmtMod->bind_param("i", $course['courseId']);
+                    $stmtMod->execute();
+                    $resMod = $stmtMod->get_result();
+                    $module = $resMod->fetch_assoc();
+                    $moduleName = $module ? $module['title'] : "No recent modules";
+                    ?>
+                    <div class="wrapper">
+                      <div class="infos">
+                        <h4><?= htmlspecialchars($course['courseName']) ?></h4>
+                        <p class="trainer"><i><?= htmlspecialchars($course['trainerName']) ?> (Trainer)</i></p>
+                        <p class="recent-module"><i><?= htmlspecialchars($moduleName) ?></i></p>
+                      </div>
+                      <?php if ($module): ?>
+                        <button class="materials">
+                          <a href="../<?= htmlspecialchars($module['file_path']) ?>" download>Download</a>
+                        </button>
+                      <?php else: ?>
+                        <button class="materials" disabled>No Materials</button>
+                      <?php endif; ?>
+                    </div>
+                  <?php }
+                } else {
+                  echo "<p style='text-align:center; width:100%;'>No courses yet</p>";
+                }
+                ?>
               </div>
             </div>
+
             <div class="card c5">
               <h3>Enrollment Requests</h3>
-              <p>No pending requests</p>
+              <?php
+              $userId = $_SESSION['userID'];
+
+              $sqlRequests = "SELECT COUNT(*) AS pendingCount 
+                  FROM enrollmenttable 
+                  WHERE user_id = ? AND status = 'Pending'";
+              $stmt = $conn->prepare($sqlRequests);
+              $stmt->bind_param("i", $userId);
+              $stmt->execute();
+              $res = $stmt->get_result();
+              $pendingCount = ($row = $res->fetch_assoc()) ? $row['pendingCount'] : 0;
+
+              if ($pendingCount > 0) {
+                echo "<p>You have {$pendingCount} pending request(s)</p>";
+              } else {
+                echo "<p>No pending requests</p>";
+              }
+              ?>
               <button><i>Self-Enroll</i></button>
             </div>
+
           </div>
         </div>
       </section>
@@ -104,105 +202,123 @@ authenticate();
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Agricultural Crops Production NC II</td>
-                <td>Ruby X. Cube</td>
-                <td>50%</td>
-                <td>
-                  <div class="content">
-                    <a href="">Agriculture-1.pdf</a>
-                  </div>
-                  <div class="content">
-                    <a href="">Slides-AgCH1.pptx</a>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Automotive Servicing NC I</td>
-                <td>Juan dela Cruz (Trainer)</td>
-                <td>50%</td>
-                <td>
-                  <div class="content">
-                    <a href="">ASNC1-1.pdf</a>
-                  </div>
-                  <div class="content">
-                    <a href="">Slides-ASCH1.pdf</a>
-                  </div>
-                </td>
-              </tr>
+              <?php
+              require_once "../php/DatabaseConnection.php";
+
+              $userId = $_SESSION['userID'];
+
+              $sqlMy = "SELECT en.id AS enrollmentId, 
+                     c.id AS courseId, 
+                     c.courseName, 
+                     en.status, 
+                     t.trainerName
+              FROM enrolledtable en
+              JOIN coursestable c 
+                  ON en.course_id = c.id
+              JOIN assignedcourses ac 
+                  ON c.id = ac.course_id
+              JOIN trainerstable t 
+                  ON ac.trainer_id = t.id
+              WHERE en.user_id = ? 
+                AND en.status = 'Approved'";
+
+              $stmt = $conn->prepare($sqlMy);
+              $stmt->bind_param("i", $userId);
+              $stmt->execute();
+              $result = $stmt->get_result();
+
+              if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                  echo "<tr>";
+                  echo "<td>" . htmlspecialchars($row['courseName']) . "</td>";
+                  echo "<td>" . htmlspecialchars($row['trainerName']) . "</td>";
+                  echo "<td>In Progress</td>";
+
+                  $sqlMat = "SELECT file_path FROM modulestable WHERE course_id = ?";
+                  $stmtMat = $conn->prepare($sqlMat);
+                  $stmtMat->bind_param("i", $row['courseId']);
+                  $stmtMat->execute();
+                  $resMat = $stmtMat->get_result();
+
+                  echo "<td>";
+                  if ($resMat->num_rows > 0) {
+                    while ($mat = $resMat->fetch_assoc()) {
+                      $file = htmlspecialchars($mat['file_path']);
+                      echo "<a href='../uploads/$file' download>" . basename($file) . "</a><br>";
+                    }
+                  } else {
+                    echo "No materials";
+                  }
+                  echo "</td>";
+
+                  echo "</tr>";
+                }
+              } else {
+                echo "<tr><td colspan='4' style='text-align:center;'>No Ongoing Courses. Enroll Now!</td></tr>";
+              }
+              ?>
             </tbody>
           </table>
         </div>
         <div class="container">
           <h2>Available Courses</h2>
           <table>
-            <thead>
-              <tr>
-                <th>Courses</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Agricultural Crops Production NC II</td>
-                <td>Ongoing</td>
-                <td>
-                  <form action="">
-                    <button type="button" disabled>Enroll</button>
-                  </form>
-                </td>
-              </tr>
-              <tr>
-                <td>Automotive Servicing NC I</td>
-                <td>Ongoing</td>
-                <td>
-                  <button type="button" disabled>Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Bread and Pastry Production NC II</td>
-                <td>No Record</td>
-                <td>
-                  <button type="button">Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Dressmaking NC II</td>
-                <td>No Redord</td>
-                <td>
-                  <button type="button">Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Hairdressing NC II</td>
-                <td>No Record</td>
-                <td>
-                  <button type="button">Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Japanese Language and Culture</td>
-                <td>Erolling</td>
-                <td>
-                  <button type="button" disabled>Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Driving NC II</td>
-                <td>No Record</td>
-                <td>
-                  <button type="button">Enroll</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Tailoring NC II</td>
-                <td>No Record</td>
-                <td>
-                  <button type="button">Enroll</button>
-                </td>
-              </tr>
-            </tbody>
+            <?php
+
+            require_once "../php/DatabaseConnection.php";
+
+            $student_id = $_SESSION['userID'];
+
+            $sqlAvailable = "SELECT c.id AS course_id, 
+                                    c.courseName, 
+                                    e.status
+                              FROM coursestable c
+                              LEFT JOIN enrollmenttable e 
+                                    ON e.course_id = c.id 
+                                    AND e.user_id = ?
+                              ";
+
+            $stmt = $conn->prepare($sqlAvailable);
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            echo "
+                  <thead>
+                    <tr>
+                      <th>Courses</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  ";
+
+            while ($row = $result->fetch_assoc()) {
+              $courseName = $row['courseName'];
+              $status = ucfirst($row['status'] ?? "No Record");
+
+              $disabled = ($status !== "No Record") ? "disabled" : "";
+
+              echo "
+                    <tr>
+                      <td>{$courseName}</td>
+                      <td>{$status}</td>
+                      <td>
+                        <button type='button' class='enrollBtn' 
+                                data-course-id='{$row['course_id']}' 
+                                data-course-name='{$courseName}' 
+                                {$disabled}>
+                          Enroll
+                        </button>
+                      </td>
+                    </tr>
+                    ";
+            }
+
+            echo "</tbody>";
+
+            ?>
           </table>
         </div>
 
@@ -228,6 +344,7 @@ authenticate();
           </table>
         </div>
       </section>
+
       <section id="enrollment">
         <div class="container">
           <h2>Enrollment History</h2>
@@ -239,17 +356,38 @@ authenticate();
                 <th>Status</th>
               </tr>
             </thead>
-
             <tbody>
-              <tr>
-                <td>Japanese Language and Culture</td>
-                <td>05-13-25</td>
-                <td>On Review</td>
-              </tr>
+              <?php
+
+              $studentID = $_SESSION['userID'];
+
+              $query = "SELECT c.courseName, e.enrolled_at AS requestDate, e.status
+          FROM enrollmenttable e
+          JOIN coursestable c ON e.course_id = c.id
+          WHERE e.user_id = ?";
+              $stmt = $conn->prepare($query);
+              $stmt->bind_param("i", $studentID);
+              $stmt->execute();
+              $result = $stmt->get_result();
+
+              if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                  echo "<tr>";
+                  echo "<td>" . htmlspecialchars($row['courseName']) . "</td>";
+                  echo "<td>" . htmlspecialchars($row['requestDate']) . "</td>";
+                  echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                  echo "</tr>";
+                }
+              } else {
+                echo "<tr><td colspan='3'>No Enrollment Records Found</td></tr>";
+              }
+              ?>
             </tbody>
           </table>
         </div>
       </section>
+
+
       <section id="profile">
         <h2>My Profile</h2>
         <div class="container">
@@ -257,38 +395,6 @@ authenticate();
           </form>
         </div>
       </section>
-    </div>
-    <div id="catalog">
-      <div class="calendar-container">
-        <div id="calendar-header"></div>
-        <div id="calendar"></div>
-      </div>
-      <div class="todo">
-        <div class="todo-container">
-          <div class="todo-header">
-            <h3>To-do</h3>
-            <p>+</p>
-          </div>
-          <div class="todo-content">
-            <div class="container">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                <path fill="#FFD43B"
-                  d="M439.4 96L448 96C483.3 96 512 124.7 512 160L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 160C128 124.7 156.7 96 192 96L200.6 96C211.6 76.9 232.3 64 256 64L384 64C407.7 64 428.4 76.9 439.4 96zM376 176C389.3 176 400 165.3 400 152C400 138.7 389.3 128 376 128L264 128C250.7 128 240 138.7 240 152C240 165.3 250.7 176 264 176L376 176zM256 320C256 302.3 241.7 288 224 288C206.3 288 192 302.3 192 320C192 337.7 206.3 352 224 352C241.7 352 256 337.7 256 320zM288 320C288 333.3 298.7 344 312 344L424 344C437.3 344 448 333.3 448 320C448 306.7 437.3 296 424 296L312 296C298.7 296 288 306.7 288 320zM288 448C288 461.3 298.7 472 312 472L424 472C437.3 472 448 461.3 448 448C448 434.7 437.3 424 424 424L312 424C298.7 424 288 434.7 288 448zM224 480C241.7 480 256 465.7 256 448C256 430.3 241.7 416 224 416C206.3 416 192 430.3 192 448C192 465.7 206.3 480 224 480z" />
-              </svg>
-              <p>Assignments</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="notification-container">
-        <div class="notification-header">
-          <h3>Notifications</h3>
-        </div>
-        <div class="notification-content">
-          <p>Notifications appear here</p>
-        </div>
-      </div>
     </div>
   </main>
 
@@ -328,7 +434,7 @@ authenticate();
     });
   </script>
 
-  <!-- CALENDAR -->
+  <!-- CALENDAR
   <script>
     const calendarHeader = document.getElementById("calendar-header");
     const calendar = document.getElementById("calendar");
@@ -396,34 +502,49 @@ authenticate();
     }
 
     initCalendar(year, month);
-  </script>
+  </script> -->
 
   <!-- COURSE LOGIC -->
   <script>
-    let lastClickedButton = null;
+    document.addEventListener("DOMContentLoaded", () => {
+      const popup = document.getElementById("popup-enrollment");
+      const closePopupBtn = document.getElementById("closePopup");
+      const submitBtn = document.getElementById("submitEnrollment");
+      const popupCourseName = document.getElementById("popupCourseName");
+      let selectedCourseId = null;
 
-    document.querySelectorAll("table tbody button").forEach((button) => {
-      button.addEventListener("click", function () {
-        lastClickedButton = this;
-        const courseName = this.closest("tr").querySelector("td").textContent;
-        document.getElementById("popupCourseName").textContent = courseName;
-        document.getElementById("popup-enrollment").style.display = "flex";
+      document.querySelectorAll(".enrollBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedCourseId = btn.getAttribute("data-course-id");
+          popupCourseName.textContent = btn.getAttribute("data-course-name");
+          popup.style.display = "block";
+        });
+      });
+
+      closePopupBtn.addEventListener("click", () => {
+        popup.style.display = "none";
+        selectedCourseId = null;
+      });
+
+      submitBtn.addEventListener("click", () => {
+        if (!selectedCourseId) return;
+
+        fetch("../php/submitEnrollment.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `course_id=${selectedCourseId}`
+        })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            if (data.success) {
+              location.reload();
+            }
+          });
       });
     });
-
-    document.getElementById("closePopup").addEventListener("click", () => {
-      document.getElementById("popup-enrollment").style.display = "none";
-    });
-
-    document
-      .getElementById("submitEnrollment")
-      .addEventListener("click", () => {
-        if (lastClickedButton) {
-          lastClickedButton.disabled = true;
-        }
-        document.getElementById("popup-enrollment").style.display = "none";
-      });
   </script>
+
 
   <!-- ACTIVITIES FUNCTIONS -->
   <script>
@@ -479,7 +600,7 @@ authenticate();
 
       const img = document.createElement("img");
       img.id = "profilePic";
-      img.src = data.profileImage || "../images/school.jpg";
+      img.src = data.profileImage ? `../${data.profileImage}` : "../images/school.png";
       img.alt = "Profile";
 
       const label = document.createElement("label");

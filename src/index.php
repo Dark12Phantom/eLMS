@@ -375,8 +375,8 @@ if (isset($_SESSION['user'])) {
 
     if (result.status === "success") {
       setTimeout(() => {
-        window.reload();
-      }, 3000);
+        location.reload();
+      }, 1000);
     }
   });
 </script>
@@ -400,7 +400,10 @@ if (isset($_SESSION['user'])) {
       alert(`Welcome, ${res.role}! Redirecting...`);
       setTimeout(function () {
         window.location.href = res.redirect;
-      }, 3000);
+      }, 300);
+    } else if (res.status === "error") {
+      alert(res.message);
+      location.reload();
     }
   });
 </script>
