@@ -1,0 +1,602 @@
+@import url("https://fonts.googleapis.com/css2?family=Eagle+Lake&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Eagle+Lake&family=Knewave&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+
+html {
+  font-family: "Outfit", sans-serif;
+}
+
+body {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 0.17fr 0.83fr;
+  grid-template-rows: 1fr 0.05fr;
+  grid-template-areas:
+    "nav main"
+    "nav footer";
+  overflow-x: hidden;
+  width: 100vw;
+  height: 100vh;
+  background: #1d3557;
+}
+
+button {
+  width: max-content;
+  height: max-content;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-family: "Outfit", sans-serif;
+  letter-spacing: 1px;
+  font-weight: 650;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  background-color: #006aff;
+  color: #fff;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  background-color: #d4d4d4;
+  color: #000;
+}
+
+input,
+textarea {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  border: 0.5px #006aff solid;
+}
+input[type="submit"] {
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #81b6ff;
+  font-weight: 600;
+  color: black;
+}
+select,
+option {
+  font-family: "Outfit", sans-serif;
+  padding: 2px;
+  font-size: 0.9rem;
+  border: 0.5px #006aff solid;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+nav {
+  background: #1d3557;
+  grid-area: nav;
+  width: 100%;
+  height: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  color: #fff;
+  padding: 3rem 1px;
+  gap: 2em;
+}
+
+nav .logo {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+nav .logo img {
+  width: 100px;
+  height: 100px;
+  background: #000;
+  border-radius: 100%;
+}
+
+nav #trainer-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: max-content;
+}
+
+nav #trainer-profile img {
+  width: 80px;
+  height: 80px;
+  background: #000;
+  border-radius: 100%;
+}
+
+#navigation ul {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 40px;
+}
+
+#navigation ul li {
+  list-style: none;
+}
+
+#navigation ul li a,
+.logout a {
+  text-decoration: none;
+  padding: 9px 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #fff;
+  position: relative;
+  padding: 5px 10px;
+}
+
+.logout {
+  display: flex;
+  width: 65%;
+  justify-content: flex-end;
+}
+
+.logout a {
+  display: flex;
+  width: 150px;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#navigation ul li a::after,
+.logout a::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  background-color: #006dda;
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+#navigation ul li a:hover::after,
+.logout a:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+#navigation ul li a.active::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+main {
+  grid-area: main;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr 0.2fr;
+  grid-template-areas: "main catalog";
+  gap: 35px;
+}
+
+#main-section {
+  grid-area: main;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  height: 880px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+table thead {
+  background-image: linear-gradient(to bottom, #cfe6ff, #cfe6ff9c, #cfe6ff3d);
+  border: none;
+}
+
+table thead tr {
+  text-align: left;
+}
+
+table thead tr th {
+  padding: 10px;
+  color: #004080;
+}
+
+table {
+  border-spacing: 0;
+}
+
+table tbody tr td {
+  padding: 10px;
+}
+
+#dashboard {
+  display: none;
+}
+
+#dashboard.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#dash-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 32% 32% 32%;
+  grid-template-rows: max-content max-content;
+  gap: 10px;
+  grid-template-areas:
+    "c1 c2 c3"
+    "c4 c4 c5";
+}
+
+.card {
+  background-image: linear-gradient(to bottom, #00000017, #00000052);
+  padding: 10px 20px;
+  border-radius: 8px 8px 5px 5px;
+}
+
+.card h3 {
+  color: #006dda;
+}
+.c1 {
+  grid-area: c1;
+}
+.c2 {
+  grid-area: c2;
+}
+.c3 {
+  grid-area: c3;
+}
+.c4 {
+  grid-area: c4;
+}
+.c4 .wrapper {
+  display: flex;
+  width: auto;
+  background: #79797969;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.c4 h4 {
+  color: #000000;
+}
+
+.c4 p {
+  color: #444444;
+}
+
+.c4 a {
+  width: auto;
+  height: max-content;
+  border: none;
+  background: #006dda;
+  padding: 10px;
+  font-weight: 700;
+  border-radius: 6px;
+  color: white;
+  text-decoration: none;
+}
+
+.c4 .inside-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.c4 .wrapper .infos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+.c5 {
+  grid-area: c5;
+}
+
+.c5 button {
+  width: auto;
+  height: max-content;
+  border: none;
+  background: #006dda;
+  padding: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  color: white;
+}
+
+#enrollment-request {
+  display: none;
+}
+#enrollment-request.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#enrollment-request .container h2 {
+  color: #004080;
+}
+
+#enrollment-request .container .button {
+  position: relative;
+}
+#enrollment-request .container button {
+  width: max-content;
+  height: max-content;
+  background-color: #006aff;
+  padding: 8px;
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+#enrollment-request .container button:disabled {
+  color: #222222;
+  background-color: #919191;
+}
+
+#courses {
+  display: none;
+}
+#courses.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#activities-modules {
+  display: none;
+}
+#activities-modules.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+p {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+form {
+  display: flex;
+}
+
+.editActForm {
+  flex-direction: column;
+}
+
+form span {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+#activities-modules .container table .buttons {
+  position: relative;
+  height: max-content;
+  display: flex;
+  gap: 10px;
+}
+
+#activities-modules .container table form {
+  display: none;
+}
+
+#activities-modules .container table form.active {
+  display: flex;
+  padding: 20px;
+  border-radius: 8px;
+  position: absolute;
+  right: 0;
+  backdrop-filter: blur(10px);
+  width: 300px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+label:has(input[type="file"]) {
+  cursor: pointer;
+  font-weight: 700;
+  color: #006aff;
+}
+
+#activities-modules .container .createAct,
+#activities-modules .container .addModule {
+  display: none;
+}
+
+#activities-modules .container .createAct.active,
+#activities-modules .container .addModule.active {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 200px;
+  gap: 10px;
+  background-color: #63636356;
+  padding: 20px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  height: max-content;
+}
+
+#activities-modules .container .uploadActForms {
+  display: flex;
+  gap: 20px;
+  margin: 20px 10px;
+  width: 100%;
+  position: relative;
+}
+
+#activities-modules .container .buttons {
+  display: flex;
+  gap: 1px;
+}
+
+#trainees {
+  display: none;
+}
+#trainees.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#submissions {
+  display: none;
+}
+#submissions.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#profile {
+  display: none;
+}
+#profile.active {
+  display: flex;
+  width: 96%;
+  height: 100%;
+  margin: 20px;
+}
+
+#profile .container {
+  display: flex;
+  width: 90%;
+  height: max-content;
+  justify-content: center;
+  align-items: center;
+}
+
+#profile .container .profile-image {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+#profile .container .profile-image img {
+  width: 200px;
+  height: 200px;
+  border-radius: 100%;
+  background-color: #000;
+  object-fit: cover;
+}
+
+#profile .container .profile-image label {
+  background-color: #0011ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  cursor: pointer;
+  position: absolute;
+  top: 160px;
+  left: 140px;
+}
+
+#profile .container .profile-image input {
+  display: none;
+}
+
+#profile .container .capsule {
+  display: flex;
+  gap: 150px;
+  align-items: center;
+}
+
+#profile .container .capsule .details,
+#profile .container .capsule .details-edit {
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  gap: 5px;
+}
+
+#profile .container .capsule .details input,
+#profile .container .capsule .details-edit input {
+  border: #0011ff 1px solid;
+  height: 30px;
+  border-radius: 20px;
+  padding-left: 15px;
+  font-size: 1.1rem;
+  font-family: "Outfit", sans-serif;
+}
+
+#profile .container .capsule .details textarea,
+#profile .container .capsule .details-edit textarea {
+  border: #0011ff 1px solid;
+  height: 30px;
+  border-radius: 20px;
+  padding-left: 15px;
+  font-size: 1.1rem;
+  font-family: "Outfit", sans-serif;
+}
+
+#profile .container .capsule .details button,
+#profile .container .capsule .details-edit button {
+  width: max-content;
+  height: max-content;
+  border: #0011ff 0.5px solid;
+  border-radius: 20px;
+  padding: 10px;
+  background-color: #006aff;
+  font-family: "Outfit", sans-serif;
+  color: #fff;
+  letter-spacing: 1px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+footer {
+  background: #1d3557;
+  color: #fff;
+  grid-area: footer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#catalog {
+  grid-area: catalog;
+  display: flex;
+  width: 90%;
+  padding-left: 20px;
+  position: relative;
+  flex-direction: column;
+  gap: 10px;
+}
