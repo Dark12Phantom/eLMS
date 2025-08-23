@@ -135,6 +135,20 @@ main {
   gap: 35px;
 }
 
+button{
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.01rem;
+  padding: 5px 10px;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+button[type="submit"]{
+  background-color: #0011ff;
+  color: white;
+}
+
 table{
     width: 100%;
 }
@@ -180,12 +194,33 @@ table tbody tr td {
   width: 96%;
   height: 100%;
   margin: 20px;
+  flex-direction: column;
 }
 
 #trainerMgt .container {
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
+}
+
+#trainerMgt .container #popupForm .buttons button[type='button']{
+  background-color: red;
+  color: white;
+}
+
+#trainerMgt .container #popupForm{
+  flex-direction: column;
+  flex-wrap: wrap;
+  position: absolute;
+}
+
+
+#popupForm label, 
+#popupForm input, 
+#popupForm select {
+  flex: 1 1 45%;
+  min-width: 200px;
 }
 
 #traineeMgt {

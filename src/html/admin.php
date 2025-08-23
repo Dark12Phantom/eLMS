@@ -5,337 +5,553 @@ authenticate();
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Administrator's Page - Benguet Technical School</title>
-    <link rel="stylesheet" href="../css/admin.css" />
-  </head>
-  <body>
-    <nav>
-      <div class="logo">
-        <h1>BTS Administrator</h1>
-      </div>
-      <div id="admin-profile">
-        <img src="" />
-        <h3 class="name">Dre S. Maker</h3>
-        <p>Administrator</p>
-        <p class="admin-id-number">123456789</p>
-      </div>
-      <div id="navigation">
-        <ul>
-          <li>
-            <a class="trainerMgt active" href="#trainerMgt"
-              >Trainer Management</a
-            >
-          </li>
-          <li><a class="traineeMgt" href="#traineeMgt">Trainees</a></li>
-          <li><a class="postUpdate" href="#postUpdate">Posts/ Updates</a></li>
-          <li>
-            <a class="courseMgt" href="#courseMgt">Course Management</a>
-          </li>
-          <li><a class="profile" href="#profile">Profile</a></li>
-        </ul>
-      </div>
-      <div class="logout">
-        <a href="../php/logout.php"
-          >Log out
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24px"
-            viewBox="0 -960 960 960"
-            width="24px"
-            fill="#006dda"
-          >
-            <path
-              d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"
-            />
-          </svg>
-        </a>
-      </div>
-    </nav>
 
-    <main>
-      <div id="main-section">
-        <section id="trainerMgt">
-          <form class="container">
-            <h3>Active Trainers</h3>
-            <a href="">Add Trainers</a>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>ID</th>
-                        <th>Date Hired</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>rubixcube@domain.com</td>
-                        <td>Ruby X. Cube</td>
-                        <td>123456789</td>
-                        <td>08-24-2018</td>
-                        <td>Active</td>
-                        <td>
-                            <button type="button">Set Status</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>elyctrician@domain.com</td>
-                        <td>Ely C. Trician</td>
-                        <td>987654321</td>
-                        <td>12-08-2017</td>
-                        <td>On Leave</td>
-                        <td>
-                            <button type="button">Set Status</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-          </form>
-        </section>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administrator's Page - Benguet Technical School</title>
+  <link rel="icon" href="../images/school.png" type="image/x-icon">
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
 
-        <section id="traineeMgt">
-          <form class="container">
-            <h3>Trainees/ Students</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>ID</th>
-                        <th>Date Created</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+<body>
+  <nav>
+    <div class="logo">
+      <h1>BTS Administrator</h1>
+      <?php
 
-                <tbody>
-                    <tr>
-                        <td>anesthesia.d@domain.com</td>
-                        <td>Ane S. Thesia</td>
-                        <td>123456789</td>
-                        <td>07-20-2022</td>
-                        <td>Ongoing Training</td>
-                    </tr>
-                </tbody>
-            </table>
-          </form>
-        </section>
+      require_once "../php/DatabaseConnection.php";
 
-        <section id="postUpdate">
-          <div class="container">
-            <h3>Create and Manage Updates, Announcements, and Notices</h3>
-            <button type="button">Create</button>
-            <h4>Announcements</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Date of Creation</th>
-                        <th>Due Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Enrollment for S.Y. 2025 - 2026</td>
-                        <td>Announcement</td>
-                        <td>The enrollment for all courses is now open.</td>
-                        <td>04-26-2025</td>
-                        <td>08-01-2025</td>
-                        <td>
-                            <button type="button">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-          </div>
-        </section>
+      $userId = $_SESSION['userID'];
 
-        <section id="courseMgt">
-          <div class="container">
-            <h3>Current Courses</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Schedules</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>ACPN2</td>
-                        <td>Agricultural Crops Production NC II</td>
-                        <td>MWFSat 2:00-4:00</td>
-                        <td>Offered</td>
-                    </tr>
+      $sql = "SELECT userID, firstName, middleName, lastName, suffix, role, profileImage 
+        FROM userstable WHERE id = ?";
+      $stmt = $conn->prepare($sql);
+      $stmt->bind_param("i", $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $user = $result->fetch_assoc();
 
-                    <tr>
-                        <td>ASNC1</td>
-                        <td>Automotive Servicing NC I</td>
-                        <td>TThF 10:00-12:00</td>
-                        <td>Offered</td>
-                    </tr>
-                    
-                    <tr>
-                        <td>CSNC2</td>
-                        <td>Computer Servicing NC II</td>
-                        <td>N/A</td>
-                        <td>Not Offered</td>
-                    </tr>
-                </tbody>
-            </table>
-            <button type="button" id="setCourse">Set Course</button>
-            <button type="button" id="addCourse">Add Course</button>
-          </div>
-        </section>
+      $fullName = trim("{$user['firstName']} {$user['middleName']} {$user['lastName']} {$user['suffix']}");
+      $role = ucfirst($user['role']);
+      $UID = trim($user['userID']);
+      $profileImg = !empty($user['profileImage']) ? "../" . $user['profileImage'] : "../images/school.png";
+      ?>
+    </div>
+    <div id="admin-profile">
+      <img src="<?= htmlspecialchars($profileImg) ?>" alt="Profile Image" />
+      <h3 class="name"><?= htmlspecialchars($fullName) ?></h3>
+      <p><?= htmlspecialchars($role) ?></p>
+      <p class="admin-id-number"><?= htmlspecialchars($UID) ?></p>
+    </div>
+    <div id="navigation">
+      <ul>
+        <li>
+          <a class="trainerMgt active" href="#trainerMgt">Trainer Management</a>
+        </li>
+        <li><a class="traineeMgt" href="#traineeMgt">Trainees</a></li>
+        <li><a class="postUpdate" href="#postUpdate">Posts/ Updates</a></li>
+        <li>
+          <a class="courseMgt" href="#courseMgt">Course Management</a>
+        </li>
+        <li><a class="profile" href="#profile">Profile</a></li>
+      </ul>
+    </div>
+    <div class="logout">
+      <a href="../php/logout.php">Log out
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#006dda">
+          <path
+            d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+        </svg>
+      </a>
+    </div>
+  </nav>
 
-        <section id="profile">
-          <h2>My Profile</h2>
-          <div class="container">
-            <form class="capsule">
-              <div class="profile-image">
-                <img
-                  src=""
-                  alt=""
-                  id="profilePic"
-                  src="default.jpg"
-                  alt="Profile"
-                />
-                <label for="image-edit">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#ffffff"
-                  >
-                    <path
-                      d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"
-                    />
-                  </svg>
-                </label>
-                <input
-                  type="file"
-                  name="image-edit"
-                  id="image-edit"
-                  accept="image/*"
-                />
-              </div>
-              <div class="details">
-                <label for="profile-name">Name</label>
-                <input
-                  id="profile-name"
-                  type="text"
-                  disabled
-                  value="Dre S. Maker"
-                />
+  <main>
+    <div id="main-section">
+      <section id="trainerMgt">
+        <form class="container">
+          <h3>Active Trainers</h3>
+          <a href="#" id="addTrainerLink">Add Trainer</a>
 
-                <label for="profile-mail">Email</label>
-                <input
-                  id="profile-mail"
-                  type="text"
-                  disabled
-                  value="dres.maker@domain.com"
-                />
-
-                <label for="profile-contact">Contact</label>
-                <input
-                  id="profile-contact"
-                  type="text"
-                  disabled
-                  value="+63 969 202 1214"
-                />
-
-                <label for="profile-bio">Bio</label>
-                <textarea
-                  id="profile-bio"
-                  disabled
-                  style="
-                    height: 100px;
-                    overflow-wrap: break-word;
-                    justify-content: flex-start;
-                    align-items: flex-start;
-                    white-space: pre-wrap;
-                  "
-                >
-                Ph.D Educational Administration. MAEd
-                </textarea
-                >
-
-                <button id="editButton" type="button">Edit Profile</button>
-              </div>
-              <div class="details-edit" style="display: none">
-                <label for="edit-profile-name">Name</label>
-                <input id="edit-profile-name" type="text" />
-
-                <label for="edit-profile-mail">Email</label>
-                <input id="edit-profile-mail" type="text" />
-
-                <label for="edit-profile-contact">Contact</label>
-                <input id="edit-profile-contact" type="text" />
-
-                <label for="edit-profile-bio">Bio</label>
-                <textarea
-                  id="edit-profile-bio"
-                  style="
-                    height: 100px;
-                    overflow-wrap: break-word;
-                    justify-content: flex-start;
-                    align-items: flex-start;
-                    white-space: pre-wrap;
-                  "
-                ></textarea>
-
-                <button id="saveButton" type="button">Save Profile</button>
+          <div id="popupForm" style="display:none; border:none; border-radius: 8px; padding:15px; background:#f9f9f9;">
+            <form method="POST" action="add_trainer.php" enctype="multipart/form-data">
+              <label>First Name:</label><input type="text" name="firstName" required><br>
+              <label>Middle Name:</label><input type="text" name="middleName"><br>
+              <label>Last Name:</label><input type="text" name="lastName" required><br>
+              <label>Suffix:</label><input type="text" name="suffix"><br>
+              <label>Gender:</label>
+              <select name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select><br>
+              <label>Birthdate:</label><input type="date" name="birthDate" required><br>
+              <label>Bio:</label><textarea name="bio" placeholder="Input Trainer's Degree"></textarea><br>
+              <label>Mobile Number:</label><input type="text" name="mobileNumber"><br>
+              <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" readonly><br>
+              <label>Education:</label><select name="education" id="education" required>
+                <option value="" selected disabled hidden>
+                  Attained Education
+                </option>
+                <option value="Doctor's Degree">Doctor's Degree</option>
+                <option value="Master's Degree">Master's Degree</option>
+                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="College">College</option>
+              </select><br>
+              <div class="buttons">
+                <button type="submit">Add Trainer</button>
+                <button type="button" id="closeTrainer">Close</button>
               </div>
             </form>
           </div>
-        </section>
-      </div>
-      <div id="catalog"></div>
-    </main>
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Date Hired</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Assign</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php
+              require_once '../php/DatabaseConnection.php'; // adjust path
+              
+              function renderTrainersTable($conn)
+              {
+                $sql = "
+        SELECT 
+            u.id AS userID,
+            CONCAT(u.firstName, ' ', IFNULL(u.middleName,''), ' ', u.lastName, ' ', IFNULL(u.suffix,'')) AS fullName,
+            u.email,
+            t.id AS trainerRowID,
+            t.status,
+            t.assignedDate,
+            t.courseID,
+            c.courseName
+        FROM trainerstable t
+        INNER JOIN userstable u ON u.id = t.trainerID
+        LEFT JOIN coursestable c ON c.id = t.courseID
+        WHERE u.role = 'trainer'
+        ORDER BY t.assignedDate DESC
+    ";
 
-    <footer>
-      <p>© 2025 Benguet Technical School. All rights reserved.</p>
-    </footer>
+                $result = $conn->query($sql);
 
-        <script>
-      const tabElements = document.querySelectorAll(
-        ".trainerMgt, .traineeMgt, .postUpdate, .courseMgt, .profile"
-      );
-      const sectionElements = document.querySelectorAll(
-        "#trainerMgt, #traineeMgt, #postUpdate, #courseMgt, #profile"
-      );
+                if ($result && $result->num_rows > 0) {
+                  while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                    echo "<td>" . htmlspecialchars($row['fullName']) . "</td>";
+                    echo "<td>" . htmlspecialchars($row['userID']) . "</td>";
+                    echo "<td>" . (!empty($row['assignedDate']) ? date("m-d-Y", strtotime($row['assignedDate'])) : '-') . "</td>";
+                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
 
-      function handleTabAndSectionClick(clickedTab) {
-        const tabClass = clickedTab.classList[0];
-        const matchingSection = document.getElementById(tabClass);
+                    echo "<td><button type='button' class='setStatusBtn' data-id='{$row['trainerRowID']}'>Set Status</button></td>";
 
-        tabElements.forEach((el) => el.classList.remove("active"));
-        sectionElements.forEach((el) => el.classList.remove("active"));
+                    echo "<td>";
+                    if ($row['status'] === 'Active') {
+                      if (!empty($row['courseID'])) {
+                        echo "Assigned to " . htmlspecialchars($row['courseName']);
+                      } else {
+                        echo "<button type='button' class='assignBtn' data-id='{$row['trainerRowID']}'>Assign Course</button>";
+                      }
+                    } else {
+                      echo "-";
+                    }
+                    echo "</td>";
 
-        clickedTab.classList.add("active");
-        if (matchingSection) {
-          matchingSection.classList.add("active");
-        }
+                    echo "</tr>";
+                  }
+                } else {
+                  echo "<tr><td colspan='7'>No trainers found</td></tr>";
+                }
+              }
+
+              renderTrainersTable($conn);
+              ?>
+            </tbody>
+          </table>
+        </form>
+      </section>
+
+      <section id="traineeMgt">
+        <form class="container">
+          <h3>Trainees/ Students</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Date Created</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>anesthesia.d@domain.com</td>
+                <td>Ane S. Thesia</td>
+                <td>123456789</td>
+                <td>07-20-2022</td>
+                <td>Ongoing Training</td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+      </section>
+
+      <section id="postUpdate">
+        <div class="container">
+          <h3>Create and Manage Updates, Announcements, and Notices</h3>
+          <button type="button">Create</button>
+          <h4>Announcements</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Date of Creation</th>
+                <th>Due Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Enrollment for S.Y. 2025 - 2026</td>
+                <td>Announcement</td>
+                <td>The enrollment for all courses is now open.</td>
+                <td>04-26-2025</td>
+                <td>08-01-2025</td>
+                <td>
+                  <button type="button">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="courseMgt">
+        <div class="container">
+          <h3>Current Courses</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Schedules</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ACPN2</td>
+                <td>Agricultural Crops Production NC II</td>
+                <td>MWFSat 2:00-4:00</td>
+                <td>Offered</td>
+              </tr>
+
+              <tr>
+                <td>ASNC1</td>
+                <td>Automotive Servicing NC I</td>
+                <td>TThF 10:00-12:00</td>
+                <td>Offered</td>
+              </tr>
+
+              <tr>
+                <td>CSNC2</td>
+                <td>Computer Servicing NC II</td>
+                <td>N/A</td>
+                <td>Not Offered</td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" id="setCourse">Set Course</button>
+          <button type="button" id="addCourse">Add Course</button>
+        </div>
+      </section>
+
+      <section id="profile">
+        <h2>My Profile</h2>
+        <div class="container">
+          <form id="profileForm" class="capsule">
+          </form>
+        </div>
+      </section>
+    </div>
+    <div id="catalog"></div>
+  </main>
+
+  <footer>
+    <p>© 2025 Benguet Technical School. All rights reserved.</p>
+  </footer>
+
+  <!-- NAVIGATION -->
+  <script>
+    const tabElements = document.querySelectorAll(
+      ".trainerMgt, .traineeMgt, .postUpdate, .courseMgt, .profile"
+    );
+    const sectionElements = document.querySelectorAll(
+      "#trainerMgt, #traineeMgt, #postUpdate, #courseMgt, #profile"
+    );
+
+    function handleTabAndSectionClick(clickedTab) {
+      const tabClass = clickedTab.classList[0];
+      const matchingSection = document.getElementById(tabClass);
+
+      tabElements.forEach((el) => el.classList.remove("active"));
+      sectionElements.forEach((el) => el.classList.remove("active"));
+
+      clickedTab.classList.add("active");
+      if (matchingSection) {
+        matchingSection.classList.add("active");
       }
 
-      window.addEventListener("DOMContentLoaded", () => {
-        const defaultTab = document.querySelector(".trainerMgt");
-        if (defaultTab) handleTabAndSectionClick(defaultTab);
-      });
+      localStorage.setItem("activeTab", tabClass);
+    }
 
-      tabElements.forEach((tab) => {
-        tab.addEventListener("click", () => handleTabAndSectionClick(tab));
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTab = localStorage.getItem("activeTab");
+      const defaultTab = savedTab ?
+        document.querySelector(`.${savedTab}`) :
+        document.querySelector(".trainerMgt");
+
+      if (defaultTab) handleTabAndSectionClick(defaultTab);
+    });
+
+    tabElements.forEach((tab) => {
+      tab.addEventListener("click", () => handleTabAndSectionClick(tab));
+    });
+  </script>
+
+  <!-- THE ADDING OF TRAINERS -->
+  <script>
+    document.getElementById('addTrainerLink').addEventListener('click', function (e) {
+      e.preventDefault();
+      const popup = document.getElementById('popupForm');
+      popup.style.display = (popup.style.display === 'flex') ? 'none' : 'flex';
+    });
+    document.getElementById('closeTrainer').addEventListener('click', function (e) {
+      e.preventDefault();
+      const popup = document.getElementById('popupForm');
+      popup.style.display = "none"
+    });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const fname = document.querySelector("input[name='firstName']");
+      const lname = document.querySelector("input[name='lastName']");
+      const email = document.querySelector("input[name='email']");
+
+      function updateEmail() {
+        if (fname.value && lname.value) {
+          email.value = (fname.value + "." + lname.value).toLowerCase() + "@bts.gov.ph";
+        }
+      }
+      fname.addEventListener("input", updateEmail);
+      lname.addEventListener("input", updateEmail);
+
+      document.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("../php/addTrainer.php", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "success") {
+              alert(
+                "Trainer Registered!\n" +
+                "UserID: " + data.userID + "\n" +
+                "Email: " + data.email + "\n" +
+                "Password: " + data.password
+              );
+            } else {
+              alert("Error: " + data.message);
+            }
+          });
       });
-    </script>
-  </body>
+    });
+
+  </script>
+
+  <!-- PROFILE FUNCTIONS -->
+  <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const container = document.querySelector("#profile .container");
+
+        const response = await fetch('../php/getProfile.php');
+        const responseData = await response.json();
+
+        if (responseData.status !== "success") {
+          container.innerHTML = `<p>${responseData.message}</p>`;
+          return;
+        }
+
+        const data = responseData.data;
+
+        const form = document.createElement("form");
+        form.id = "profileForm";
+        form.className = "capsule";
+
+        const profileImageDiv = document.createElement("div");
+        profileImageDiv.className = "profile-image";
+
+        const img = document.createElement("img");
+        img.id = "profilePic";
+        img.src = data.profileImage ? `../${data.profileImage}` : "../images/school.png";
+        img.alt = "Profile";
+
+        const label = document.createElement("label");
+        label.htmlFor = "image-edit";
+        label.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff">
+        <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+      </svg>
+      `;
+        label.style.display = "none";
+
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.name = "image-edit";
+        fileInput.id = "image-edit";
+        fileInput.accept = "image/*";
+
+        profileImageDiv.append(img, label, fileInput);
+
+        const detailsDiv = document.createElement("div");
+        detailsDiv.className = "details";
+
+        const fields = [{
+          label: "Name",
+          id: "profile-name",
+          value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`
+            .trim()
+        },
+        {
+          label: "Email",
+          id: "profile-mail",
+          value: data.email || ""
+        },
+        {
+          label: "Contact",
+          id: "profile-contact",
+          value: data.mobileNumber || ""
+        },
+        {
+          label: "Bio",
+          id: "profile-bio",
+          value: data.bio || ""
+        }
+        ];
+
+        fields.forEach(f => {
+          const labelEl = document.createElement("label");
+          labelEl.htmlFor = f.id;
+          labelEl.textContent = f.label;
+
+          let inputEl;
+          if (f.id === "profile-bio") {
+            inputEl = document.createElement("textarea");
+            inputEl.style.height = "100px";
+            inputEl.style.whiteSpace = "pre-wrap";
+            inputEl.value = f.value;
+          } else {
+            inputEl = document.createElement("input");
+            inputEl.type = "text";
+            inputEl.value = f.value;
+          }
+          inputEl.id = f.id;
+          inputEl.disabled = true;
+          detailsDiv.append(labelEl, inputEl);
+        });
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.id = "editButton";
+        editButton.textContent = "Edit Profile";
+        detailsDiv.appendChild(editButton);
+
+        const editDiv = document.createElement("div");
+        editDiv.className = "details-edit";
+        editDiv.style.display = "none";
+
+        fields.forEach(f => {
+          const labelEl = document.createElement("label");
+          labelEl.htmlFor = "edit-" + f.id;
+          labelEl.textContent = f.label;
+
+          let inputEl;
+          if (f.id === "profile-bio") {
+            inputEl = document.createElement("textarea");
+            inputEl.style.height = "100px";
+            inputEl.style.whiteSpace = "pre-wrap";
+            inputEl.value = f.value;
+          } else {
+            inputEl = document.createElement("input");
+            inputEl.type = "text";
+            inputEl.value = f.value;
+            if (f.id === "profile-mail" || f.id === "profile-contact") {
+              inputEl.disabled = true;
+            }
+          }
+          inputEl.id = "edit-" + f.id;
+          editDiv.append(labelEl, inputEl);
+        });
+
+        const saveButton = document.createElement("button");
+        saveButton.type = "button";
+        saveButton.id = "saveButton";
+        saveButton.textContent = "Save Profile";
+        editDiv.appendChild(saveButton);
+
+        form.append(profileImageDiv, detailsDiv, editDiv);
+        container.appendChild(form);
+
+        editButton.addEventListener("click", () => {
+          fields.forEach(f => {
+            document.getElementById("edit-" + f.id).value = document.getElementById(f
+              .id).value;
+          });
+          detailsDiv.style.display = "none";
+          editDiv.style.display = "flex";
+          label.style.display = "flex";
+        });
+
+        saveButton.addEventListener("click", async () => {
+          const formData = new FormData();
+          fields.forEach(f => {
+            formData.append(f.id, document.getElementById("edit-" + f.id).value);
+          });
+          if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
+
+          const res = await fetch("../php/updateProfile.php", {
+            method: "POST",
+            body: formData
+          });
+          const result = await res.json();
+          alert(result.message);
+          if (result.status === "success") location.reload();
+        });
+
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = e => img.src = e.target.result;
+            reader.readAsDataURL(file);
+          }
+        });
+      });
+  </script>
+</body>
+
 </html>

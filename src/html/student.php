@@ -25,7 +25,7 @@ authenticate();
 
     $userId = $_SESSION['userID'];
 
-    $sql = "SELECT firstName, middleName, lastName, suffix, role, profileImage 
+    $sql = "SELECT userID, firstName, middleName, lastName, suffix, role, profileImage 
         FROM userstable WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $userId);
@@ -35,13 +35,14 @@ authenticate();
 
     $fullName = trim("{$user['firstName']} {$user['middleName']} {$user['lastName']} {$user['suffix']}");
     $role = ucfirst($user['role']);
+    $UID = trim($user['userID']);
     $profileImg = !empty($user['profileImage']) ? "../" . $user['profileImage'] : "../images/school.png";
     ?>
     <div id="student-profile">
       <img src="<?= htmlspecialchars($profileImg) ?>" alt="Profile Image" />
       <h3 class="name"><?= htmlspecialchars($fullName) ?></h3>
       <p><?= htmlspecialchars($role) ?></p>
-      <p class="student-id-number"><?= htmlspecialchars($userId) ?></p>
+      <p class="student-id-number"><?= htmlspecialchars($UID) ?></p>
     </div>
     <div id="navigation">
       <ul>
@@ -422,10 +423,16 @@ authenticate();
       if (matchingSection) {
         matchingSection.classList.add("active");
       }
+
+      localStorage.setItem("activeTab", tabClass);
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      const defaultTab = document.querySelector(".dashboard");
+      const savedTab = localStorage.getItem("activeTab");
+      const defaultTab = savedTab
+        ? document.querySelector(`.${savedTab}`)
+        : document.querySelector(".dashboard");
+
       if (defaultTab) handleTabAndSectionClick(defaultTab);
     });
 
@@ -433,76 +440,6 @@ authenticate();
       tab.addEventListener("click", () => handleTabAndSectionClick(tab));
     });
   </script>
-
-  <!-- CALENDAR
-  <script>
-    const calendarHeader = document.getElementById("calendar-header");
-    const calendar = document.getElementById("calendar");
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    async function phHolidays(year) {
-      const response = await fetch(
-        `https://date.nager.at/api/v3/PublicHolidays/${year}/PH`
-      );
-      const holidays = await response.json();
-      return holidays.map((h) => h.date);
-    }
-
-    function renderCalendar(year, month, holidayDates) {
-      calendarHeader.innerText = `${monthNames[month]} ${year}`;
-      calendar.innerHTML = "";
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const todayStr = today.toISOString().split("T")[0];
-
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        empty.className = "day";
-        calendar.appendChild(empty);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, month, day);
-        const isDate = d.toISOString().split("T")[0];
-        const cell = document.createElement("div");
-        cell.className = "day";
-        cell.innerText = day;
-
-        const dayOfWeek = d.getDay();
-        if (dayOfWeek === 0) cell.classList.add("sunday");
-        if (holidayDates.includes(isDate)) cell.classList.add("holiday");
-        if (isDate === todayStr) cell.classList.add("today");
-
-        calendar.appendChild(cell);
-      }
-    }
-
-    async function initCalendar(year, month) {
-      const holidayDates = await phHolidays(year);
-      renderCalendar(year, month, holidayDates);
-    }
-
-    initCalendar(year, month);
-  </script> -->
 
   <!-- COURSE LOGIC -->
   <script>
@@ -610,6 +547,7 @@ authenticate();
       <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
     </svg>
   `;
+      label.style.display = "none";
 
       const fileInput = document.createElement("input");
       fileInput.type = "file";
@@ -698,6 +636,7 @@ authenticate();
         });
         detailsDiv.style.display = "none";
         editDiv.style.display = "flex";
+        label.style.display = "flex";
       });
 
       saveButton.addEventListener("click", async () => {

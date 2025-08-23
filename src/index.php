@@ -215,7 +215,6 @@ if (isset($_SESSION['user'])) {
             <input name="mname" id="mname" type="text" placeholder="Middle Name" required />
             <input name="lname" id="lname" type="text" placeholder="Last Name" required />
             <input name="suffix" id="suffix" type="text" placeholder="Name Suffix (Jr., II, III)" />
-            <input name="age" id="age" type="number" placeholder="Age" required />
             <input name="address" id="address" type="text" placeholder="Address" required />
             <select name="gender" name="gender" id="gender" required>
               <option value="" selected disabled hidden>Select Gender</option>
