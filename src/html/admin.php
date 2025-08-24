@@ -1,6 +1,94 @@
 <?php
 require_once "../php/authentication.php";
 authenticate();
+
+require_once "../php/DatabaseConnection.php";
+
+$courses = [];
+$cResult = $conn->query("SELECT courseID, courseName FROM coursestable ORDER BY courseName ASC");
+if ($cResult && $cResult->num_rows > 0) {
+  while ($c = $cResult->fetch_assoc()) {
+    $courses[] = $c;
+  }
+}
+
+if (isset($_POST['assignCourseBtn'])) {
+  $trainerRowID = $_POST['trainerRowID'] ?? null;
+  $courseIDs = $_POST['courseID'] ?? [];
+
+  if ($trainerRowID && !empty($courseIDs)) {
+    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+    $stmt->bind_param("i", $trainerRowID);
+    $stmt->execute();
+    $stmt->bind_result($trainerID);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$trainerID) {
+      echo '<script>alert("Invalid trainer selected.");</script>';
+      exit;
+    }
+
+    foreach ($courseIDs as $courseID) {
+      $stmt = $conn->prepare("SELECT courseName FROM coursestable WHERE courseID = ?");
+      $stmt->bind_param("s", $courseID);
+      $stmt->execute();
+      $stmt->bind_result($courseName);
+      $stmt->fetch();
+      $stmt->close();
+
+      if ($courseName) {
+        $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
+        $insert->bind_param("sss", $trainerID, $courseID, $courseName);
+        $insert->execute();
+        $insert->close();
+      }
+    }
+
+    echo '<script>alert("Courses assigned successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+    exit;
+  }
+}
+
+if (isset($_POST['saveStatusBtn'])) {
+  $trainerRowID = $_POST['trainerRowID'] ?? null;
+  $status = $_POST['status'] ?? null;
+
+  if ($trainerRowID && $status) {
+    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+    $stmt->bind_param("i", $trainerRowID);
+    $stmt->execute();
+    $stmt->bind_result($trainerID);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$trainerID) {
+      echo '<script>alert("Invalid trainer selected.");</script>';
+      exit;
+    }
+
+    $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
+    $stmt->bind_param('si', $status, $trainerRowID);
+
+    if ($stmt->execute()) {
+      $stmt->close();
+
+      if ($status === 'on leave' || $status === 'dismissed') {
+        $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
+        $del->bind_param("s", $trainerID);
+        $del->execute();
+        $del->close();
+      }
+
+      echo '<script>alert("Status updated successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+      exit;
+    } else {
+      echo '<script>alert("Database error.")</script>';
+    }
+  }
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +158,7 @@ authenticate();
   <main>
     <div id="main-section">
       <section id="trainerMgt">
-        <form class="container">
+        <form class="container" style="width: 500px;">
           <h3>Active Trainers</h3>
           <a href="#" id="addTrainerLink">Add Trainer</a>
 
@@ -96,6 +184,7 @@ authenticate();
                 <option value="Doctor's Degree">Doctor's Degree</option>
                 <option value="Master's Degree">Master's Degree</option>
                 <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="Associate's Degree">Associate's Degree</option>
                 <option value="College">College</option>
               </select><br>
               <div class="buttons">
@@ -118,26 +207,23 @@ authenticate();
             </thead>
             <tbody>
               <?php
-              require_once '../php/DatabaseConnection.php'; // adjust path
-              
+              require_once '../php/DatabaseConnection.php';
+
               function renderTrainersTable($conn)
               {
-                $sql = "
-        SELECT 
-            u.id AS userID,
+                $sql = "SELECT 
+            u.id AS userRowID,
+            u.userID,
             CONCAT(u.firstName, ' ', IFNULL(u.middleName,''), ' ', u.lastName, ' ', IFNULL(u.suffix,'')) AS fullName,
             u.email,
             t.id AS trainerRowID,
+            t.trainerID,
             t.status,
-            t.assignedDate,
-            t.courseID,
-            c.courseName
-        FROM trainerstable t
-        INNER JOIN userstable u ON u.id = t.trainerID
-        LEFT JOIN coursestable c ON c.id = t.courseID
-        WHERE u.role = 'trainer'
-        ORDER BY t.assignedDate DESC
-    ";
+            t.assignedDate
+          FROM trainerstable t
+          INNER JOIN userstable u ON u.userID = t.trainerID
+          WHERE u.role = 'trainer'
+          ORDER BY t.assignedDate DESC";
 
                 $result = $conn->query($sql);
 
@@ -150,15 +236,24 @@ authenticate();
                     echo "<td>" . (!empty($row['assignedDate']) ? date("m-d-Y", strtotime($row['assignedDate'])) : '-') . "</td>";
                     echo "<td>" . htmlspecialchars($row['status']) . "</td>";
 
-                    echo "<td><button type='button' class='setStatusBtn' data-id='{$row['trainerRowID']}'>Set Status</button></td>";
+                    echo "<td><button type='button' class='setTrainerStatusBtn' data-id='{$row['trainerID']}'>Set Status</button></td>";
+
+                    $assignedCourses = [];
+                    $stmt = $conn->prepare("SELECT courseName FROM trainercourses WHERE trainerID = ?");
+                    $stmt->bind_param("s", $row['trainerID']);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    while ($crs = $res->fetch_assoc()) {
+                      $assignedCourses[] = $crs['courseName'];
+                    }
+                    $stmt->close();
 
                     echo "<td>";
-                    if ($row['status'] === 'Active') {
-                      if (!empty($row['courseID'])) {
-                        echo "Assigned to " . htmlspecialchars($row['courseName']);
-                      } else {
-                        echo "<button type='button' class='assignBtn' data-id='{$row['trainerRowID']}'>Assign Course</button>";
-                      }
+                    if ($row['status'] === 'active') {
+                      echo "<button class='assignTrainerBtn' 
+                            data-id='" . htmlspecialchars($row['trainerID'], ENT_QUOTES) . "' >
+                            Assign Courses
+                        </button>";
                     } else {
                       echo "-";
                     }
@@ -167,7 +262,7 @@ authenticate();
                     echo "</tr>";
                   }
                 } else {
-                  echo "<tr><td colspan='7'>No trainers found</td></tr>";
+                  echo "<tr><td colspan='8'>No trainers found</td></tr>";
                 }
               }
 
@@ -374,6 +469,7 @@ authenticate();
                 "Email: " + data.email + "\n" +
                 "Password: " + data.password
               );
+              location.reload();
             } else {
               alert("Error: " + data.message);
             }
@@ -383,174 +479,259 @@ authenticate();
 
   </script>
 
+  <!-- SET TRAINER STATUS -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".setTrainerStatusBtn").forEach(btn => {
+        btn.addEventListener('click', function () {
+          const trainerRowID = this.dataset.id;
+
+
+          const existingPopup = document.querySelector("#trainerStatusPopup, #trainerCoursePopup");
+          if (existingPopup) existingPopup.remove();
+
+          if (document.getElementById("trainerStatusPopup")) return;
+
+          const popup = document.createElement('div');
+          popup.id = "trainerStatusPopup";
+          popup.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 8px; background-color: #f9f9f9; width: 400px; padding: 15px; box-shadow:0 2px 8px rgba(0,0,0,.2);";
+          popup.innerHTML = `
+            <h3>Set Status for ${trainerRowID}</h3>
+            <form method="POST" style="display:flex; flex-direction:column; align-items:center; gap: 10px; justify-content:center; ">
+              <input type="hidden" name="trainerRowID" value="${trainerRowID}">
+              <select name="status" style="width: 100%; padding: 10px; font-family: 'Outfit', sans-serif; font-size: 1rem;" required>
+                <option value="" selected disabled>Select Status</option>
+                <option value="active">Active</option>
+                <option value="on leave">On Leave</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+              <div style="display: flex; width: 100%; justify-content: space-evenly; margin-top: 10px;">
+                <button type="submit" name="saveStatusBtn">Save</button>
+                <button type="button" id="closePopupBtn">Close</button>
+              </div>
+            </form>
+          `;
+
+          document.body.appendChild(popup);
+          document.getElementById('closePopupBtn').addEventListener('click', () => popup.remove());
+        })
+      })
+
+    })
+  </script>
+  <!-- SET TRAINER COURSE -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const availableCourses = <?php echo json_encode($courses); ?>;
+      document.querySelectorAll(".assignTrainerBtn").forEach(btn => {
+        btn.addEventListener('click', function () {
+          const trainerRowID = this.dataset.id;
+
+          const existingPopup = document.querySelector("#trainerStatusPopup, #trainerCoursePopup");
+          if (existingPopup) existingPopup.remove();
+
+          if (document.getElementById("trainerCoursePopup")) return;
+
+          const popup = document.createElement('div');
+          popup.id = "trainerCoursePopup";
+          popup.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 8px; background-color: #f9f9f9; width: 400px; padding: 15px; box-shadow:0 2px 8px rgba(0,0,0,.2);";
+
+          let options = '';
+          availableCourses.forEach(c => {
+            options += `<option value="${c.courseID}">${c.courseName}</option>`;
+          });
+
+          popup.innerHTML = `
+                            <h3>Assign Courses for ${trainerRowID}</h3>
+                            <form method="POST" style="display:flex; flex-direction:column; gap: 10px;">
+                              <input type="hidden" name="trainerRowID" value="${trainerRowID}">
+                              <select name="courseID[]" required 
+                                style="padding:8px; font-family: 'Outfit', sans-serif; font-size: 1rem; height:max-content;">
+                                ${options}
+                              </select>
+                              <div style="display:flex; justify-content:space-evenly; margin-top: 10px;">
+                                <button type="submit" name="assignCourseBtn">Save</button>
+                                <button type="button" id="closeAssignPopupBtn">Cancel</button>
+                              </div>
+                            </form>
+                          `;
+
+          document.body.appendChild(popup);
+          document.getElementById('closeAssignPopupBtn').addEventListener('click', () => popup.remove());
+        });
+      });
+
+    })
+  </script>
+
   <!-- PROFILE FUNCTIONS -->
   <script>
-      document.addEventListener("DOMContentLoaded", async () => {
-        const container = document.querySelector("#profile .container");
+    document.addEventListener("DOMContentLoaded", async () => {
+      const container = document.querySelector("#profile .container");
 
-        const response = await fetch('../php/getProfile.php');
-        const responseData = await response.json();
+      const response = await fetch('../php/getProfile.php');
+      const responseData = await response.json();
 
-        if (responseData.status !== "success") {
-          container.innerHTML = `<p>${responseData.message}</p>`;
-          return;
-        }
+      if (responseData.status !== "success") {
+        container.innerHTML = `<p>${responseData.message}</p>`;
+        return;
+      }
 
-        const data = responseData.data;
+      const data = responseData.data;
 
-        const form = document.createElement("form");
-        form.id = "profileForm";
-        form.className = "capsule";
+      const form = document.createElement("form");
+      form.id = "profileForm";
+      form.className = "capsule";
 
-        const profileImageDiv = document.createElement("div");
-        profileImageDiv.className = "profile-image";
+      const profileImageDiv = document.createElement("div");
+      profileImageDiv.className = "profile-image";
 
-        const img = document.createElement("img");
-        img.id = "profilePic";
-        img.src = data.profileImage ? `../${data.profileImage}` : "../images/school.png";
-        img.alt = "Profile";
+      const img = document.createElement("img");
+      img.id = "profilePic";
+      img.src = data.profileImage ? `../${data.profileImage}` : "../images/school.png";
+      img.alt = "Profile";
 
-        const label = document.createElement("label");
-        label.htmlFor = "image-edit";
-        label.innerHTML = `
+      const label = document.createElement("label");
+      label.htmlFor = "image-edit";
+      label.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff">
         <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
       </svg>
       `;
-        label.style.display = "none";
+      label.style.display = "none";
 
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.name = "image-edit";
-        fileInput.id = "image-edit";
-        fileInput.accept = "image/*";
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.name = "image-edit";
+      fileInput.id = "image-edit";
+      fileInput.accept = "image/*";
 
-        profileImageDiv.append(img, label, fileInput);
+      profileImageDiv.append(img, label, fileInput);
 
-        const detailsDiv = document.createElement("div");
-        detailsDiv.className = "details";
+      const detailsDiv = document.createElement("div");
+      detailsDiv.className = "details";
 
-        const fields = [{
-          label: "Name",
-          id: "profile-name",
-          value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`
-            .trim()
-        },
-        {
-          label: "Email",
-          id: "profile-mail",
-          value: data.email || ""
-        },
-        {
-          label: "Contact",
-          id: "profile-contact",
-          value: data.mobileNumber || ""
-        },
-        {
-          label: "Bio",
-          id: "profile-bio",
-          value: data.bio || ""
+      const fields = [{
+        label: "Name",
+        id: "profile-name",
+        value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`
+          .trim()
+      },
+      {
+        label: "Email",
+        id: "profile-mail",
+        value: data.email || ""
+      },
+      {
+        label: "Contact",
+        id: "profile-contact",
+        value: data.mobileNumber || ""
+      },
+      {
+        label: "Bio",
+        id: "profile-bio",
+        value: data.bio || ""
+      }
+      ];
+
+      fields.forEach(f => {
+        const labelEl = document.createElement("label");
+        labelEl.htmlFor = f.id;
+        labelEl.textContent = f.label;
+
+        let inputEl;
+        if (f.id === "profile-bio") {
+          inputEl = document.createElement("textarea");
+          inputEl.style.height = "100px";
+          inputEl.style.whiteSpace = "pre-wrap";
+          inputEl.value = f.value;
+        } else {
+          inputEl = document.createElement("input");
+          inputEl.type = "text";
+          inputEl.value = f.value;
         }
-        ];
-
-        fields.forEach(f => {
-          const labelEl = document.createElement("label");
-          labelEl.htmlFor = f.id;
-          labelEl.textContent = f.label;
-
-          let inputEl;
-          if (f.id === "profile-bio") {
-            inputEl = document.createElement("textarea");
-            inputEl.style.height = "100px";
-            inputEl.style.whiteSpace = "pre-wrap";
-            inputEl.value = f.value;
-          } else {
-            inputEl = document.createElement("input");
-            inputEl.type = "text";
-            inputEl.value = f.value;
-          }
-          inputEl.id = f.id;
-          inputEl.disabled = true;
-          detailsDiv.append(labelEl, inputEl);
-        });
-
-        const editButton = document.createElement("button");
-        editButton.type = "button";
-        editButton.id = "editButton";
-        editButton.textContent = "Edit Profile";
-        detailsDiv.appendChild(editButton);
-
-        const editDiv = document.createElement("div");
-        editDiv.className = "details-edit";
-        editDiv.style.display = "none";
-
-        fields.forEach(f => {
-          const labelEl = document.createElement("label");
-          labelEl.htmlFor = "edit-" + f.id;
-          labelEl.textContent = f.label;
-
-          let inputEl;
-          if (f.id === "profile-bio") {
-            inputEl = document.createElement("textarea");
-            inputEl.style.height = "100px";
-            inputEl.style.whiteSpace = "pre-wrap";
-            inputEl.value = f.value;
-          } else {
-            inputEl = document.createElement("input");
-            inputEl.type = "text";
-            inputEl.value = f.value;
-            if (f.id === "profile-mail" || f.id === "profile-contact") {
-              inputEl.disabled = true;
-            }
-          }
-          inputEl.id = "edit-" + f.id;
-          editDiv.append(labelEl, inputEl);
-        });
-
-        const saveButton = document.createElement("button");
-        saveButton.type = "button";
-        saveButton.id = "saveButton";
-        saveButton.textContent = "Save Profile";
-        editDiv.appendChild(saveButton);
-
-        form.append(profileImageDiv, detailsDiv, editDiv);
-        container.appendChild(form);
-
-        editButton.addEventListener("click", () => {
-          fields.forEach(f => {
-            document.getElementById("edit-" + f.id).value = document.getElementById(f
-              .id).value;
-          });
-          detailsDiv.style.display = "none";
-          editDiv.style.display = "flex";
-          label.style.display = "flex";
-        });
-
-        saveButton.addEventListener("click", async () => {
-          const formData = new FormData();
-          fields.forEach(f => {
-            formData.append(f.id, document.getElementById("edit-" + f.id).value);
-          });
-          if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
-
-          const res = await fetch("../php/updateProfile.php", {
-            method: "POST",
-            body: formData
-          });
-          const result = await res.json();
-          alert(result.message);
-          if (result.status === "success") location.reload();
-        });
-
-        fileInput.addEventListener("change", () => {
-          const file = fileInput.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = e => img.src = e.target.result;
-            reader.readAsDataURL(file);
-          }
-        });
+        inputEl.id = f.id;
+        inputEl.disabled = true;
+        detailsDiv.append(labelEl, inputEl);
       });
+
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.id = "editButton";
+      editButton.textContent = "Edit Profile";
+      detailsDiv.appendChild(editButton);
+
+      const editDiv = document.createElement("div");
+      editDiv.className = "details-edit";
+      editDiv.style.display = "none";
+
+      fields.forEach(f => {
+        const labelEl = document.createElement("label");
+        labelEl.htmlFor = "edit-" + f.id;
+        labelEl.textContent = f.label;
+
+        let inputEl;
+        if (f.id === "profile-bio") {
+          inputEl = document.createElement("textarea");
+          inputEl.style.height = "100px";
+          inputEl.style.whiteSpace = "pre-wrap";
+          inputEl.value = f.value;
+        } else {
+          inputEl = document.createElement("input");
+          inputEl.type = "text";
+          inputEl.value = f.value;
+          if (f.id === "profile-mail" || f.id === "profile-contact") {
+            inputEl.disabled = true;
+          }
+        }
+        inputEl.id = "edit-" + f.id;
+        editDiv.append(labelEl, inputEl);
+      });
+
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.id = "saveButton";
+      saveButton.textContent = "Save Profile";
+      editDiv.appendChild(saveButton);
+
+      form.append(profileImageDiv, detailsDiv, editDiv);
+      container.appendChild(form);
+
+      editButton.addEventListener("click", () => {
+        fields.forEach(f => {
+          document.getElementById("edit-" + f.id).value = document.getElementById(f
+            .id).value;
+        });
+        detailsDiv.style.display = "none";
+        editDiv.style.display = "flex";
+        label.style.display = "flex";
+      });
+
+      saveButton.addEventListener("click", async () => {
+        const formData = new FormData();
+        fields.forEach(f => {
+          formData.append(f.id, document.getElementById("edit-" + f.id).value);
+        });
+        if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
+
+        const res = await fetch("../php/updateProfile.php", {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json();
+        alert(result.message);
+        if (result.status === "success") location.reload();
+      });
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => img.src = e.target.result;
+          reader.readAsDataURL(file);
+        }
+      });
+    });
   </script>
 </body>
 
