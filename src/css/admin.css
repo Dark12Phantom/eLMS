@@ -185,7 +185,7 @@ table tbody tr td {
   box-sizing: border-box;
 }
 
-/* #trainerMgt {
+#trainerMgt {
   display: none;
 }
 
@@ -202,7 +202,7 @@ table tbody tr td {
   flex-direction: column;
   width: 100%;
   position: relative;
-} */
+}
 
 #trainerMgt .container #popupForm .buttons button[type='button']{
   background-color: red;
