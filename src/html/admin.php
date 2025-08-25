@@ -158,25 +158,29 @@ if (isset($_POST['saveStatusBtn'])) {
   <main>
     <div id="main-section">
       <section id="trainerMgt">
-        <form class="container" style="width: 500px;">
-          <h3>Active Trainers</h3>
-          <a href="#" id="addTrainerLink">Add Trainer</a>
+        <div class="container">
+          <h3>Trainers</h3>
+          <a href="#" id="addTrainerLink"
+            style="margin-bottom: 15px; width:max-content; padding: 5px 10px; border-radius: 15px; border:none; background-color: #0011ff; text-decoration: none; color: #ffffff;">Add
+            Trainer</a>
 
           <div id="popupForm" style="display:none; border:none; border-radius: 8px; padding:15px; background:#f9f9f9;">
-            <form method="POST" action="add_trainer.php" enctype="multipart/form-data">
+            <form method="POST" action="addTrainer.php" enctype="multipart/form-data">
               <label>First Name:</label><input type="text" name="firstName" required><br>
               <label>Middle Name:</label><input type="text" name="middleName"><br>
               <label>Last Name:</label><input type="text" name="lastName" required><br>
               <label>Suffix:</label><input type="text" name="suffix"><br>
               <label>Gender:</label>
-              <select name="gender" required>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+              <label for="gender">Gender:</label>
+              <select id="gender" name="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
               </select><br>
               <label>Birthdate:</label><input type="date" name="birthDate" required><br>
               <label>Bio:</label><textarea name="bio" placeholder="Input Trainer's Degree"></textarea><br>
               <label>Mobile Number:</label><input type="text" name="mobileNumber"><br>
-              <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" readonly><br>
+              <label>Email: </label><input type="email" name="email" value=" " readonly><br>
               <label>Education:</label><select name="education" id="education" required>
                 <option value="" selected disabled hidden>
                   Attained Education
@@ -270,34 +274,129 @@ if (isset($_POST['saveStatusBtn'])) {
               ?>
             </tbody>
           </table>
-        </form>
+        </div>
       </section>
 
       <section id="traineeMgt">
-        <form class="container">
+        <div class="container">
           <h3>Trainees/ Students</h3>
+          <a href="#" id="addStudentLink"
+            style="margin-bottom: 15px; width:max-content; padding: 5px 10px; border-radius: 15px; border:none; background-color: #0011ff; text-decoration: none; color: #ffffff;">Enroll
+            Trainee</a>
+
+          <div id="popupStudentForm"
+            style="display:none; border:none; border-radius: 8px; padding:15px; background:#f9f9f9;">
+            <form method="POST" action="../php/addTrainee.php" enctype="multipart/form-data">
+              <label>First Name:</label><input type="text" name="studentFirstName" required><br>
+              <label>Middle Name:</label><input type="text" name="studentMiddleName"><br>
+              <label>Last Name:</label><input type="text" name="studentLastName" required><br>
+              <label>Suffix:</label><input type="text" name="studentSuffix"><br>
+              <label for="studentGender">Gender:</label>
+              <select id="studentGender" name="studentGender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select><br>
+              <label>Birthdate:</label><input type="date" name="studentBirthDate" required><br>
+              <label>Bio:</label><textarea name="studentBio" placeholder="Input Trainer's Degree"></textarea><br>
+              <label>Mobile Number:</label><input type="text" name="studentMobileNumber"><br>
+              <label>Email: </label><input type="email" id="studentEmail" name="studentEmail" value="" readonly><br>
+              <label>Education:</label><select name="studentEducation" id="studentEducation" required>
+                <option value="" selected disabled hidden>
+                  Highest Attained Education
+                </option>
+                <option value="Elementary">Elementary</option>
+                <option value="JHS">Junior High School</option>
+                <option value="SHS">Senior High School</option>
+                <option value="College">College</option>
+                <option value="Graduate">
+                  Graduate School (Doctoral, Masteral, etc.)
+                </option>
+              </select><br>
+              <div class="buttons">
+                <button type="submit">Add Trainer</button>
+                <button type="button" id="closeTrainee">Close</button>
+              </div>
+            </form>
+          </div>
           <table>
             <thead>
               <tr>
                 <th>Username</th>
                 <th>Name</th>
                 <th>ID</th>
-                <th>Date Created</th>
+                <th>Date Hired</th>
                 <th>Status</th>
+                <th>Action</th>
+                <th>Assign</th>
               </tr>
             </thead>
-
             <tbody>
-              <tr>
-                <td>anesthesia.d@domain.com</td>
-                <td>Ane S. Thesia</td>
-                <td>123456789</td>
-                <td>07-20-2022</td>
-                <td>Ongoing Training</td>
-              </tr>
+              <?php
+              require_once '../php/DatabaseConnection.php';
+
+              function renderTraineesTable($conn)
+              {
+                $sql = "SELECT 
+            u.id AS userRowID,
+            u.userID,
+            CONCAT(u.firstName, ' ', IFNULL(u.middleName,''), ' ', u.lastName, ' ', IFNULL(u.suffix,'')) AS fullName,
+            u.email,
+            t.id AS trainerRowID,
+            t.studentID,
+            t.status,
+            t.enrolledDate
+          FROM traineestable t
+          INNER JOIN userstable u ON u.userID = t.studentID
+          WHERE u.role = 'trainee'
+          ORDER BY t.enrolledDate DESC";
+
+                $result = $conn->query($sql);
+
+                if ($result && $result->num_rows > 0) {
+                  while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                    echo "<td>" . htmlspecialchars($row['fullName']) . "</td>";
+                    echo "<td>" . htmlspecialchars($row['userID']) . "</td>";
+                    echo "<td>" . (!empty($row['enrolledDate']) ? date("m-d-Y", strtotime($row['enrolledDate'])) : '-') . "</td>";
+                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+
+                    echo "<td><button type='button' class='setTraineeStatusBtn' data-id='{$row['studentID']}'>Set Status</button></td>";
+
+                    $assignedCourses = [];
+                    $stmt = $conn->prepare("SELECT courseName FROM studentprogress WHERE studentID = ?");
+                    $stmt->bind_param("s", $row['studentID']);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    while ($crs = $res->fetch_assoc()) {
+                      $assignedCourses[] = $crs['courseName'];
+                    }
+                    $stmt->close();
+
+                    echo "<td>";
+                    if ($row['status'] === 'active') {
+                      echo "<button class='addTaineeCourseBtn' 
+                            data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "' >
+                            Add Course
+                        </button>";
+                    } else {
+                      echo "-";
+                    }
+                    echo "</td>";
+
+                    echo "</tr>";
+                  }
+                } else {
+                  echo "<tr><td colspan='8'>No students found</td></tr>";
+                }
+              }
+
+              renderTraineesTable($conn);
+              ?>
             </tbody>
           </table>
-        </form>
+        </div>
       </section>
 
       <section id="postUpdate">
@@ -562,6 +661,61 @@ if (isset($_POST['saveStatusBtn'])) {
       });
 
     })
+  </script>
+
+  <!-- THE ADDING OF TRAINEES -->
+  <script>
+    const addStudentLink = document.getElementById('addStudentLink');
+    const popupForm = document.getElementById('popupStudentForm');
+    const closeBtn = document.getElementById('closeTrainee');
+    const form = document.getElementById('traineeForm');
+
+    addStudentLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      popupForm.style.display = 'block';
+    });
+
+    closeBtn.addEventListener('click', function () {
+      popupForm.style.display = 'none';
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const fname = document.querySelector("input[name='studentFirstName']");
+      const lname = document.querySelector("input[name='studentLastName']");
+      const email = document.querySelector("input[name='studentEmail']");
+
+      function updateEmail() {
+        if (fname.value && lname.value) {
+          email.value = (fname.value + "." + lname.value).toLowerCase() + "@bts.gov.ph";
+        }
+      }
+      fname.addEventListener("input", updateEmail);
+      lname.addEventListener("input", updateEmail);
+
+      document.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("../php/addTrainee.php", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "success") {
+              alert(
+                "Trainee Enrolled!\n" +
+                "UserID: " + data.userID + "\n" +
+                "Email: " + data.email + "\n" +
+                "Password: " + data.password
+              );
+              location.reload();
+            } else {
+              alert("Error: " + data.message);
+            }
+          });
+      });
+    });
   </script>
 
   <!-- PROFILE FUNCTIONS -->

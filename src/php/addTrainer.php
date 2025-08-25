@@ -87,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $trainerName = trim($firstName . " " . $middleName . " " . $lastName . " " . $suffix);
         $stmt2 = $conn->prepare("INSERT INTO trainerstable 
-        (courseID, courseName, trainerID, trainerName, status, assignedDate) 
-        VALUES (NULL, NULL, ?, ?, 'active', ?)");
+                                        (trainerID, trainerName, status, assignedDate) 
+                                        VALUES (?, ?, 'active', ?)");
         $stmt2->bind_param("sss", $userID, $trainerName, $dateCreated);
         $stmt2->execute();
         $stmt2->close();

@@ -243,6 +243,27 @@ table tbody tr td {
   position: relative;
 }
 
+#traineeMgt .container #popupStudentForm .buttons button[type='button']{
+  background-color: red;
+  color: white;
+}
+
+#traineeMgt .container #popupStudentForm{
+  flex-direction: column;
+  flex-wrap: wrap;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+
+#popupStudentForm label, 
+#popupStudentForm input, 
+#popupStudentForm select {
+  flex: 1 1 45%;
+  min-width: 200px;
+}
+
 #postUpdate {
   display: none;
 }

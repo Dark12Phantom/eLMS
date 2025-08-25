@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         }
     } while (true);
+    
     $email = strtolower($firstName . "." . $lastName) . "@bts.gov.ph";
     $plainPassword = $userID;
     $hashedPassword = password_hash($plainPassword, PASSWORD_BCRYPT);
@@ -86,10 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $statement->close();
 
         $studentName = trim($firstName . " " . $middleName . " " . $lastName . " " . $suffix);
+        
         $stmt2 = $conn->prepare("INSERT INTO traineestable 
-        (courseID, courseName, studentID, studentName, status) 
-        VALUES (NULL, NULL, ?, ?, 'active')");
-        $stmt2->bind_param("sss", $userID, $trainerName, $dateCreated);
+                                (studentID, studentName, status, enrolledDate) 
+                                VALUES (?, ?, 'Idle', ?)");
+        $stmt2->bind_param("sss", $userID, $studentName, $dateCreated);
         $stmt2->execute();
         $stmt2->close();
 
