@@ -1,92 +1,92 @@
 <?php
-require_once "../php/authentication.php";
-authenticate();
+  require_once "../php/authentication.php";
+  authenticate();
 
-require_once "../php/DatabaseConnection.php";
+  require_once "../php/DatabaseConnection.php";
 
-$courses = [];
-$cResult = $conn->query("SELECT courseID, courseName FROM coursestable ORDER BY courseName ASC");
-if ($cResult && $cResult->num_rows > 0) {
-  while ($c = $cResult->fetch_assoc()) {
-    $courses[] = $c;
-  }
-}
-
-if (isset($_POST['assignCourseBtn'])) {
-  $trainerRowID = $_POST['trainerRowID'] ?? null;
-  $courseIDs = $_POST['courseID'] ?? [];
-
-  if ($trainerRowID && !empty($courseIDs)) {
-    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-    $stmt->bind_param("i", $trainerRowID);
-    $stmt->execute();
-    $stmt->bind_result($trainerID);
-    $stmt->fetch();
-    $stmt->close();
-
-    if (!$trainerID) {
-      echo '<script>alert("Invalid trainer selected.");</script>';
-      exit;
+  $courses = [];
+  $cResult = $conn->query("SELECT courseID, courseName, status FROM coursestable ORDER BY courseName ASC");
+  if ($cResult && $cResult->num_rows > 0) {
+    while ($c = $cResult->fetch_assoc()) {
+      $courses[] = $c;
     }
+  }
 
-    foreach ($courseIDs as $courseID) {
-      $stmt = $conn->prepare("SELECT courseName FROM coursestable WHERE courseID = ?");
-      $stmt->bind_param("s", $courseID);
+  if (isset($_POST['assignCourseBtn'])) {
+    $trainerRowID = $_POST['trainerRowID'] ?? null;
+    $courseIDs = $_POST['courseID'] ?? [];
+
+    if ($trainerRowID && !empty($courseIDs)) {
+      $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+      $stmt->bind_param("i", $trainerRowID);
       $stmt->execute();
-      $stmt->bind_result($courseName);
+      $stmt->bind_result($trainerID);
       $stmt->fetch();
       $stmt->close();
 
-      if ($courseName) {
-        $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
-        $insert->bind_param("sss", $trainerID, $courseID, $courseName);
-        $insert->execute();
-        $insert->close();
+      if (!$trainerID) {
+        echo '<script>alert("Invalid trainer selected.");</script>';
+        exit;
       }
-    }
 
-    echo '<script>alert("Courses assigned successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
-    exit;
-  }
-}
+      foreach ($courseIDs as $courseID) {
+        $stmt = $conn->prepare("SELECT courseName FROM coursestable WHERE courseID = ?");
+        $stmt->bind_param("s", $courseID);
+        $stmt->execute();
+        $stmt->bind_result($courseName);
+        $stmt->fetch();
+        $stmt->close();
 
-if (isset($_POST['saveStatusBtn'])) {
-  $trainerRowID = $_POST['trainerRowID'] ?? null;
-  $status = $_POST['status'] ?? null;
+        if ($courseName) {
+          $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
+          $insert->bind_param("sss", $trainerID, $courseID, $courseName);
+          $insert->execute();
+          $insert->close();
+        }
+      }
 
-  if ($trainerRowID && $status) {
-    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-    $stmt->bind_param("i", $trainerRowID);
-    $stmt->execute();
-    $stmt->bind_result($trainerID);
-    $stmt->fetch();
-    $stmt->close();
-
-    if (!$trainerID) {
-      echo '<script>alert("Invalid trainer selected.");</script>';
+      echo '<script>alert("Courses assigned successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
       exit;
     }
+  }
 
-    $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
-    $stmt->bind_param('si', $status, $trainerRowID);
+  if (isset($_POST['saveStatusBtn'])) {
+    $trainerRowID = $_POST['trainerRowID'] ?? null;
+    $status = $_POST['status'] ?? null;
 
-    if ($stmt->execute()) {
+    if ($trainerRowID && $status) {
+      $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+      $stmt->bind_param("i", $trainerRowID);
+      $stmt->execute();
+      $stmt->bind_result($trainerID);
+      $stmt->fetch();
       $stmt->close();
 
-      if ($status === 'on leave' || $status === 'dismissed') {
-        $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
-        $del->bind_param("s", $trainerID);
-        $del->execute();
-        $del->close();
+      if (!$trainerID) {
+        echo '<script>alert("Invalid trainer selected.");</script>';
+        exit;
       }
 
-      echo '<script>alert("Status updated successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
-      exit;
-    } else {
-      echo '<script>alert("Database error.")</script>';
+      $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
+      $stmt->bind_param('si', $status, $trainerRowID);
+
+      if ($stmt->execute()) {
+        $stmt->close();
+
+        if ($status === 'on leave' || $status === 'dismissed') {
+          $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
+          $del->bind_param("s", $trainerID);
+          $del->execute();
+          $del->close();
+        }
+
+        echo '<script>alert("Status updated successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+        exit;
+      } else {
+        echo '<script>alert("Database error.")</script>';
+      }
     }
   }
-}
 
 
 ?>
@@ -327,8 +327,8 @@ if (isset($_POST['saveStatusBtn'])) {
                 <th>ID</th>
                 <th>Date Hired</th>
                 <th>Status</th>
+                <th>Add Course</th>
                 <th>Action</th>
-                <th>Assign</th>
               </tr>
             </thead>
             <tbody>
@@ -360,10 +360,6 @@ if (isset($_POST['saveStatusBtn'])) {
                     echo "<td>" . htmlspecialchars($row['fullName']) . "</td>";
                     echo "<td>" . htmlspecialchars($row['userID']) . "</td>";
                     echo "<td>" . (!empty($row['enrolledDate']) ? date("m-d-Y", strtotime($row['enrolledDate'])) : '-') . "</td>";
-                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-
-                    echo "<td><button type='button' class='setTraineeStatusBtn' data-id='{$row['studentID']}'>Set Status</button></td>";
-
                     $assignedCourses = [];
                     $stmt = $conn->prepare("SELECT courseName FROM studentprogress WHERE studentID = ?");
                     $stmt->bind_param("s", $row['studentID']);
@@ -374,16 +370,22 @@ if (isset($_POST['saveStatusBtn'])) {
                     }
                     $stmt->close();
 
+                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+
                     echo "<td>";
-                    if ($row['status'] === 'active') {
+                    if ($row['status'] === 'Idle') {
                       echo "<button class='addTaineeCourseBtn' 
                             data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "' >
                             Add Course
                         </button>";
+                    } elseif ($row['status'] === 'Ongoing') {
+                      echo "<button class='addMoreTaineeCourseBtn' data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "'>Add More Course</button>";
                     } else {
                       echo "-";
                     }
                     echo "</td>";
+
+                    echo "<td><button class='seeStudentCourses'>See Courses</button></td>";
 
                     echo "</tr>";
                   }
@@ -402,32 +404,316 @@ if (isset($_POST['saveStatusBtn'])) {
       <section id="postUpdate">
         <div class="container">
           <h3>Create and Manage Updates, Announcements, and Notices</h3>
-          <button type="button">Create</button>
+          <button type="button" id="createAnnouncementBtn">Create</button>
+          
+          <!-- Add Announcement Modal -->
+          <div id="addAnnouncementModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <h3>Create New Announcement</h3>
+              <form id="announcementForm">
+                <div class="form-group">
+                  <label for="announcementType">Type:</label>
+                  <select id="announcementType" name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="notice">Notice</option>
+                    <option value="update">Update</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="announcementCourse">Course (optional):</label>
+                  <select id="announcementCourse" name="course_id">
+                    <option value="">General Announcement</option>
+                    <!-- Course options will be populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="announcementMessage">Message:</label>
+                  <textarea id="announcementMessage" name="message" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="announcementExpiry">Expiry Date (optional):</label>
+                  <input type="date" id="announcementExpiry" name="expires_at">
+                </div>
+                <button type="submit">Submit</button>
+              </form>
+            </div>
+          </div>
+          
+          <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // Function to delete announcement
+            function deleteAnnouncement(id) {
+              fetch(`../php/announcements.php?id=${id}`, {
+                method: 'DELETE'
+              })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                  }
+                  return response.text().then(text => {
+                    try {
+                      return JSON.parse(text);
+                    } catch {
+                      throw new Error('Invalid JSON response: ' + text);
+                  }
+                });
+              })
+              .then(data => {
+                console.log('Submission response:', data);
+                if (data.success) {
+                  const tableBody = document.getElementById('announcementsTableBody');
+                  tableBody.innerHTML = '';
+                  
+                  data.data.forEach(announcement => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                      <td>${announcement.type}</td>
+                      <td>${announcement.course_id || 'General'}</td>
+                      <td>${announcement.message}</td>
+                      <td>${new Date(announcement.created_at).toLocaleDateString()}</td>
+                      <td>${announcement.expires_at ? new Date(announcement.expires_at).toLocaleDateString() : 'N/A'}</td>
+                      <td>
+                        <button type="button" class="deleteAnnouncementBtn" data-id="${announcement.id}">Delete</button>
+                      </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                  });
+                  
+                  // Add event listeners to delete buttons
+                  document.querySelectorAll('.deleteAnnouncementBtn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                      const id = this.getAttribute('data-id');
+                      if (confirm('Are you sure you want to delete this announcement?')) {
+                        deleteAnnouncement(id);
+                      }
+                    });
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Submission error:', error);
+                console.error('Error loading announcements:', error);
+                alert('Error loading announcements: ' + error.message);
+              });
+            }
+            
+            // Fetch courses for announcement form
+            fetch('../php/getCourses.php')
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  const courseSelect = document.getElementById('announcementCourse');
+                  data.courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.courseName;
+                    courseSelect.appendChild(option);
+                  });
+                }
+              })
+              .catch(error => console.error('Error loading courses:', error));
+            
+            // Function to load announcements
+            function loadAnnouncements() {
+              fetch('../php/announcements.php')
+                .then(response => response.json())
+                .then(data => {
+                  if (data.success) {
+                    const tableBody = document.getElementById('announcementsTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    data.data.forEach(announcement => {
+                      const row = document.createElement('tr');
+                      
+                      row.innerHTML = `
+                        <td>${announcement.type}</td>
+                        <td>${announcement.course_id || 'General'}</td>
+                        <td>${announcement.message}</td>
+                        <td>${new Date(announcement.created_at).toLocaleDateString()}</td>
+                        <td>${announcement.expires_at ? new Date(announcement.expires_at).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                          <button type="button" class="deleteAnnouncementBtn" data-id="${announcement.id}">Delete</button>
+                        </td>
+                      `;
+                      
+                      tableBody.appendChild(row);
+                    });
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.deleteAnnouncementBtn').forEach(btn => {
+                      btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if (confirm('Are you sure you want to delete this announcement?')) {
+                          deleteAnnouncement(id);
+                        }
+                      });
+                    });
+                  }
+                })
+                .catch(error => {
+                  console.error('Error loading announcements:', error);
+                  alert('Error loading announcements: ' + error.message);
+                });
+            }
+            
+            const announcementForm = document.getElementById('announcementForm');
+            
+            announcementForm.addEventListener('submit', function(e) {
+              e.preventDefault();
+              console.log('Announcement submission initiated');
+              
+              const submitBtn = e.target.querySelector('button[type="submit"]');
+              let isSubmitting = false;
+              if (submitBtn.disabled || isSubmitting) return;
+              isSubmitting = true;
+              console.log('Submit button state:', {
+                disabled: submitBtn.disabled,
+                text: submitBtn.textContent
+              });
+              submitBtn.disabled = true;
+              
+              const formData = {
+                type: document.getElementById('announcementType').value,
+                course_id: document.getElementById('announcementCourse').value || null,
+                message: document.getElementById('announcementMessage').value,
+                expires_at: document.getElementById('announcementExpiry').value || null
+              };
+              
+              console.log('Submitting announcement:', formData);
+              fetch('../php/announcements.php', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+              })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+                return response.text().then(text => {
+                  try {
+                    return JSON.parse(text);
+                  } catch {
+                    throw new Error('Invalid JSON response: ' + text);
+                  }
+                });
+              })
+              .then(data => {
+                if (data.success) {
+                  alert('Announcement created successfully!');
+                  document.getElementById('addAnnouncementModal').style.display = 'none';
+                  announcementForm.reset();
+                  loadAnnouncements();
+                } else {
+                  alert('Error: ' + data.message);
+                }
+                submitBtn.disabled = false;
+                  isSubmitting = false;
+                  isSubmitting = false;
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the announcement: ' + error.message);
+                submitBtn.disabled = false;
+              });
+            });
+          });
+          </script>
           <h4>Announcements</h4>
           <table>
             <thead>
               <tr>
-                <th>Title</th>
                 <th>Type</th>
-                <th>Description</th>
-                <th>Date of Creation</th>
-                <th>Due Date</th>
+                <th>Course</th>
+                <th>Message</th>
+                <th>Created At</th>
+                <th>Expires At</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Enrollment for S.Y. 2025 - 2026</td>
-                <td>Announcement</td>
-                <td>The enrollment for all courses is now open.</td>
-                <td>04-26-2025</td>
-                <td>08-01-2025</td>
-                <td>
-                  <button type="button">Delete</button>
-                </td>
-              </tr>
+            <tbody id="announcementsTableBody">
+              <!-- Announcements will be loaded dynamically -->
             </tbody>
           </table>
+          
+          <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // Function to load announcements
+            function loadAnnouncements() {
+              fetch('../php/announcements.php')
+                .then(response => {
+                  if (!response.ok) throw new Error('Network response was not ok');
+                  return response.json();
+                })
+                .then(data => {
+                  if (data.success) {
+                    const tableBody = document.getElementById('announcementsTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    data.data.forEach(announcement => {
+                      const row = document.createElement('tr');
+                      row.innerHTML = `
+                        <td>${announcement.type}</td>
+                        <td>${announcement.course_id || 'General'}</td>
+                        <td>${announcement.message}</td>
+                        <td>${new Date(announcement.created_at).toLocaleDateString()}</td>
+                        <td>${announcement.expires_at ? new Date(announcement.expires_at).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                          <button type="button" class="deleteAnnouncementBtn" data-id="${announcement.id}">Delete</button>
+                        </td>
+                      `;
+                      tableBody.appendChild(row);
+                    });
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.deleteAnnouncementBtn').forEach(btn => {
+                      btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if (confirm('Are you sure you want to delete this announcement?')) {
+                          deleteAnnouncement(id);
+                        }
+                      });
+                    });
+                  }
+                })
+                .catch(error => {
+                  console.error('Error loading announcements:', error);
+                  alert('Error loading announcements: ' + error.message);
+                });
+            }
+            
+            // Function to delete announcement
+            function deleteAnnouncement(id) {
+              fetch(`../php/announcements.php?id=${id}`, {
+                method: 'DELETE'
+              })
+                .then(response => {
+                  if (!response.ok) throw new Error('Network response was not ok');
+                  return response.json();
+                })
+                .then(data => {
+                  if (data.success) {
+                    alert('Announcement deleted successfully!');
+                    loadAnnouncements();
+                  } else {
+                    alert('Error: ' + data.message);
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                  alert('An error occurred while deleting the announcement: ' + error.message);
+                });
+            }
+            
+            // Initial load
+            loadAnnouncements();
+          });
+          </script>
         </div>
       </section>
 
@@ -443,27 +729,8 @@ if (isset($_POST['saveStatusBtn'])) {
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>ACPN2</td>
-                <td>Agricultural Crops Production NC II</td>
-                <td>MWFSat 2:00-4:00</td>
-                <td>Offered</td>
-              </tr>
-
-              <tr>
-                <td>ASNC1</td>
-                <td>Automotive Servicing NC I</td>
-                <td>TThF 10:00-12:00</td>
-                <td>Offered</td>
-              </tr>
-
-              <tr>
-                <td>CSNC2</td>
-                <td>Computer Servicing NC II</td>
-                <td>N/A</td>
-                <td>Not Offered</td>
-              </tr>
+            <tbody id="coursesTableBody">
+              <!-- Course data will be loaded dynamically -->
             </tbody>
           </table>
           <button type="button" id="setCourse">Set Course</button>
@@ -482,10 +749,115 @@ if (isset($_POST['saveStatusBtn'])) {
     <div id="catalog"></div>
   </main>
 
+
+
   <footer>
     <p>© 2025 Benguet Technical School. All rights reserved.</p>
   </footer>
 
+  <!-- ANNOUNCEMENTS -->
+  <script>
+    // Announcements functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const announcementsTable = document.querySelector('#postUpdate table tbody');
+      const createAnnouncementBtn = document.querySelector('#postUpdate button');
+      
+      // Load announcements
+      function loadAnnouncements() {
+        fetch('../php/announcements.php')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              announcementsTable.innerHTML = '';
+              data.data.forEach(announcement => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>${announcement.message.substring(0, 30)}${announcement.message.length > 30 ? '...' : ''}</td>
+                  <td>${announcement.type}</td>
+                  <td>${announcement.message}</td>
+                  <td>${new Date(announcement.created_at).toLocaleDateString()}</td>
+                  <td>${announcement.expires_at ? new Date(announcement.expires_at).toLocaleDateString() : 'N/A'}</td>
+                  <td><button type="button" data-id="${announcement.id}">Delete</button></td>
+                `;
+                announcementsTable.appendChild(row);
+              });
+            }
+          });
+      }
+      
+      // Create announcement modal
+      const announcementModal = document.getElementById('addAnnouncementModal');
+      const closeModalBtn = announcementModal.querySelector('.close');
+      
+      createAnnouncementBtn.addEventListener('click', () => {
+        announcementModal.style.display = 'block';
+      });
+      
+      closeModalBtn.addEventListener('click', () => {
+        announcementModal.style.display = 'none';
+      });
+      
+      window.addEventListener('click', (e) => {
+        if (e.target === announcementModal) {
+          announcementModal.style.display = 'none';
+        }
+      });
+      
+      // Handle form submission
+      document.getElementById('announcementForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = {
+          type: document.getElementById('announcementType').value,
+          message: document.getElementById('announcementMessage').value,
+          course_id: document.getElementById('announcementCourse').value || null,
+          expires_at: document.getElementById('announcementExpiry').value || null
+        };
+        
+        fetch('../php/announcements.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert('Announcement created successfully!');
+              announcementModal.style.display = 'none';
+              document.getElementById('announcementForm').reset();
+              loadAnnouncements();
+            } else {
+              alert('Error: ' + data.message);
+            }
+          });
+      });
+      
+      // Delete announcement
+      announcementsTable.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+          const id = e.target.dataset.id;
+          if (confirm('Are you sure you want to delete this announcement?')) {
+            fetch(`../php/announcements.php?id=${id}`, {
+              method: 'DELETE'
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  loadAnnouncements();
+                }
+              });
+          }
+        }
+      });
+      
+      // Initial load
+      loadAnnouncements();
+    });
+    
+  </script>
+  
   <!-- NAVIGATION -->
   <script>
     const tabElements = document.querySelectorAll(
@@ -717,6 +1089,331 @@ if (isset($_POST['saveStatusBtn'])) {
       });
     });
   </script>
+<!-- TRAINEE SHOW COURSES -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('studentCoursesModal');
+      const closeBtn = document.getElementById('closeCoursesModal');
+      const modalContent = document.getElementById('modalContent');
+
+      document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('seeStudentCourses')) {
+          const row = e.target.closest('tr');
+          const studentID = row.cells[2].textContent.trim();
+
+          modal.style.display = 'block';
+          modalContent.innerHTML = '<div class="loading">Loading student courses...</div>';
+
+          fetchStudentCourses(studentID);
+        }
+      });
+
+      closeBtn.onclick = function () {
+        modal.style.display = 'none';
+      };
+
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      };
+
+      function fetchStudentCourses(studentID) {
+        fetch('../php/getStudentCourses.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ studentID: studentID })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              displayStudentCourses(data.studentInfo, data.courses);
+            } else {
+              modalContent.innerHTML = `<div class="error-message">Error: ${data.message}</div>`;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            modalContent.innerHTML = '<div class="error-message">An error occurred while fetching course data.</div>';
+          });
+      }
+
+      function displayStudentCourses(studentInfo, courses) {
+        let html = `
+            <div class="student-info">
+                <h3>Student Information</h3>
+                <p><strong>Name:</strong> ${studentInfo.fullName}</p>
+                <p><strong>Student ID:</strong> ${studentInfo.userID}</p>
+            </div>
+            
+            <div class="courses-container">
+                <h3>Enrolled Courses</h3>
+        `;
+
+        if (courses.length === 0) {
+          html += '<div class="no-courses">No courses found for this student.</div>';
+        } else {
+          courses.forEach(course => {
+            const progress = parseFloat(course.progress) || 0;
+            const progressClass = getProgressClass(progress);
+            const lastUpdated = course.last_updated ? new Date(course.last_updated).toLocaleDateString() : 'N/A';
+
+            html += `
+                    <div class="course-card">
+                        <div class="course-header">
+                            <div class="course-name">${course.courseName}</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${progressClass}" style="width: ${progress}%">
+                                        ${progress.toFixed(1)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="course-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Course ID</div>
+                                <div class="detail-value">${course.course_id}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Activities</div>
+                                <div class="detail-value">${course.submittedActivity || 0}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Exams</div>
+                                <div class="detail-value">${course.submittedExam || 0}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Projects</div>
+                                <div class="detail-value">${course.submittedProjects || 0}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Last Updated</div>
+                                <div class="detail-value">${lastUpdated}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+          });
+        }
+
+        html += '</div>';
+        modalContent.innerHTML = html;
+      }
+
+      function getProgressClass(progress) {
+        if (progress >= 100) return 'complete';
+        if (progress >= 75) return 'high';
+        if (progress >= 50) return 'medium';
+        return 'low';
+      }
+    });
+  </script>
+<!-- TRAINEE COURSES -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const availableCourses = <?php echo json_encode($courses); ?>;
+
+      console.log('Available Courses: ', availableCourses)
+
+      document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('addTaineeCourseBtn') || e.target.classList.contains('addMoreTaineeCourseBtn')) {
+          const studentID = e.target.getAttribute('data-id');
+          const isAddMore = e.target.classList.contains('addMoreTaineeCourseBtn');
+
+          showCourseAssignmentModal(studentID, isAddMore);
+        }
+      });
+
+      function showCourseAssignmentModal(studentID, isAddMore) {
+        const existingModal = document.getElementById('courseAssignmentModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'courseAssignmentModal';
+        modal.className = 'modal';
+        modal.style.display = 'block';
+
+        const rows = document.querySelectorAll('tbody tr');
+        let studentName = 'Student';
+        rows.forEach(row => {
+          if (row.cells[2].textContent.trim() === studentID) {
+            studentName = row.cells[1].textContent.trim();
+          }
+        });
+
+        const modalContent = `
+            <div class="modal-content" style="max-width: 600px;">
+                <span class="close" id="closeCourseModal">&times;</span>
+                <div style="margin-top: 30px;">
+                    <h3>${isAddMore ? 'Add More Courses' : 'Assign Courses'} for ${studentName}</h3>
+                    <p><strong>Student ID:</strong> ${studentID}</p>
+                    
+                    <div style="margin: 20px 0;">
+                        <h4>Available Courses:</h4>
+                        <div id="coursesList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+                            <!-- Courses will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <label>
+                            <input type="checkbox" id="selectAllCourses"> Select All Courses
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                        <button id="assignCoursesBtn" class="btn-primary">Assign Selected Courses</button>
+                        <button id="cancelAssignmentBtn" class="btn-secondary">Cancel</button>
+                    </div>
+                    
+                    <div id="assignmentStatus" style="margin-top: 15px; display: none;"></div>
+                </div>
+            </div>
+        `;
+
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+
+        loadAvailableCourses(studentID, isAddMore);
+
+        document.getElementById('closeCourseModal').onclick = () => modal.remove();
+        document.getElementById('cancelAssignmentBtn').onclick = () => modal.remove();
+
+        document.getElementById('selectAllCourses').onchange = function () {
+          const checkboxes = document.querySelectorAll('#coursesList input[type="checkbox"]');
+          checkboxes.forEach(cb => cb.checked = this.checked);
+        };
+
+        document.getElementById('assignCoursesBtn').onclick = () => assignCoursesToStudent(studentID);
+
+        window.onclick = function (event) {
+          if (event.target === modal) {
+            modal.remove();
+          }
+        };
+      }
+
+      function loadAvailableCourses(studentID, isAddMore) {
+        const coursesList = document.getElementById('coursesList');
+        coursesList.innerHTML = '<div class="loading">Loading courses...</div>';
+
+        if (isAddMore) {
+          fetch('../php/getStudentCourses.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentID: studentID })
+          })
+            .then(response => response.json())
+            .then(data => {
+              const enrolledCourses = data.success ? data.courses.map(c => {
+                const matchingCourse = availableCourses.find(ac => ac.courseName === c.courseName);
+                return matchingCourse ? matchingCourse.courseID : null;
+              }).filter(id => id !== null) : [];
+              displayAvailableCourses(enrolledCourses);
+            })
+            .catch(() => {
+              displayAvailableCourses([]);
+            });
+        } else {
+          displayAvailableCourses([]);
+        }
+      }
+
+      function displayAvailableCourses(enrolledCourses = []) {
+        const coursesList = document.getElementById('coursesList');
+        let html = '';
+
+        const offeredCourses = availableCourses.filter(course => course.status === 'Offered');
+
+        if (!offeredCourses || offeredCourses.length === 0) {
+          coursesList.innerHTML = '<p>No courses available for enrollment</p>';
+          return;
+        }
+
+        offeredCourses.forEach(course => {
+          const isEnrolled = enrolledCourses.includes(course.courseID);
+          const disabledAttr = isEnrolled ? 'disabled' : '';
+          const checkedAttr = isEnrolled ? 'checked' : '';
+          const labelClass = isEnrolled ? 'style="color: #999; text-decoration: line-through;"' : '';
+
+          html += `
+            <div style="margin: 8px 0; padding: 8px; border-radius: 4px; ${isEnrolled ? 'background-color: #f5f5f5;' : ''}">
+                <label ${labelClass}>
+                    <input type="checkbox" value="${course.courseID}" ${disabledAttr} ${checkedAttr}>
+                    <strong>${course.courseID}</strong> - ${course.courseName}
+                    ${isEnrolled ? '<span style="color: #28a745; margin-left: 10px;">(Already Enrolled)</span>' : ''}
+                </label>
+            </div>
+        `;
+        });
+
+        coursesList.innerHTML = html;
+      }
+      function assignCoursesToStudent(studentID) {
+        const selectedCourses = [];
+        const checkboxes = document.querySelectorAll('#coursesList input[type="checkbox"]:checked:not([disabled])');
+
+        checkboxes.forEach(cb => {
+          selectedCourses.push(cb.value);
+        });
+
+        if (selectedCourses.length === 0) {
+          alert('Please select at least one course to assign.');
+          return;
+        }
+
+        const assignBtn = document.getElementById('assignCoursesBtn');
+        const statusDiv = document.getElementById('assignmentStatus');
+
+        assignBtn.disabled = true;
+        assignBtn.textContent = 'Assigning...';
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<div class="loading">Assigning courses...</div>';
+
+        fetch('../php/addStudentCourse.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentID: studentID,
+            courseIDs: selectedCourses
+          })
+        })
+          .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              return response.text().then(text => {
+                throw new Error(`Server returned non-JSON response: ${text}`);
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
+              setTimeout(() => {
+                location.reload();
+              }, 2000);
+            } else {
+              statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
+              assignBtn.disabled = false;
+              assignBtn.textContent = 'Assign Selected Courses';
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
+            assignBtn.disabled = false;
+            assignBtn.textContent = 'Assign Selected Courses';
+          });
+      }
+    });
+  </script>
 
   <!-- PROFILE FUNCTIONS -->
   <script>
@@ -887,6 +1584,302 @@ if (isset($_POST['saveStatusBtn'])) {
       });
     });
   </script>
+<!-- COURSES TABLE GENERATION -->
+  <script>
+    // Load courses data for the Course Management section
+    document.addEventListener('DOMContentLoaded', function() {
+      const coursesTableBody = document.getElementById('coursesTableBody');
+      const setCourseBtn = document.getElementById('setCourse');
+      const addCourseBtn = document.getElementById('addCourse');
+      const setCourseModal = document.getElementById('setCourseModal');
+      const addCourseModal = document.getElementById('addCourseModal');
+      const closeSetCourseModal = document.getElementById('closeSetCourseModal');
+      const closeAddCourseModal = document.getElementById('closeAddCourseModal');
+      const cancelSetCourse = document.getElementById('cancelSetCourse');
+      const cancelAddCourse = document.getElementById('cancelAddCourse');
+      const courseSelect = document.getElementById('courseSelect');
+      const setCourseForm = document.getElementById('setCourseForm');
+      const addCourseForm = document.getElementById('addCourseForm');
+      
+      let coursesData = [];
+      
+      // Function to load courses
+      function loadCourses() {
+        // Fetch courses data from the server
+        fetch('../php/getCourses.php')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              coursesData = data.courses;
+              
+              // Clear any existing content
+              coursesTableBody.innerHTML = '';
+              
+              // Clear and populate the course select dropdown
+              courseSelect.innerHTML = '<option value="">-- Select a course --</option>';
+              
+              // Check if there are courses to display
+              if (coursesData && coursesData.length > 0) {
+                // Populate the table with course data
+                coursesData.forEach(course => {
+                  // Add to table
+                  const row = document.createElement('tr');
+                  
+                  // Create and append table cells
+                  const codeCell = document.createElement('td');
+                  codeCell.textContent = course.courseID;
+                  row.appendChild(codeCell);
+                  
+                  const nameCell = document.createElement('td');
+                  nameCell.textContent = course.courseName;
+                  row.appendChild(nameCell);
+                  
+                  const scheduleCell = document.createElement('td');
+                  scheduleCell.textContent = course.courseSchedule || 'N/A';
+                  row.appendChild(scheduleCell);
+                  
+                  const statusCell = document.createElement('td');
+                  statusCell.textContent = course.status === '1' ? 'Offered' : 'Not Offered';
+                  row.appendChild(statusCell);
+                  
+                  // Add the row to the table
+                  coursesTableBody.appendChild(row);
+                  
+                  // Add to dropdown
+                  const option = document.createElement('option');
+                  option.value = course.courseID;
+                  option.textContent = `${course.courseID} - ${course.courseName}`;
+                  courseSelect.appendChild(option);
+                });
+              } else {
+                // Display a message if no courses are found
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 4;
+                cell.textContent = 'No courses found';
+                cell.style.textAlign = 'center';
+                row.appendChild(cell);
+                coursesTableBody.appendChild(row);
+              }
+            } else {
+              // Display error message if the request failed
+              console.error('Failed to load courses:', data.message);
+              const row = document.createElement('tr');
+              const cell = document.createElement('td');
+              cell.colSpan = 4;
+              cell.textContent = 'Error loading courses. Please try again later.';
+              cell.style.textAlign = 'center';
+              row.appendChild(cell);
+              coursesTableBody.appendChild(row);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching courses:', error);
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = 'Error loading courses. Please try again later.';
+            cell.style.textAlign = 'center';
+            row.appendChild(cell);
+            coursesTableBody.appendChild(row);
+          });
+      }
+      
+      // Initial load of courses
+      loadCourses();
+      
+      // Set Course button click handler
+      setCourseBtn.addEventListener('click', function() {
+        setCourseModal.style.display = 'block';
+      });
+      
+      // Add Course button click handler
+      addCourseBtn.addEventListener('click', function() {
+        addCourseModal.style.display = 'block';
+      });
+      
+      // Close modal handlers
+      closeSetCourseModal.addEventListener('click', function() {
+        setCourseModal.style.display = 'none';
+      });
+      
+      closeAddCourseModal.addEventListener('click', function() {
+        addCourseModal.style.display = 'none';
+      });
+      
+      cancelSetCourse.addEventListener('click', function() {
+        setCourseModal.style.display = 'none';
+      });
+      
+      cancelAddCourse.addEventListener('click', function() {
+        addCourseModal.style.display = 'none';
+      });
+      
+      // Close modals when clicking outside
+      window.addEventListener('click', function(event) {
+        if (event.target === setCourseModal) {
+          setCourseModal.style.display = 'none';
+        }
+        if (event.target === addCourseModal) {
+          addCourseModal.style.display = 'none';
+        }
+      });
+      
+      // Course select change handler
+      courseSelect.addEventListener('change', function() {
+        const selectedCourseID = this.value;
+        if (selectedCourseID) {
+          const selectedCourse = coursesData.find(course => course.courseID === selectedCourseID);
+          if (selectedCourse) {
+            document.getElementById('courseStatus').value = selectedCourse.status === '1' ? 'Offered' : 'Not Offered';
+            document.getElementById('courseSchedule').value = selectedCourse.courseSchedule || '';
+          }
+        }
+      });
+      
+      // Set Course form submit handler
+      setCourseForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const statusDiv = document.getElementById('setCourseStatus');
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<div style="color: blue; padding: 10px; background: #cce5ff; border-radius: 4px;">Updating course...</div>';
+        
+        const formData = new FormData(this);
+        
+        fetch('../php/updateCourse.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
+            setTimeout(() => {
+              setCourseModal.style.display = 'none';
+              loadCourses(); // Reload courses after update
+            }, 2000);
+          } else {
+            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
+        });
+      });
+      
+      // Add Course form submit handler
+      addCourseForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const statusDiv = document.getElementById('addCourseStatus');
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<div style="color: blue; padding: 10px; background: #cce5ff; border-radius: 4px;">Adding course...</div>';
+        
+        const formData = new FormData(this);
+        
+        fetch('../php/addCourse.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
+            setTimeout(() => {
+              addCourseModal.style.display = 'none';
+              addCourseForm.reset(); // Reset the form
+              loadCourses(); // Reload courses after adding
+            }, 2000);
+          } else {
+            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
+        });
+      });
+    });
+  </script>
+
+  <div id="studentCoursesModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeCoursesModal">&times;</span>
+      <div id="modalContent">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Course Management Modals -->
+  <div id="setCourseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeSetCourseModal">&times;</span>
+      <h3>Set Course Status</h3>
+      <form id="setCourseForm">
+        <div style="margin-bottom: 20px;">
+          <label for="courseSelect">Select Course:</label>
+          <select id="courseSelect" name="courseID" required>
+            <option value="">-- Select a course --</option>
+            <!-- Courses will be loaded dynamically -->
+          </select>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="courseStatus">Status:</label>
+          <select id="courseStatus" name="status" required>
+            <option value="Offered">Offered</option>
+            <option value="Not Offered">Not Offered</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="courseSchedule">Schedule (optional):</label>
+          <input type="text" id="courseSchedule" name="courseSchedule" placeholder="e.g. MWF 9:00-11:00">
+        </div>
+        <div id="setCourseStatus" style="margin-top: 15px; display: none;"></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+          <button type="submit" class="btn-primary">Update Course</button>
+          <button type="button" id="cancelSetCourse" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="addCourseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddCourseModal">&times;</span>
+      <h3>Add New Course</h3>
+      <form id="addCourseForm">
+        <div style="margin-bottom: 20px;">
+          <label for="newCourseID">Course ID:</label>
+          <input type="text" id="newCourseID" name="courseID" required placeholder="e.g. CSNC2">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="newCourseName">Course Name:</label>
+          <input type="text" id="newCourseName" name="courseName" required placeholder="e.g. Computer Servicing NC II">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="newCourseSchedule">Schedule:</label>
+          <input type="text" id="newCourseSchedule" name="courseSchedule" placeholder="e.g. MWF 9:00-11:00">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="newCourseDescription">Description:</label>
+          <textarea id="newCourseDescription" name="description" rows="4" placeholder="Enter course description"></textarea>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label for="newCourseStatus">Status:</label>
+          <select id="newCourseStatus" name="status" required>
+            <option value="Offered">Offered</option>
+            <option value="Not Offered">Not Offered</option>
+          </select>
+        </div>
+        <div id="addCourseStatus" style="margin-top: 15px; display: none;"></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+          <button type="submit" class="btn-primary">Add Course</button>
+          <button type="button" id="cancelAddCourse" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 
 </html>

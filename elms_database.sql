@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 24, 2025 at 04:52 PM
+-- Generation Time: Aug 26, 2025 at 02:55 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -36,7 +36,7 @@ CREATE TABLE `activitiestable` (
   `file_path` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `due_date` datetime DEFAULT NULL,
-  `type` text NOT NULL DEFAULT ''
+  `type` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -200,7 +200,7 @@ INSERT INTO `coursestable` (`id`, `courseID`, `courseName`, `courseSchedule`, `d
 (6, 'DRSNCII', 'Dressmaking NC II', 'F-Sat 10:00 - 12:00', 'Learn how to design, measure, cut, and sew dresses professionally.', 'uploads/images/dressmaking.webp', 'Offered'),
 (7, 'HDSNCII', 'Hairdressing NC II', 'Th-F 9:00 -12:00', 'Gain skills in hair cutting, coloring, styling, and salon operations.', 'uploads/images/hairdressing.webp', 'Offered'),
 (8, 'JLC', 'Japanese Language and Culture', 'W 1:00-4:00', 'Study basic Nihongo and understand essential aspects of Japanese culture.', 'uploads/images/japanese.jpg', 'Offered'),
-(9, 'DRINCII', 'Driving NC II', 'Sat 8:00 - 12:00', 'Develop safe driving skills and gain vehicle operation knowledge.', 'uploads/images/driving.webp', 'Offered'),
+(9, 'DRINCII', 'Driving NC II', 'Sat 8:00 - 12:00', 'Develop safe driving skills and gain vehicle operation knowledge.', 'uploads/images/driving.webp', 'Not Offered'),
 (10, 'TNCII', 'Tailoring NC II', 'T 9:00 - 12:00', 'Train in precision tailoring, pattern making, and garment construction.', 'uploads/images/tailoring.webp', 'Offered');
 
 -- --------------------------------------------------------
@@ -301,11 +301,60 @@ CREATE TABLE `modulestable` (
 
 CREATE TABLE `studentprogress` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
+  `studentID` varchar(30) NOT NULL,
+  `course_id` varchar(30) NOT NULL,
+  `courseName` text NOT NULL,
+  `trackingID` int(11) NOT NULL,
+  `submittedActivity` int(11) NOT NULL,
+  `submittedExam` int(11) NOT NULL,
+  `submittedProjects` int(11) NOT NULL,
   `progress` decimal(5,2) NOT NULL DEFAULT 0.00,
   `last_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ;
+
+--
+-- Triggers `studentprogress`
+--
+DELIMITER $$
+CREATE TRIGGER `update_student_status` AFTER INSERT ON `studentprogress` FOR EACH ROW BEGIN
+    DECLARE course_count INT;
+    
+    SELECT COUNT(*) INTO course_count 
+    FROM studentprogress 
+    WHERE studentID = NEW.studentID;
+    
+    IF course_count > 0 THEN
+        UPDATE traineestable 
+        SET status = 'Ongoing' 
+        WHERE studentID = NEW.studentID;
+    ELSE
+        UPDATE traineestable 
+        SET status = 'Idle' 
+        WHERE studentID = NEW.studentID;
+    END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `update_student_status_delete` AFTER DELETE ON `studentprogress` FOR EACH ROW BEGIN
+    DECLARE course_count INT;
+    
+    SELECT COUNT(*) INTO course_count 
+    FROM studentprogress 
+    WHERE studentID = OLD.studentID;
+    
+    IF course_count > 0 THEN
+        UPDATE traineestable 
+        SET status = 'Ongoing' 
+        WHERE studentID = OLD.studentID;
+    ELSE
+        UPDATE traineestable 
+        SET status = 'Idle' 
+        WHERE studentID = OLD.studentID;
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -341,11 +390,20 @@ CREATE TABLE `timetracker` (
 
 CREATE TABLE `trackingtable` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `course_id` int(11) DEFAULT NULL,
-  `action` varchar(100) DEFAULT NULL,
-  `action_time` datetime DEFAULT current_timestamp()
+  `course_id` varchar(30) DEFAULT NULL,
+  `totalActivity` int(11) NOT NULL,
+  `totalExam` int(11) NOT NULL,
+  `totalProjects` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trackingtable`
+--
+
+INSERT INTO `trackingtable` (`id`, `course_id`, `totalActivity`, `totalExam`, `totalProjects`) VALUES
+(1, 'AGRINCII', 85, 4, 2),
+(2, 'TNCII', 78, 4, 3),
+(3, 'JLC', 91, 4, 1);
 
 -- --------------------------------------------------------
 
@@ -355,12 +413,18 @@ CREATE TABLE `trackingtable` (
 
 CREATE TABLE `traineestable` (
   `id` int(11) NOT NULL,
-  `courseID` int(11) NOT NULL,
-  `courseName` text NOT NULL,
   `studentID` varchar(30) NOT NULL,
   `studentName` text NOT NULL,
-  `status` text NOT NULL
+  `status` text NOT NULL,
+  `enrolledDate` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `traineestable`
+--
+
+INSERT INTO `traineestable` (`id`, `studentID`, `studentName`, `status`, `enrolledDate`) VALUES
+(10, '2025S-00003', 'Ruby Xander Cube', 'Idle', '2025-08-25');
 
 -- --------------------------------------------------------
 
@@ -386,7 +450,7 @@ CREATE TABLE `trainerstable` (
   `trainerID` varchar(30) NOT NULL,
   `trainerName` text NOT NULL,
   `status` text NOT NULL,
-  `assignedDate` datetime NOT NULL DEFAULT current_timestamp()
+  `assignedDate` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -394,8 +458,7 @@ CREATE TABLE `trainerstable` (
 --
 
 INSERT INTO `trainerstable` (`id`, `trainerID`, `trainerName`, `status`, `assignedDate`) VALUES
-(25, '2025T-00001', 'Ruby Xander Cube', 'active', '2025-08-24 00:00:00'),
-(26, '2025T-00002', 'Alex Simple Under III', 'active', '2025-08-24 00:00:00');
+(29, '2025T-00001', 'Harley David Son', 'active', '2025-08-25');
 
 -- --------------------------------------------------------
 
@@ -440,10 +503,10 @@ CREATE TABLE `userstable` (
 
 INSERT INTO `userstable` (`id`, `userID`, `firstName`, `middleName`, `lastName`, `suffix`, `gender`, `age`, `birthDate`, `bio`, `role`, `mobileNumber`, `email`, `password`, `education`, `profileImage`, `dateCreated`) VALUES
 (21, '2025S-000001', 'Erick', 'Cats', 'Gaceta', '', 'M', 22, '2025-08-28', 'Student of Benguet Technical School', 'trainee', '+639201555544', 'gacetaerick124@gmail.com', '$2y$10$vpy.68.Y/QDm6WLf2btzzuIA2I9tHHQy3Zixc5eQPkzAuZICs.GRq', 'College', 'uploads/profiles/user_21_1755881782.png', '2025-08-23'),
-(31, '2025A-000006', 'Anne', 'Sacramento', 'Thesia', '', 'F', 45, '1980-06-18', 'Graduate of Doctor of Philosophy (PhD) in Administration and Supervision', 'admin', '+639201551234', 'annesthesia@bts.gov.ph', '$2y$10$FF7v5rny92ODpf4jahUAxe0f5.u8P6UfmcoqNNlI3BCyBN5AWeA36', 'Graduate', '', '2025-08-23'),
+(31, '2025A-000006', 'Anne', 'Sacramento', 'Thesia', '', 'F', 45, '1980-06-18', 'Graduate of Doctor of Philosophy (PhD) in Administration and Supervision', 'admin', '+639201551234', 'annesthesia@bts.gov.ph', '$2y$10$FF7v5rny92ODpf4jahUAxe0f5.u8P6UfmcoqNNlI3BCyBN5AWeA36', 'Graduate', 'uploads/profiles/user_31_1756211718.jpg', '2025-08-23'),
 (32, '2025S-00002', 'Dre', 'Santos', 'Maker', 'JR', 'M', 26, '1999-03-23', 'Student of Benguet Technical School', 'guest', '+639692012345', 'dre.ss.maker@gmail.com', '$2y$10$YiBnAu5mAwNi9n55zjT94eshUvQfxetlZUhzuQSUMoq/xSKp4A3p2', 'SHS', '', '2025-08-23'),
-(36, '2025T-00001', 'Ruby', 'Xander', 'Cube', '', '', 37, '1988-03-11', 'Master of Arts in Teaching: Agricultural Education', 'trainer', '+639123457689', 'ruby.cube@bts.gov.ph', '$2y$10$FHiS7SLybQSgWmpecq6R/ub/Kc2AFtntkiED2xcRGyRde/4QRh/t6', 'Master\'s Degree', '', '2025-08-24'),
-(37, '2025T-00002', 'Alex', 'Simple', 'Under', 'III', '', 33, '1992-08-12', 'Bachelor of Arts in Driver and Traffic Safety', 'trainer', '+639321564879', 'alex.under@bts.gov.ph', '$2y$10$IZDC6LMaOMVsNgrElTFu/OOexYLhREClvWjisLll7a3qUowSTIqVW', 'Bachelor\'s Degree', '', '2025-08-24');
+(57, '2025T-00001', 'Harley', 'David', 'Son', '', 'M', 0, '2025-08-26', '', 'trainer', '+639201555544', 'harley.son@bts.gov.ph', '$2y$10$/rtkNK9mJSIwt/alWtq4euZeCcoxAAD6QeQpHdOx4eg1zZL0owXoq', 'Bachelor\'s Degree', '', '2025-08-25'),
+(58, '2025S-00003', 'Ruby', 'Xander', 'Cube', '', 'F', 0, '2025-08-26', '', 'trainee', '+639692066682', 'ruby.cube@bts.gov.ph', '$2y$10$/3CPHDnJkm4fXMkWCUUyOO32h6bHdWjPEOpknPqioZ6.Dv6PPutcy', 'SHS', '', '2025-08-25');
 
 -- --------------------------------------------------------
 
@@ -562,8 +625,9 @@ ALTER TABLE `modulestable`
 --
 ALTER TABLE `studentprogress`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `course_id` (`course_id`);
+  ADD KEY `trackingID` (`trackingID`),
+  ADD KEY `course_id` (`course_id`),
+  ADD KEY `studentprogress_ibfk_5` (`studentID`);
 
 --
 -- Indexes for table `submissionstable`
@@ -585,8 +649,14 @@ ALTER TABLE `timetracker`
 --
 ALTER TABLE `trackingtable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
   ADD KEY `course_id` (`course_id`);
+
+--
+-- Indexes for table `traineestable`
+--
+ALTER TABLE `traineestable`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `studentID` (`studentID`);
 
 --
 -- Indexes for table `trainercourses`
@@ -715,7 +785,13 @@ ALTER TABLE `timetracker`
 -- AUTO_INCREMENT for table `trackingtable`
 --
 ALTER TABLE `trackingtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `traineestable`
+--
+ALTER TABLE `traineestable`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `trainercourses`
@@ -727,13 +803,13 @@ ALTER TABLE `trainercourses`
 -- AUTO_INCREMENT for table `trainerstable`
 --
 ALTER TABLE `trainerstable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `userstable`
 --
 ALTER TABLE `userstable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- Constraints for dumped tables
@@ -817,8 +893,9 @@ ALTER TABLE `modulestable`
 -- Constraints for table `studentprogress`
 --
 ALTER TABLE `studentprogress`
-  ADD CONSTRAINT `studentprogress_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`id`),
-  ADD CONSTRAINT `studentprogress_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`);
+  ADD CONSTRAINT `studentprogress_ibfk_3` FOREIGN KEY (`trackingID`) REFERENCES `trackingtable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `studentprogress_ibfk_4` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `studentprogress_ibfk_5` FOREIGN KEY (`studentID`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `submissionstable`
@@ -837,8 +914,13 @@ ALTER TABLE `timetracker`
 -- Constraints for table `trackingtable`
 --
 ALTER TABLE `trackingtable`
-  ADD CONSTRAINT `trackingtable_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`id`),
-  ADD CONSTRAINT `trackingtable_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`);
+  ADD CONSTRAINT `trackingtable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `traineestable`
+--
+ALTER TABLE `traineestable`
+  ADD CONSTRAINT `traineestable_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `trainercourses`
