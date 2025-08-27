@@ -141,7 +141,7 @@ authenticate();
                     $resMod = $stmtMod->get_result();
                     $module = $resMod->fetch_assoc();
                     $moduleName = $module ? $module['title'] : "No recent modules";
-                    ?>
+                ?>
                     <div class="wrapper">
                       <div class="infos">
                         <h4><?= htmlspecialchars($course['courseName']) ?></h4>
@@ -156,7 +156,7 @@ authenticate();
                         <button class="materials" disabled>No Materials</button>
                       <?php endif; ?>
                     </div>
-                  <?php }
+                <?php }
                 } else {
                   echo "<p style='text-align:center; width:100%;'>No courses yet</p>";
                 }
@@ -184,7 +184,6 @@ authenticate();
                 echo "<p>No pending requests</p>";
               }
               ?>
-              <button><i>Self-Enroll</i></button>
             </div>
 
           </div>
@@ -397,6 +396,15 @@ authenticate();
         </div>
       </section>
     </div>
+    <div id="catalog">
+      <div class="notifications-panel">
+        <div class="notifications-header">
+          <h3>Latest Announcements</h3>
+          <button id="refreshNotifications">⟳</button>
+        </div>
+        <div class="notifications-list"></div>
+      </div>
+    </div>
   </main>
 
   <footer>
@@ -429,9 +437,9 @@ authenticate();
 
     window.addEventListener("DOMContentLoaded", () => {
       const savedTab = localStorage.getItem("activeTab");
-      const defaultTab = savedTab
-        ? document.querySelector(`.${savedTab}`)
-        : document.querySelector(".dashboard");
+      const defaultTab = savedTab ?
+        document.querySelector(`.${savedTab}`) :
+        document.querySelector(".dashboard");
 
       if (defaultTab) handleTabAndSectionClick(defaultTab);
     });
@@ -467,10 +475,12 @@ authenticate();
         if (!selectedCourseId) return;
 
         fetch("../php/submitEnrollment.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: `course_id=${selectedCourseId}`
-        })
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `course_id=${selectedCourseId}`
+          })
           .then(res => res.json())
           .then(data => {
             alert(data.message);
@@ -501,7 +511,7 @@ authenticate();
       const fileName = document.querySelector("#file-name");
       const fileSVGLabel = document.querySelector("#file-label > svg");
 
-      fileInput.addEventListener("change", function () {
+      fileInput.addEventListener("change", function() {
         if (this.files && this.files.length > 0) {
           fileName.childNodes[0].nodeValue = this.files[0].name;
           fileSVGLabel.style.display = "none";
@@ -560,11 +570,26 @@ authenticate();
       const detailsDiv = document.createElement("div");
       detailsDiv.className = "details";
 
-      const fields = [
-        { label: "Name", id: "profile-name", value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`.trim() },
-        { label: "Email", id: "profile-mail", value: data.email || "" },
-        { label: "Contact", id: "profile-contact", value: data.mobileNumber || "" },
-        { label: "Bio", id: "profile-bio", value: data.bio || "" }
+      const fields = [{
+          label: "Name",
+          id: "profile-name",
+          value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`.trim()
+        },
+        {
+          label: "Email",
+          id: "profile-mail",
+          value: data.email || ""
+        },
+        {
+          label: "Contact",
+          id: "profile-contact",
+          value: data.mobileNumber || ""
+        },
+        {
+          label: "Bio",
+          id: "profile-bio",
+          value: data.bio || ""
+        }
       ];
 
       fields.forEach(f => {
@@ -646,7 +671,10 @@ authenticate();
         });
         if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
 
-        const res = await fetch("../php/updateProfile.php", { method: "POST", body: formData });
+        const res = await fetch("../php/updateProfile.php", {
+          method: "POST",
+          body: formData
+        });
         const result = await res.json();
         alert(result.message);
         if (result.status === "success") location.reload();
@@ -663,6 +691,53 @@ authenticate();
     });
   </script>
 
+  <!-- ANNOUNCEMENTS SYSTEM -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const notificationsList = document.querySelector('.notifications-list');
+      const refreshBtn = document.getElementById('refreshNotifications');
+
+      async function loadAnnouncements() {
+        try {
+          const response = await fetch('../php/getAnnouncements.php');
+          const {
+            success,
+            data,
+            message
+          } = await response.json();
+
+          notificationsList.innerHTML = '';
+
+          if (success && data.length > 0) {
+            data.forEach(announcement => {
+              const item = document.createElement('div');
+              item.className = 'notification-item';
+              item.innerHTML = `
+                <div class="notification-header">
+                  <span class="type ${announcement.type.toLowerCase()}">${announcement.type}</span>
+                  <small>${new Date(announcement.created_at).toLocaleDateString()}</small>
+                </div>
+                <p class="message">${announcement.message}</p>
+                ${announcement.expires_at ? 
+                  `<small class="expiry">Expires: ${new Date(announcement.expires_at).toLocaleDateString()}</small>` : ''}
+              `;
+              notificationsList.appendChild(item);
+            });
+          } else {
+            notificationsList.innerHTML = `<div class="no-notifications">${message || 'No announcements available'}</div>`;
+          }
+        } catch (error) {
+          console.error('Error loading announcements:', error);
+          notificationsList.innerHTML =
+            '<div class="error">Error loading announcements. Please try refreshing.</div>';
+        }
+      }
+
+      refreshBtn.addEventListener('click', loadAnnouncements);
+      loadAnnouncements();
+      setInterval(loadAnnouncements, 60000); // Auto-refresh every 60 seconds
+    });
+  </script>
 </body>
 
 </html>

@@ -315,12 +315,68 @@ authenticate();
         </div>
       </section>
     </div>
-    <div id="catalog"></div>
+    <div id="catalog">
+      <div class="notifications-panel">
+        <div class="notifications-header">
+          <h3>Latest Announcements</h3>
+          <button id="refreshNotifications">⟳</button>
+        </div>
+        <div class="notifications-list"></div>
+      </div>
+    </div>
   </main>
 
   <footer>
     <p>© 2025 Benguet Technical School. All rights reserved.</p>
   </footer>
+
+  <!-- ANNOUNCEMENTS SYSTEM -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const notificationsList = document.querySelector('.notifications-list');
+      const refreshBtn = document.getElementById('refreshNotifications');
+
+      async function loadAnnouncements() {
+        try {
+          const response = await fetch('../php/getAnnouncements.php');
+          const {
+            success,
+            data,
+            message
+          } = await response.json();
+
+          notificationsList.innerHTML = '';
+
+          if (success && data.length > 0) {
+            data.forEach(announcement => {
+              const item = document.createElement('div');
+              item.className = 'notification-item';
+              item.innerHTML = `
+                <div class="notification-header">
+                  <span class="type ${announcement.type.toLowerCase()}">${announcement.type}</span>
+                  <small>${new Date(announcement.created_at).toLocaleDateString()}</small>
+                </div>
+                <p class="message">${announcement.message}</p>
+                ${announcement.expires_at ? 
+                  `<small class="expiry">Expires: ${new Date(announcement.expires_at).toLocaleDateString()}</small>` : ''}
+              `;
+              notificationsList.appendChild(item);
+            });
+          } else {
+            notificationsList.innerHTML = `<div class="no-notifications">${message || 'No announcements available'}</div>`;
+          }
+        } catch (error) {
+          console.error('Error loading announcements:', error);
+          notificationsList.innerHTML =
+            '<div class="error">Error loading announcements. Please try refreshing.</div>';
+        }
+      }
+
+      refreshBtn.addEventListener('click', loadAnnouncements);
+      loadAnnouncements();
+      setInterval(loadAnnouncements, 60000); // Auto-refresh every 60 seconds
+    });
+  </script>
 
   <!-- NAVIGATION TABS -->
   <script>
@@ -439,9 +495,9 @@ authenticate();
 
     uploadModuleFile.addEventListener("change", () => {
       uploadModuleLabel.childNodes[0].textContent =
-        uploadModuleFile.files.length > 0
-          ? "Ready to Upload "
-          : "Select Module ";
+        uploadModuleFile.files.length > 0 ?
+        "Ready to Upload " :
+        "Select Module ";
     });
 
     createAct
@@ -538,9 +594,9 @@ authenticate();
 
           fileInput.addEventListener("change", () => {
             fileLabel.firstChild.textContent =
-              fileInput.files.length > 0
-                ? "Ready to Upload"
-                : "Upload New File";
+              fileInput.files.length > 0 ?
+              "Ready to Upload" :
+              "Upload New File";
           });
 
           editForm
@@ -666,11 +722,26 @@ authenticate();
       const detailsDiv = document.createElement("div");
       detailsDiv.className = "details";
 
-      const fields = [
-        { label: "Name", id: "profile-name", value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`.trim() },
-        { label: "Email", id: "profile-mail", value: data.email || "" },
-        { label: "Contact", id: "profile-contact", value: data.mobileNumber || "" },
-        { label: "Bio", id: "profile-bio", value: data.bio || "" }
+      const fields = [{
+          label: "Name",
+          id: "profile-name",
+          value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`.trim()
+        },
+        {
+          label: "Email",
+          id: "profile-mail",
+          value: data.email || ""
+        },
+        {
+          label: "Contact",
+          id: "profile-contact",
+          value: data.mobileNumber || ""
+        },
+        {
+          label: "Bio",
+          id: "profile-bio",
+          value: data.bio || ""
+        }
       ];
 
       fields.forEach(f => {
@@ -752,7 +823,10 @@ authenticate();
         });
         if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
 
-        const res = await fetch("../php/updateProfile.php", { method: "POST", body: formData });
+        const res = await fetch("../php/updateProfile.php", {
+          method: "POST",
+          body: formData
+        });
         const result = await res.json();
         alert(result.message);
         if (result.status === "success") location.reload();

@@ -37,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 } 
 elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Create new announcement
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['type']) || !isset($data['message'])) {
@@ -61,7 +60,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     $course_id = $data['course_id'] ?? null;
-    $user_id = $_SESSION['user_id'] ?? null;
+    $user_id = $_SESSION['userID'] ?? null;
     $expires_at = $data['expires_at'] ?? null;
     
     $stmt->bind_param("issss", 
