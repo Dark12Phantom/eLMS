@@ -735,7 +735,7 @@ authenticate();
 
       refreshBtn.addEventListener('click', loadAnnouncements);
       loadAnnouncements();
-      setInterval(loadAnnouncements, 60000); // Auto-refresh every 60 seconds
+      setInterval(loadAnnouncements, 60000);
     });
   </script>
 </body>
