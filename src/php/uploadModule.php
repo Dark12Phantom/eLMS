@@ -5,69 +5,70 @@ authenticate();
 
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
-    exit;
-}
-
 try {
-    $moduleTitle = $_POST['moduleTitle'] ?? null;
-    $courseName = $_POST['courseModuleOption'] ?? null;
+    $title = $_POST['moduleTitle'] ?? '';
     $description = $_POST['moduleDescription'] ?? '';
+    $courseID = $_POST['courseModuleOption'] ?? '';
     
-    if (!$moduleTitle || !$courseName) {
-        echo json_encode(['success' => false, 'message' => 'Title and course are required']);
+    if (empty($title) || empty($courseID) || !isset($_FILES['uploadModuleFile'])) {
+        echo json_encode(['success' => false, 'message' => 'Please fill in all required fields and select a file']);
         exit;
     }
     
-    // Get course ID from course name
-    $courseSql = "SELECT id FROM coursestable WHERE courseName = ?";
-    $stmt = $conn->prepare($courseSql);
-    $stmt->bind_param("s", $courseName);
+    $getCourseIdSql = "SELECT id FROM coursestable WHERE courseID = ?";
+    $stmt = $conn->prepare($getCourseIdSql);
+    $stmt->bind_param("s", $courseID);
     $stmt->execute();
     $courseResult = $stmt->get_result();
+    $courseData = $courseResult->fetch_assoc();
     
-    if ($courseResult->num_rows === 0) {
+    if (!$courseData) {
         echo json_encode(['success' => false, 'message' => 'Course not found']);
         exit;
     }
     
-    $courseId = $courseResult->fetch_assoc()['id'];
+    $courseInternalId = $courseData['id'];
     
-    // Handle file upload
-    $filePath = null;
-    if (isset($_FILES['uploadModuleFile']) && $_FILES['uploadModuleFile']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../uploads/modules/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        $fileName = uniqid() . '_' . $_FILES['uploadModuleFile']['name'];
-        $filePath = $uploadDir . $fileName;
-        
-        if (!move_uploaded_file($_FILES['uploadModuleFile']['tmp_name'], $filePath)) {
-            echo json_encode(['success' => false, 'message' => 'File upload failed']);
-            exit;
-        }
-        $filePath = 'uploads/modules/' . $fileName;
+    if ($_FILES['uploadModuleFile']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['success' => false, 'message' => 'File upload error']);
+        exit;
     }
     
-    // Insert module
-    $insertSql = "INSERT INTO modulestable (course_id, title, description, file_path) VALUES (?, ?, ?, ?)";
-    $stmt = $conn->prepare($insertSql);
-    $stmt->bind_param("isss", $courseId, $moduleTitle, $description, $filePath);
-    $stmt->execute();
+    $uploadDir = '../uploads/modules/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
     
-    echo json_encode([
-        'success' => true,
-        'message' => 'Module uploaded successfully',
-        'module_id' => $conn->insert_id
-    ]);
+    $file = $_FILES['uploadModuleFile'];
+    $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    
+    $allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
+    if (!in_array($fileExtension, $allowedExtensions)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.']);
+        exit;
+    }
+    
+    $uniqueFileName = 'module_' . time() . '_' . uniqid() . '.' . $fileExtension;
+    $uploadPath = $uploadDir . $uniqueFileName;
+    $filePath = 'uploads/modules/' . $uniqueFileName;
+    
+    if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
+        exit;
+    }
+    
+    $insertSql = "INSERT INTO modulestable (course_id, title, description, file_path) 
+                  VALUES (?, ?, ?, ?)";
+    $stmt = $conn->prepare($insertSql);
+    $stmt->bind_param("isss", $courseInternalId, $title, $description, $filePath);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true, 'message' => 'Module uploaded successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to upload module']);
+    }
     
 } catch (Exception $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error uploading module: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

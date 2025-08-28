@@ -1,31 +1,52 @@
 <?php
 require_once "DatabaseConnection.php";
-session_start();
+require_once "authentication.php";
+authenticate();
 
-if (!isset($_SESSION['userID'], $_POST['course_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Missing data']);
-    exit;
-}
+header('Content-Type: application/json');
 
-$userId = $_SESSION['userID'];
-$courseId = $_POST['course_id'];
+try {
+    $userId = $_SESSION['userID'];
+    $courseId = $_POST['course_id'] ?? null;
 
-$check = $conn->prepare("SELECT id FROM enrollmenttable WHERE user_id = ? AND course_id = ?");
-$check->bind_param("ii", $userId, $courseId);
-$check->execute();
-$check->store_result();
+    if (!$courseId) {
+        echo json_encode(['success' => false, 'message' => 'Course ID is required']);
+        exit;
+    }
 
-if ($check->num_rows > 0) {
-    echo json_encode(['success' => false, 'message' => 'You already enrolled or requested this course']);
-    exit;
-}
+    $courseCheckSql = "SELECT courseID FROM trainercourses WHERE courseID = ?";
+    $courseCheckStmt = $conn->prepare($courseCheckSql);
+    $courseCheckStmt->bind_param("i", $courseId);
+    $courseCheckStmt->execute();
+    $courseExists = $courseCheckStmt->get_result()->fetch_assoc();
 
-$stmt = $conn->prepare("INSERT INTO enrollmenttable (user_id, course_id, status, enrolled_at) VALUES (?, ?, 'pending', NOW())");
-$stmt->bind_param("ii", $userId, $courseId);
+    if (!$courseExists) {
+        echo json_encode(['success' => false, 'message' => 'Invalid course ID: ' . $courseId]);
+        exit;
+    }
 
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Enrollment request sent. Status: Pending']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Failed to send request']);
+    $checkSql = "SELECT id FROM enrollmenttable WHERE user_id = ? AND course_id = ?";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bind_param("ss", $userId, $courseId);
+    $checkStmt->execute();
+    $existingEnrollment = $checkStmt->get_result()->fetch_assoc();
+
+    if ($existingEnrollment) {
+        echo json_encode(['success' => false, 'message' => 'You have already requested enrollment for this course']);
+        exit;
+    }
+
+    $insertSql = "INSERT INTO enrollmenttable (user_id, course_id, status, enrolled_at) VALUES (?, ?, 'pending', NOW())";
+    $insertStmt = $conn->prepare($insertSql);
+    $insertStmt->bind_param("ss", $userId, $courseId);
+
+    if ($insertStmt->execute()) {
+        echo json_encode(['success' => true, 'message' => 'Enrollment request submitted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to submit enrollment request']);
+    }
+
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

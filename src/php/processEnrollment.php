@@ -5,58 +5,65 @@ authenticate();
 
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
-    exit;
-}
-
 try {
     $enrollmentId = $_POST['enrollment_id'] ?? null;
-    $action = $_POST['action'] ?? null; // 'accept' or 'reject'
+    $action = $_POST['action'] ?? null;
     
     if (!$enrollmentId || !$action) {
         echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
         exit;
     }
     
-    $conn->begin_transaction();
-    
-    // Update enrollment status
-    $status = ($action === 'accept') ? 'approved' : 'denied';
-    $updateSql = "UPDATE enrollmenttable SET status = ? WHERE id = ?";
-    $stmt = $conn->prepare($updateSql);
-    $stmt->bind_param("si", $status, $enrollmentId);
-    $stmt->execute();
-    
-    if ($action === 'accept') {
-        // Get enrollment details
-        $detailsSql = "SELECT user_id, course_id FROM enrollmenttable WHERE id = ?";
-        $stmt = $conn->prepare($detailsSql);
-        $stmt->bind_param("i", $enrollmentId);
-        $stmt->execute();
-        $details = $stmt->get_result()->fetch_assoc();
-        
-        if ($details) {
-            // Add to enrolled table
-            $enrollSql = "INSERT INTO enrolledtable (course_id, user_id, enrollment_id, status) VALUES (?, ?, ?, 'approved')";
-            $stmt = $conn->prepare($enrollSql);
-            $stmt->bind_param("iii", $details['course_id'], $details['user_id'], $enrollmentId);
-            $stmt->execute();
-        }
+    if (!in_array($action, ['accept', 'reject'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        exit;
     }
     
-    $conn->commit();
+    $conn->autocommit(false);
     
-    echo json_encode([
-        'success' => true,
-        'message' => ($action === 'accept') ? 'Enrollment accepted successfully' : 'Enrollment rejected successfully'
-    ]);
+    try {
+        $getEnrollmentSql = "SELECT user_id, course_id FROM enrollmenttable WHERE id = ? AND status = 'pending'";
+        $getStmt = $conn->prepare($getEnrollmentSql);
+        $getStmt->bind_param("i", $enrollmentId);
+        $getStmt->execute();
+        $enrollment = $getStmt->get_result()->fetch_assoc();
+        
+        if (!$enrollment) {
+            throw new Exception('Enrollment request not found or already processed');
+        }
+        
+        if ($action === 'accept') {
+            $updateSql = "UPDATE enrollmenttable SET status = 'approved' WHERE id = ?";
+            $updateStmt = $conn->prepare($updateSql);
+            $updateStmt->bind_param("i", $enrollmentId);
+            $updateStmt->execute();
+            
+            $insertEnrolledSql = "INSERT INTO enrolledtable (course_id, user_id, enrollment_id, status) VALUES (?, ?, ?, 'Approved')";
+            $insertStmt = $conn->prepare($insertEnrolledSql);
+            $insertStmt->bind_param("iii", $enrollment['course_id'], $enrollment['user_id'], $enrollmentId);
+            $insertStmt->execute();
+            
+            $message = 'Enrollment approved successfully';
+        } else {
+            $updateSql = "UPDATE enrollmenttable SET status = 'denied' WHERE id = ?";
+            $updateStmt = $conn->prepare($updateSql);
+            $updateStmt->bind_param("i", $enrollmentId);
+            $updateStmt->execute();
+            
+            $message = 'Enrollment rejected successfully';
+        }
+        
+        $conn->commit();
+        echo json_encode(['success' => true, 'message' => $message]);
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        throw $e;
+    }
     
 } catch (Exception $e) {
-    $conn->rollback();
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error processing enrollment: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Error processing enrollment: ' . $e->getMessage()]);
+} finally {
+    $conn->autocommit(true);
 }
 ?>

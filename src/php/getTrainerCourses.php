@@ -7,19 +7,26 @@ header('Content-Type: application/json');
 
 try {
     $userId = $_SESSION['userID'];
-    
-    $sql = "SELECT c.id, c.courseName, 
-            COUNT(DISTINCT et.user_id) as studentCount,
-            COALESCE(AVG(sp.progress), 0) as avgProgress,
-            ct.status as selfEnrollStatus
-            FROM coursestable c 
-            JOIN assignedcourses ac ON c.id = ac.course_id 
-            JOIN userstable u ON ac.trainer_id = u.id 
-            LEFT JOIN enrolledtable et ON c.id = et.course_id AND et.status = 'approved'
-            LEFT JOIN studentprogress sp ON c.courseID = sp.course_id
-            LEFT JOIN coursetracker ct ON c.id = ct.course_id
-            WHERE u.userID = ?
-            GROUP BY c.id, c.courseName, ct.status";
+    $sql = "SELECT 
+            ac.id, 
+            c.courseName,
+            COUNT(DISTINCT et.user_id) AS studentCount,
+            COALESCE(AVG(sp.progress), 0) AS avgProgress,
+            ct.status AS selfEnrollStatus
+        FROM assignedcourses ac
+        INNER JOIN coursestable c 
+            ON ac.course_id = c.courseID
+        INNER JOIN userstable u 
+            ON ac.trainer_id = u.userID
+        LEFT JOIN enrolledtable et 
+            ON c.courseID = et.course_id 
+           AND et.status = 'approved'
+        LEFT JOIN studentprogress sp 
+            ON c.courseID = sp.course_id
+        LEFT JOIN coursetracker ct 
+            ON c.courseID = ct.course_id
+        WHERE u.userID = ?
+        GROUP BY ac.id, c.courseName, ct.status";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $userId);
@@ -29,11 +36,10 @@ try {
     $courses = [];
     while ($row = $result->fetch_assoc()) {
         $courses[] = [
-            'id' => $row['id'],
             'courseName' => $row['courseName'],
-            'studentCount' => $row['studentCount'],
-            'avgProgress' => round($row['avgProgress'], 1),
-            'selfEnrollStatus' => $row['selfEnrollStatus'] ?? 1 // Default enabled
+            'studentCount' => (int)$row['studentCount'],
+            'avgProgress' => round((float)$row['avgProgress'], 1),
+            'selfEnrollStatus' => $row['selfEnrollStatus']
         ];
     }
     

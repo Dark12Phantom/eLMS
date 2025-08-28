@@ -10,7 +10,7 @@ if (!isset($_SESSION['userID'])) {
 
 $userID = $_SESSION['userID'];
 
-$stmt = $conn->prepare('SELECT firstName, middleName, lastName, suffix, bio, mobileNumber, email, profileImage FROM userstable where id = ?');
+$stmt = $conn->prepare('SELECT firstName, middleName, lastName, suffix, bio, mobileNumber, email, profileImage FROM userstable where userID = ?');
 $stmt -> bind_param('s', $userID);
 $stmt -> execute();
 $result = $stmt -> get_result();

@@ -26,9 +26,9 @@ authenticate();
     $userId = $_SESSION['userID'];
 
     $sql = "SELECT userID, firstName, middleName, lastName, suffix, role, profileImage 
-        FROM userstable WHERE id = ?";
+        FROM userstable WHERE userID = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $userId);
+    $stmt->bind_param("s", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
@@ -72,9 +72,17 @@ authenticate();
               <h3>Enrolled Courses</h3>
               <?php
               require_once "../php/DatabaseConnection.php";
+              
+              $getStudentIdSql = "SELECT id FROM userstable WHERE userID = ?";
+              $stmt = $conn->prepare($getStudentIdSql);
+              $stmt->bind_param("s", $_SESSION['userID']);
+              $stmt->execute();
+              $studentResult = $stmt->get_result();
+              $studentData = $studentResult->fetch_assoc();
+              
               $sqlEnrolled = "SELECT COUNT(*) AS total FROM enrolledtable WHERE user_id = ? AND status = 'Approved'";
               $stmt = $conn->prepare($sqlEnrolled);
-              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $res = $stmt->get_result();
               $totalEnrolled = ($row = $res->fetch_assoc()) ? $row['total'] : 0;
@@ -85,13 +93,13 @@ authenticate();
             <div class="card c2">
               <h3>Hours Studied</h3>
               <?php
-
               $sqlHours = "SELECT SUM(time) AS totalHours FROM timetracker WHERE user_id = ?";
               $stmt = $conn->prepare($sqlHours);
-              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $res = $stmt->get_result();
-              $totalHours = isset($row['totalHours']) ? $row['totalHours'] : 0;
+              $row = $res->fetch_assoc();
+              $totalHours = $row['totalHours'] ?? 0;
               ?>
               <h2><?= $totalHours ?></h2>
               <p><i>Hours</i></p>
@@ -101,11 +109,11 @@ authenticate();
               <?php
               $sqlAvg = "SELECT COALESCE(AVG(total_grade), 0) AS avgGrade FROM finalgradestable WHERE user_id = ?";
               $stmt = $conn->prepare($sqlAvg);
-              $stmt->bind_param("i", $_SESSION['userID']);
+              $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $res = $stmt->get_result();
               $row = $res->fetch_assoc();
-              $averageGrade = isset($row['avgGrade']) ? round($row['avgGrade'], 2) : 0; // round to 2 decimals
+              $averageGrade = isset($row['avgGrade']) ? round($row['avgGrade'], 2) : 0;
               ?>
               <h2><?= $averageGrade ?>%</h2>
               <p><i>Avg</i></p>
@@ -114,8 +122,6 @@ authenticate();
               <h3>My Courses (Quick Access)</h3>
               <div class="inside-container">
                 <?php
-                $userId = $_SESSION['userID'];
-
                 $sqlCourses = "SELECT en.id AS enrollmentId, c.id AS courseId, c.courseName, t.trainerName
                    FROM enrolledtable en
                    JOIN coursestable c ON en.course_id = c.id
@@ -125,7 +131,7 @@ authenticate();
                    LIMIT 2";
 
                 $stmt = $conn->prepare($sqlCourses);
-                $stmt->bind_param("i", $userId);
+                $stmt->bind_param("s", $_SESSION['userID']);
                 $stmt->execute();
                 $result = $stmt->get_result();
 
@@ -167,13 +173,11 @@ authenticate();
             <div class="card c5">
               <h3>Enrollment Requests</h3>
               <?php
-              $userId = $_SESSION['userID'];
-
               $sqlRequests = "SELECT COUNT(*) AS pendingCount 
                   FROM enrollmenttable 
-                  WHERE user_id = ? AND status = 'Pending'";
+                  WHERE user_id = ? AND status = 'pending'";
               $stmt = $conn->prepare($sqlRequests);
-              $stmt->bind_param("i", $userId);
+              $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $res = $stmt->get_result();
               $pendingCount = ($row = $res->fetch_assoc()) ? $row['pendingCount'] : 0;
@@ -189,6 +193,7 @@ authenticate();
           </div>
         </div>
       </section>
+      
       <section id="courses">
         <div class="container">
           <h2>My Courses</h2>
@@ -203,15 +208,12 @@ authenticate();
             </thead>
             <tbody>
               <?php
-              require_once "../php/DatabaseConnection.php";
-
-              $userId = $_SESSION['userID'];
-
               $sqlMy = "SELECT en.id AS enrollmentId, 
                      c.id AS courseId, 
                      c.courseName, 
                      en.status, 
-                     t.trainerName
+                     t.trainerName,
+                     sp.progress
               FROM enrolledtable en
               JOIN coursestable c 
                   ON en.course_id = c.id
@@ -219,11 +221,13 @@ authenticate();
                   ON c.id = ac.course_id
               JOIN trainerstable t 
                   ON ac.trainer_id = t.id
+              LEFT JOIN studentprogress sp
+                  ON sp.studentID = ? AND sp.course_id = c.courseID
               WHERE en.user_id = ? 
                 AND en.status = 'Approved'";
 
               $stmt = $conn->prepare($sqlMy);
-              $stmt->bind_param("i", $userId);
+              $stmt->bind_param("si", $_SESSION['userID'], $studentInternalId);
               $stmt->execute();
               $result = $stmt->get_result();
 
@@ -232,7 +236,8 @@ authenticate();
                   echo "<tr>";
                   echo "<td>" . htmlspecialchars($row['courseName']) . "</td>";
                   echo "<td>" . htmlspecialchars($row['trainerName']) . "</td>";
-                  echo "<td>In Progress</td>";
+                  $progress = $row['progress'] ? round($row['progress'], 2) . "%" : "0%";
+                  echo "<td>" . $progress . "</td>";
 
                   $sqlMat = "SELECT file_path FROM modulestable WHERE course_id = ?";
                   $stmtMat = $conn->prepare($sqlMat);
@@ -244,7 +249,7 @@ authenticate();
                   if ($resMat->num_rows > 0) {
                     while ($mat = $resMat->fetch_assoc()) {
                       $file = htmlspecialchars($mat['file_path']);
-                      echo "<a href='../uploads/$file' download>" . basename($file) . "</a><br>";
+                      echo "<a href='../$file' download>" . basename($file) . "</a><br>";
                     }
                   } else {
                     echo "No materials";
@@ -264,12 +269,7 @@ authenticate();
           <h2>Available Courses</h2>
           <table>
             <?php
-
-            require_once "../php/DatabaseConnection.php";
-
-            $student_id = $_SESSION['userID'];
-
-            $sqlAvailable = "SELECT c.id AS course_id, 
+            $sqlAvailable = "SELECT c.courseID AS course_id, 
                                     c.courseName, 
                                     e.status
                               FROM coursestable c
@@ -279,7 +279,7 @@ authenticate();
                               ";
 
             $stmt = $conn->prepare($sqlAvailable);
-            $stmt->bind_param("i", $student_id);
+            $stmt->bind_param("s", $_SESSION['userID']);
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -317,7 +317,6 @@ authenticate();
             }
 
             echo "</tbody>";
-
             ?>
           </table>
         </div>
@@ -334,6 +333,7 @@ authenticate();
           </div>
         </div>
       </section>
+      
       <section id="activities">
         <div class="container">
           <h2>My Activities</h2>
@@ -358,15 +358,12 @@ authenticate();
             </thead>
             <tbody>
               <?php
-
-              $studentID = $_SESSION['userID'];
-
               $query = "SELECT c.courseName, e.enrolled_at AS requestDate, e.status
-          FROM enrollmenttable e
-          JOIN coursestable c ON e.course_id = c.id
-          WHERE e.user_id = ?";
+                        FROM enrollmenttable e
+                        JOIN coursestable c ON e.course_id = c.courseID
+                        WHERE e.user_id = ?";
               $stmt = $conn->prepare($query);
-              $stmt->bind_param("i", $studentID);
+              $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $result = $stmt->get_result();
 
@@ -386,7 +383,6 @@ authenticate();
           </table>
         </div>
       </section>
-
 
       <section id="profile">
         <h2>My Profile</h2>
@@ -411,333 +407,7 @@ authenticate();
     <p>© 2025 Benguet Technical School. All rights reserved.</p>
   </footer>
 
-  <!-- NAVIGATION TABS -->
-  <script>
-    const tabElements = document.querySelectorAll(
-      ".dashboard, .courses, .activities, .enrollment, .profile"
-    );
-    const sectionElements = document.querySelectorAll(
-      "#dashboard, #courses, #activities, #enrollment, #profile"
-    );
-
-    function handleTabAndSectionClick(clickedTab) {
-      const tabClass = clickedTab.classList[0];
-      const matchingSection = document.getElementById(tabClass);
-
-      tabElements.forEach((el) => el.classList.remove("active"));
-      sectionElements.forEach((el) => el.classList.remove("active"));
-
-      clickedTab.classList.add("active");
-      if (matchingSection) {
-        matchingSection.classList.add("active");
-      }
-
-      localStorage.setItem("activeTab", tabClass);
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedTab = localStorage.getItem("activeTab");
-      const defaultTab = savedTab ?
-        document.querySelector(`.${savedTab}`) :
-        document.querySelector(".dashboard");
-
-      if (defaultTab) handleTabAndSectionClick(defaultTab);
-    });
-
-    tabElements.forEach((tab) => {
-      tab.addEventListener("click", () => handleTabAndSectionClick(tab));
-    });
-  </script>
-
-  <!-- COURSE LOGIC -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const popup = document.getElementById("popup-enrollment");
-      const closePopupBtn = document.getElementById("closePopup");
-      const submitBtn = document.getElementById("submitEnrollment");
-      const popupCourseName = document.getElementById("popupCourseName");
-      let selectedCourseId = null;
-
-      document.querySelectorAll(".enrollBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectedCourseId = btn.getAttribute("data-course-id");
-          popupCourseName.textContent = btn.getAttribute("data-course-name");
-          popup.style.display = "block";
-        });
-      });
-
-      closePopupBtn.addEventListener("click", () => {
-        popup.style.display = "none";
-        selectedCourseId = null;
-      });
-
-      submitBtn.addEventListener("click", () => {
-        if (!selectedCourseId) return;
-
-        fetch("../php/submitEnrollment.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: `course_id=${selectedCourseId}`
-          })
-          .then(res => res.json())
-          .then(data => {
-            alert(data.message);
-            if (data.success) {
-              location.reload();
-            }
-          });
-      });
-    });
-  </script>
-
-
-  <!-- ACTIVITIES FUNCTIONS -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const popup = document.querySelector("#popup");
-      const button = document.querySelector(".button > button");
-
-      button.addEventListener("click", () => {
-        if (popup.classList.contains("active")) {
-          popup.classList.remove("active");
-        } else {
-          popup.classList.add("active");
-        }
-      });
-
-      const fileInput = document.querySelector("#file-input");
-      const fileName = document.querySelector("#file-name");
-      const fileSVGLabel = document.querySelector("#file-label > svg");
-
-      fileInput.addEventListener("change", function() {
-        if (this.files && this.files.length > 0) {
-          fileName.childNodes[0].nodeValue = this.files[0].name;
-          fileSVGLabel.style.display = "none";
-        } else {
-          fileName.textContent = "Choose File";
-          fileSVGLabel.style.display = "";
-        }
-      });
-    });
-  </script>
-
-  <!-- PROFILE FUNCTIONS -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const container = document.querySelector("#profile .container");
-
-      const response = await fetch('../php/getProfile.php');
-      const responseData = await response.json();
-
-      if (responseData.status !== "success") {
-        container.innerHTML = `<p>${responseData.message}</p>`;
-        return;
-      }
-
-      const data = responseData.data;
-
-      const form = document.createElement("form");
-      form.id = "profileForm";
-      form.className = "capsule";
-
-      const profileImageDiv = document.createElement("div");
-      profileImageDiv.className = "profile-image";
-
-      const img = document.createElement("img");
-      img.id = "profilePic";
-      img.src = data.profileImage ? `../${data.profileImage}` : "../images/school.png";
-      img.alt = "Profile";
-
-      const label = document.createElement("label");
-      label.htmlFor = "image-edit";
-      label.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff">
-      <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
-    </svg>
-  `;
-      label.style.display = "none";
-
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.name = "image-edit";
-      fileInput.id = "image-edit";
-      fileInput.accept = "image/*";
-
-      profileImageDiv.append(img, label, fileInput);
-
-      const detailsDiv = document.createElement("div");
-      detailsDiv.className = "details";
-
-      const fields = [{
-          label: "Name",
-          id: "profile-name",
-          value: `${data.firstName || ''} ${data.middleName || ''} ${data.lastName || ''} ${data.suffix || ''}`.trim()
-        },
-        {
-          label: "Email",
-          id: "profile-mail",
-          value: data.email || ""
-        },
-        {
-          label: "Contact",
-          id: "profile-contact",
-          value: data.mobileNumber || ""
-        },
-        {
-          label: "Bio",
-          id: "profile-bio",
-          value: data.bio || ""
-        }
-      ];
-
-      fields.forEach(f => {
-        const labelEl = document.createElement("label");
-        labelEl.htmlFor = f.id;
-        labelEl.textContent = f.label;
-
-        let inputEl;
-        if (f.id === "profile-bio") {
-          inputEl = document.createElement("textarea");
-          inputEl.style.height = "100px";
-          inputEl.style.whiteSpace = "pre-wrap";
-          inputEl.value = f.value;
-        } else {
-          inputEl = document.createElement("input");
-          inputEl.type = "text";
-          inputEl.value = f.value;
-        }
-        inputEl.id = f.id;
-        inputEl.disabled = true;
-        detailsDiv.append(labelEl, inputEl);
-      });
-
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.id = "editButton";
-      editButton.textContent = "Edit Profile";
-      detailsDiv.appendChild(editButton);
-
-      const editDiv = document.createElement("div");
-      editDiv.className = "details-edit";
-      editDiv.style.display = "none";
-
-      fields.forEach(f => {
-        const labelEl = document.createElement("label");
-        labelEl.htmlFor = "edit-" + f.id;
-        labelEl.textContent = f.label;
-
-        let inputEl;
-        if (f.id === "profile-bio") {
-          inputEl = document.createElement("textarea");
-          inputEl.style.height = "100px";
-          inputEl.style.whiteSpace = "pre-wrap";
-          inputEl.value = f.value;
-        } else {
-          inputEl = document.createElement("input");
-          inputEl.type = "text";
-          inputEl.value = f.value;
-          if (f.id === "profile-mail" || f.id === "profile-contact") {
-            inputEl.disabled = true;
-          }
-        }
-        inputEl.id = "edit-" + f.id;
-        editDiv.append(labelEl, inputEl);
-      });
-
-      const saveButton = document.createElement("button");
-      saveButton.type = "button";
-      saveButton.id = "saveButton";
-      saveButton.textContent = "Save Profile";
-      editDiv.appendChild(saveButton);
-
-      form.append(profileImageDiv, detailsDiv, editDiv);
-      container.appendChild(form);
-
-      editButton.addEventListener("click", () => {
-        fields.forEach(f => {
-          document.getElementById("edit-" + f.id).value = document.getElementById(f.id).value;
-        });
-        detailsDiv.style.display = "none";
-        editDiv.style.display = "flex";
-        label.style.display = "flex";
-      });
-
-      saveButton.addEventListener("click", async () => {
-        const formData = new FormData();
-        fields.forEach(f => {
-          formData.append(f.id, document.getElementById("edit-" + f.id).value);
-        });
-        if (fileInput.files[0]) formData.append("profileImage", fileInput.files[0]);
-
-        const res = await fetch("../php/updateProfile.php", {
-          method: "POST",
-          body: formData
-        });
-        const result = await res.json();
-        alert(result.message);
-        if (result.status === "success") location.reload();
-      });
-
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = e => img.src = e.target.result;
-          reader.readAsDataURL(file);
-        }
-      });
-    });
-  </script>
-
-  <!-- ANNOUNCEMENTS SYSTEM -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const notificationsList = document.querySelector('.notifications-list');
-      const refreshBtn = document.getElementById('refreshNotifications');
-
-      async function loadAnnouncements() {
-        try {
-          const response = await fetch('../php/getAnnouncements.php');
-          const {
-            success,
-            data,
-            message
-          } = await response.json();
-
-          notificationsList.innerHTML = '';
-
-          if (success && data.length > 0) {
-            data.forEach(announcement => {
-              const item = document.createElement('div');
-              item.className = 'notification-item';
-              item.innerHTML = `
-                <div class="notification-header">
-                  <span class="type ${announcement.type.toLowerCase()}">${announcement.type}</span>
-                  <small>${new Date(announcement.created_at).toLocaleDateString()}</small>
-                </div>
-                <p class="message">${announcement.message}</p>
-                ${announcement.expires_at ? 
-                  `<small class="expiry">Expires: ${new Date(announcement.expires_at).toLocaleDateString()}</small>` : ''}
-              `;
-              notificationsList.appendChild(item);
-            });
-          } else {
-            notificationsList.innerHTML = `<div class="no-notifications">${message || 'No announcements available'}</div>`;
-          }
-        } catch (error) {
-          console.error('Error loading announcements:', error);
-          notificationsList.innerHTML =
-            '<div class="error">Error loading announcements. Please try refreshing.</div>';
-        }
-      }
-
-      refreshBtn.addEventListener('click', loadAnnouncements);
-      loadAnnouncements();
-      setInterval(loadAnnouncements, 60000);
-    });
-  </script>
+  <script src="../js/student.js"></script>
 </body>
 
 </html>

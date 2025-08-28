@@ -6,10 +6,10 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $user = $_POST["username"];
     $password = $_POST["pass"];
 
-    $stmt = $conn->prepare("SELECT id, role, firstName, password 
+    $stmt = $conn->prepare("SELECT id, userID, role, firstName, password 
                             FROM userstable 
                             WHERE userID = ? OR email = ?");
-    $stmt->bind_param("ss", $user, $user); // "ss" = two strings
+    $stmt->bind_param("ss", $user, $user);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     header("Content-Type: application/json");
 
     if ($row && password_verify($password, $row['password'])) {
-        $_SESSION['userID'] = $row['id'];
+        $_SESSION['userID'] = $row['userID'];
         $_SESSION['role'] = $row['role'];
         $_SESSION['firstName'] = $row['firstName'];
 

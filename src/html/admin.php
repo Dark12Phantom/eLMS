@@ -1,92 +1,92 @@
 <?php
-  require_once "../php/authentication.php";
-  authenticate();
+require_once "../php/authentication.php";
+authenticate();
 
-  require_once "../php/DatabaseConnection.php";
+require_once "../php/DatabaseConnection.php";
 
-  $courses = [];
-  $cResult = $conn->query("SELECT courseID, courseName, status FROM coursestable ORDER BY courseName ASC");
-  if ($cResult && $cResult->num_rows > 0) {
-    while ($c = $cResult->fetch_assoc()) {
-      $courses[] = $c;
-    }
+$courses = [];
+$cResult = $conn->query("SELECT courseID, courseName, status FROM coursestable ORDER BY courseName ASC");
+if ($cResult && $cResult->num_rows > 0) {
+  while ($c = $cResult->fetch_assoc()) {
+    $courses[] = $c;
   }
+}
 
-  if (isset($_POST['assignCourseBtn'])) {
-    $trainerRowID = $_POST['trainerRowID'] ?? null;
-    $courseIDs = $_POST['courseID'] ?? [];
+if (isset($_POST['assignCourseBtn'])) {
+  $trainerRowID = $_POST['trainerRowID'] ?? null;
+  $courseIDs = $_POST['courseID'] ?? [];
 
-    if ($trainerRowID && !empty($courseIDs)) {
-      $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-      $stmt->bind_param("i", $trainerRowID);
-      $stmt->execute();
-      $stmt->bind_result($trainerID);
-      $stmt->fetch();
-      $stmt->close();
+  if ($trainerRowID && !empty($courseIDs)) {
+    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+    $stmt->bind_param("i", $trainerRowID);
+    $stmt->execute();
+    $stmt->bind_result($trainerID);
+    $stmt->fetch();
+    $stmt->close();
 
-      if (!$trainerID) {
-        echo '<script>alert("Invalid trainer selected.");</script>';
-        exit;
-      }
-
-      foreach ($courseIDs as $courseID) {
-        $stmt = $conn->prepare("SELECT courseName FROM coursestable WHERE courseID = ?");
-        $stmt->bind_param("s", $courseID);
-        $stmt->execute();
-        $stmt->bind_result($courseName);
-        $stmt->fetch();
-        $stmt->close();
-
-        if ($courseName) {
-          $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
-          $insert->bind_param("sss", $trainerID, $courseID, $courseName);
-          $insert->execute();
-          $insert->close();
-        }
-      }
-
-      echo '<script>alert("Courses assigned successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+    if (!$trainerID) {
+      echo '<script>alert("Invalid trainer selected.");</script>';
       exit;
     }
-  }
 
-  if (isset($_POST['saveStatusBtn'])) {
-    $trainerRowID = $_POST['trainerRowID'] ?? null;
-    $status = $_POST['status'] ?? null;
-
-    if ($trainerRowID && $status) {
-      $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-      $stmt->bind_param("i", $trainerRowID);
+    foreach ($courseIDs as $courseID) {
+      $stmt = $conn->prepare("SELECT courseName FROM coursestable WHERE courseID = ?");
+      $stmt->bind_param("s", $courseID);
       $stmt->execute();
-      $stmt->bind_result($trainerID);
+      $stmt->bind_result($courseName);
       $stmt->fetch();
       $stmt->close();
 
-      if (!$trainerID) {
-        echo '<script>alert("Invalid trainer selected.");</script>';
-        exit;
-      }
-
-      $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
-      $stmt->bind_param('si', $status, $trainerRowID);
-
-      if ($stmt->execute()) {
-        $stmt->close();
-
-        if ($status === 'on leave' || $status === 'dismissed') {
-          $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
-          $del->bind_param("s", $trainerID);
-          $del->execute();
-          $del->close();
-        }
-
-        echo '<script>alert("Status updated successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
-        exit;
-      } else {
-        echo '<script>alert("Database error.")</script>';
+      if ($courseName) {
+        $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
+        $insert->bind_param("sss", $trainerID, $courseID, $courseName);
+        $insert->execute();
+        $insert->close();
       }
     }
+
+    echo '<script>alert("Courses assigned successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+    exit;
   }
+}
+
+if (isset($_POST['saveStatusBtn'])) {
+  $trainerRowID = $_POST['trainerRowID'] ?? null;
+  $status = $_POST['status'] ?? null;
+
+  if ($trainerRowID && $status) {
+    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+    $stmt->bind_param("i", $trainerRowID);
+    $stmt->execute();
+    $stmt->bind_result($trainerID);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$trainerID) {
+      echo '<script>alert("Invalid trainer selected.");</script>';
+      exit;
+    }
+
+    $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
+    $stmt->bind_param('si', $status, $trainerRowID);
+
+    if ($stmt->execute()) {
+      $stmt->close();
+
+      if ($status === 'on leave' || $status === 'dismissed') {
+        $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
+        $del->bind_param("s", $trainerID);
+        $del->execute();
+        $del->close();
+      }
+
+      echo '<script>alert("Status updated successfully."); window.location.href="' . $_SERVER['PHP_SELF'] . '";</script>';
+      exit;
+    } else {
+      echo '<script>alert("Database error.")</script>';
+    }
+  }
+}
 
 
 ?>
@@ -255,7 +255,7 @@
                     echo "<td>";
                     if ($row['status'] === 'active') {
                       echo "<button class='assignTrainerBtn' 
-                            data-id='" . htmlspecialchars($row['trainerID'], ENT_QUOTES) . "' >
+                            data-id='" . htmlspecialchars($row['trainerRowID'], ENT_QUOTES) . "' >
                             Assign Courses
                         </button>";
                     } else {
@@ -403,62 +403,62 @@
 
       <section id="postUpdate">
         <div class="container">
-            <h3>Create and Manage Updates, Announcements, and Notices</h3>
-            <button type="button" id="createAnnouncementBtn">Create</button>
-            
-            <!-- Add Announcement Modal -->
-            <div id="addAnnouncementModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h3>Create New Announcement</h3>
-                    <form id="announcementForm">
-                        <div class="form-group">
-                            <label for="announcementType">Type:</label>
-                            <select id="announcementType" name="type" required>
-                                <option value="">Select Type</option>
-                                <option value="announcement">Announcement</option>
-                                <option value="notice">Notice</option>
-                                <option value="update">Update</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="announcementCourse">Course (optional):</label>
-                            <select id="announcementCourse" name="course_id">
-                                <option value="">General Announcement</option>
-                                <!-- Course options will be populated dynamically -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="announcementMessage">Message:</label>
-                            <textarea id="announcementMessage" name="message" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="announcementExpiry">Expiry Date (optional):</label>
-                            <input type="date" id="announcementExpiry" name="expires_at">
-                        </div>
-                        <button type="submit">Submit</button>
-                    </form>
+          <h3>Create and Manage Updates, Announcements, and Notices</h3>
+          <button type="button" id="createAnnouncementBtn">Create</button>
+
+          <!-- Add Announcement Modal -->
+          <div id="addAnnouncementModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <h3>Create New Announcement</h3>
+              <form id="announcementForm">
+                <div class="form-group">
+                  <label for="announcementType">Type:</label>
+                  <select id="announcementType" name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="notice">Notice</option>
+                    <option value="update">Update</option>
+                  </select>
                 </div>
+                <div class="form-group">
+                  <label for="announcementCourse">Course (optional):</label>
+                  <select id="announcementCourse" name="course_id">
+                    <option value="">General Announcement</option>
+                    <!-- Course options will be populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="announcementMessage">Message:</label>
+                  <textarea id="announcementMessage" name="message" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="announcementExpiry">Expiry Date (optional):</label>
+                  <input type="date" id="announcementExpiry" name="expires_at">
+                </div>
+                <button type="submit">Submit</button>
+              </form>
             </div>
-            
-            <h4>Announcements</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Course</th>
-                        <th>Message</th>
-                        <th>Created At</th>
-                        <th>Expires At</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="announcementsTableBody">
-                    <!-- Announcements will be loaded dynamically -->
-                </tbody>
-            </table>
+          </div>
+
+          <h4>Announcements</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Course</th>
+                <th>Message</th>
+                <th>Created At</th>
+                <th>Expires At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="announcementsTableBody">
+              <!-- Announcements will be loaded dynamically -->
+            </tbody>
+          </table>
         </div>
-    </section>
+      </section>
 
 
       <section id="courseMgt">
@@ -500,47 +500,47 @@
   </footer>
 
   <!-- ANNOUNCEMENTS -->
-  
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let isSubmitting = false;
-        
-        // Get modal elements
-        const modal = document.getElementById('addAnnouncementModal');
-        const createBtn = document.getElementById('createAnnouncementBtn');
-        const closeBtn = document.querySelector('.close');
-        const announcementForm = document.getElementById('announcementForm');
-        
-        // Modal controls
-        createBtn.addEventListener('click', function() {
-            modal.style.display = 'block';
-        });
-        
-        closeBtn.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-        
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-        
-        // Function to load announcements
-        function loadAnnouncements() {
-            fetch('../php/announcements.php')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        const tableBody = document.getElementById('announcementsTableBody');
-                        tableBody.innerHTML = '';
-                        
-                        data.data.forEach(announcement => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let isSubmitting = false;
+
+      // Get modal elements
+      const modal = document.getElementById('addAnnouncementModal');
+      const createBtn = document.getElementById('createAnnouncementBtn');
+      const closeBtn = document.querySelector('.close');
+      const announcementForm = document.getElementById('announcementForm');
+
+      // Modal controls
+      createBtn.addEventListener('click', function () {
+        modal.style.display = 'block';
+      });
+
+      closeBtn.addEventListener('click', function () {
+        modal.style.display = 'none';
+      });
+
+      window.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+
+      // Function to load announcements
+      function loadAnnouncements() {
+        fetch('../php/announcements.php')
+          .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              const tableBody = document.getElementById('announcementsTableBody');
+              tableBody.innerHTML = '';
+
+              data.data.forEach(announcement => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                                 <td>${announcement.type}</td>
                                 <td>${announcement.course_id || 'General'}</td>
                                 <td>${announcement.message}</td>
@@ -550,146 +550,146 @@
                                     <button type="button" class="deleteAnnouncementBtn" data-id="${announcement.id}">Delete</button>
                                 </td>
                             `;
-                            tableBody.appendChild(row);
-                        });
-                        
-                        // Add event listeners to delete buttons
-                        document.querySelectorAll('.deleteAnnouncementBtn').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                const id = this.getAttribute('data-id');
-                                if (confirm('Are you sure you want to delete this announcement?')) {
-                                    deleteAnnouncement(id);
-                                }
-                            });
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading announcements:', error);
-                    alert('Error loading announcements: ' + error.message);
+                tableBody.appendChild(row);
+              });
+
+              // Add event listeners to delete buttons
+              document.querySelectorAll('.deleteAnnouncementBtn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                  const id = this.getAttribute('data-id');
+                  if (confirm('Are you sure you want to delete this announcement?')) {
+                    deleteAnnouncement(id);
+                  }
                 });
-        }
-        
-        // Function to delete announcement
-        function deleteAnnouncement(id) {
-            fetch(`../php/announcements.php?id=${id}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch {
-                        throw new Error('Invalid JSON response: ' + text);
-                    }
-                });
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Announcement deleted successfully!');
-                    loadAnnouncements(); // Reload the table
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while deleting the announcement: ' + error.message);
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error loading announcements:', error);
+            alert('Error loading announcements: ' + error.message);
+          });
+      }
+
+      // Function to delete announcement
+      function deleteAnnouncement(id) {
+        fetch(`../php/announcements.php?id=${id}`, {
+          method: 'DELETE'
+        })
+          .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text().then(text => {
+              try {
+                return JSON.parse(text);
+              } catch {
+                throw new Error('Invalid JSON response: ' + text);
+              }
             });
-        }
-        
-        // Fetch courses for announcement form
-        function loadCourses() {
-            fetch('../php/getCourses.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const courseSelect = document.getElementById('announcementCourse');
-                        // Clear existing options except the first one
-                        while (courseSelect.children.length > 1) {
-                            courseSelect.removeChild(courseSelect.lastChild);
-                        }
-                        
-                        data.courses.forEach(course => {
-                            const option = document.createElement('option');
-                            option.value = course.id;
-                            option.textContent = course.courseName;
-                            courseSelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => console.error('Error loading courses:', error));
-        }
-        
-        // Form submission handler
-        announcementForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('Announcement submission initiated');
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            // Prevent double submission
-            if (submitBtn.disabled || isSubmitting) return;
-            
-            isSubmitting = true;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            const formData = {
-                type: document.getElementById('announcementType').value,
-                course_id: document.getElementById('announcementCourse').value || null,
-                message: document.getElementById('announcementMessage').value,
-                expires_at: document.getElementById('announcementExpiry').value || null
-            };
-            
-            console.log('Submitting announcement:', formData);
-            
-            fetch('../php/announcements.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch {
-                        throw new Error('Invalid JSON response: ' + text);
-                    }
-                });
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Announcement created successfully!');
-                    modal.style.display = 'none';
-                    announcementForm.reset();
-                    loadAnnouncements(); // Reload the table
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while creating the announcement: ' + error.message);
-            })
-            .finally(() => {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit';
-                isSubmitting = false;
+          })
+          .then(data => {
+            if (data.success) {
+              alert('Announcement deleted successfully!');
+              loadAnnouncements(); // Reload the table
+            } else {
+              alert('Error: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the announcement: ' + error.message);
+          });
+      }
+
+      // Fetch courses for announcement form
+      function loadCourses() {
+        fetch('../php/getCourses.php')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              const courseSelect = document.getElementById('announcementCourse');
+              // Clear existing options except the first one
+              while (courseSelect.children.length > 1) {
+                courseSelect.removeChild(courseSelect.lastChild);
+              }
+
+              data.courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.courseName;
+                courseSelect.appendChild(option);
+              });
+            }
+          })
+          .catch(error => console.error('Error loading courses:', error));
+      }
+
+      // Form submission handler
+      announcementForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        console.log('Announcement submission initiated');
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+
+        // Prevent double submission
+        if (submitBtn.disabled || isSubmitting) return;
+
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        const formData = {
+          type: document.getElementById('announcementType').value,
+          course_id: document.getElementById('announcementCourse').value || null,
+          message: document.getElementById('announcementMessage').value,
+          expires_at: document.getElementById('announcementExpiry').value || null
+        };
+
+        console.log('Submitting announcement:', formData);
+
+        fetch('../php/announcements.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        })
+          .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text().then(text => {
+              try {
+                return JSON.parse(text);
+              } catch {
+                throw new Error('Invalid JSON response: ' + text);
+              }
             });
-        });
-        
-        // Initial load
-        loadAnnouncements();
-        loadCourses();
+          })
+          .then(data => {
+            if (data.success) {
+              alert('Announcement created successfully!');
+              modal.style.display = 'none';
+              announcementForm.reset();
+              loadAnnouncements(); // Reload the table
+            } else {
+              alert('Error: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while creating the announcement: ' + error.message);
+          })
+          .finally(() => {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+            isSubmitting = false;
+          });
+      });
+
+      // Initial load
+      loadAnnouncements();
+      loadCourses();
     });
-    </script>
-  
+  </script>
+
   <!-- NAVIGATION -->
   <script>
     const tabElements = document.querySelectorAll(
@@ -921,7 +921,7 @@
       });
     });
   </script>
-<!-- TRAINEE SHOW COURSES -->
+  <!-- TRAINEE SHOW COURSES -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const modal = document.getElementById('studentCoursesModal');
@@ -1044,7 +1044,7 @@
       }
     });
   </script>
-<!-- TRAINEE COURSES -->
+  <!-- TRAINEE COURSES -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const availableCourses = <?php echo json_encode($courses); ?>;
@@ -1416,10 +1416,10 @@
       });
     });
   </script>
-<!-- COURSES TABLE GENERATION -->
+  <!-- COURSES TABLE GENERATION -->
   <script>
     // Load courses data for the Course Management section
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const coursesTableBody = document.getElementById('coursesTableBody');
       const setCourseBtn = document.getElementById('setCourse');
       const addCourseBtn = document.getElementById('addCourse');
@@ -1432,9 +1432,9 @@
       const courseSelect = document.getElementById('courseSelect');
       const setCourseForm = document.getElementById('setCourseForm');
       const addCourseForm = document.getElementById('addCourseForm');
-      
+
       let coursesData = [];
-      
+
       // Function to load courses
       function loadCourses() {
         // Fetch courses data from the server
@@ -1443,40 +1443,40 @@
           .then(data => {
             if (data.success) {
               coursesData = data.courses;
-              
+
               // Clear any existing content
               coursesTableBody.innerHTML = '';
-              
+
               // Clear and populate the course select dropdown
               courseSelect.innerHTML = '<option value="">-- Select a course --</option>';
-              
+
               // Check if there are courses to display
               if (coursesData && coursesData.length > 0) {
                 // Populate the table with course data
                 coursesData.forEach(course => {
                   // Add to table
                   const row = document.createElement('tr');
-                  
+
                   // Create and append table cells
                   const codeCell = document.createElement('td');
                   codeCell.textContent = course.courseID;
                   row.appendChild(codeCell);
-                  
+
                   const nameCell = document.createElement('td');
                   nameCell.textContent = course.courseName;
                   row.appendChild(nameCell);
-                  
+
                   const scheduleCell = document.createElement('td');
                   scheduleCell.textContent = course.courseSchedule || 'N/A';
                   row.appendChild(scheduleCell);
-                  
+
                   const statusCell = document.createElement('td');
                   statusCell.textContent = course.status === '1' ? 'Offered' : 'Not Offered';
                   row.appendChild(statusCell);
-                  
+
                   // Add the row to the table
                   coursesTableBody.appendChild(row);
-                  
+
                   // Add to dropdown
                   const option = document.createElement('option');
                   option.value = course.courseID;
@@ -1516,39 +1516,39 @@
             coursesTableBody.appendChild(row);
           });
       }
-      
+
       // Initial load of courses
       loadCourses();
-      
+
       // Set Course button click handler
-      setCourseBtn.addEventListener('click', function() {
+      setCourseBtn.addEventListener('click', function () {
         setCourseModal.style.display = 'block';
       });
-      
+
       // Add Course button click handler
-      addCourseBtn.addEventListener('click', function() {
+      addCourseBtn.addEventListener('click', function () {
         addCourseModal.style.display = 'block';
       });
-      
+
       // Close modal handlers
-      closeSetCourseModal.addEventListener('click', function() {
+      closeSetCourseModal.addEventListener('click', function () {
         setCourseModal.style.display = 'none';
       });
-      
-      closeAddCourseModal.addEventListener('click', function() {
+
+      closeAddCourseModal.addEventListener('click', function () {
         addCourseModal.style.display = 'none';
       });
-      
-      cancelSetCourse.addEventListener('click', function() {
+
+      cancelSetCourse.addEventListener('click', function () {
         setCourseModal.style.display = 'none';
       });
-      
-      cancelAddCourse.addEventListener('click', function() {
+
+      cancelAddCourse.addEventListener('click', function () {
         addCourseModal.style.display = 'none';
       });
-      
+
       // Close modals when clicking outside
-      window.addEventListener('click', function(event) {
+      window.addEventListener('click', function (event) {
         if (event.target === setCourseModal) {
           setCourseModal.style.display = 'none';
         }
@@ -1556,9 +1556,9 @@
           addCourseModal.style.display = 'none';
         }
       });
-      
+
       // Course select change handler
-      courseSelect.addEventListener('change', function() {
+      courseSelect.addEventListener('change', function () {
         const selectedCourseID = this.value;
         if (selectedCourseID) {
           const selectedCourse = coursesData.find(course => course.courseID === selectedCourseID);
@@ -1568,68 +1568,68 @@
           }
         }
       });
-      
+
       // Set Course form submit handler
-      setCourseForm.addEventListener('submit', function(e) {
+      setCourseForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const statusDiv = document.getElementById('setCourseStatus');
         statusDiv.style.display = 'block';
         statusDiv.innerHTML = '<div style="color: blue; padding: 10px; background: #cce5ff; border-radius: 4px;">Updating course...</div>';
-        
+
         const formData = new FormData(this);
-        
+
         fetch('../php/updateCourse.php', {
           method: 'POST',
           body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
-            setTimeout(() => {
-              setCourseModal.style.display = 'none';
-              loadCourses(); // Reload courses after update
-            }, 2000);
-          } else {
-            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
+              setTimeout(() => {
+                setCourseModal.style.display = 'none';
+                loadCourses(); // Reload courses after update
+              }, 2000);
+            } else {
+              statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
+          });
       });
-      
+
       // Add Course form submit handler
-      addCourseForm.addEventListener('submit', function(e) {
+      addCourseForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const statusDiv = document.getElementById('addCourseStatus');
         statusDiv.style.display = 'block';
         statusDiv.innerHTML = '<div style="color: blue; padding: 10px; background: #cce5ff; border-radius: 4px;">Adding course...</div>';
-        
+
         const formData = new FormData(this);
-        
+
         fetch('../php/addCourse.php', {
           method: 'POST',
           body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
-            setTimeout(() => {
-              addCourseModal.style.display = 'none';
-              addCourseForm.reset(); // Reset the form
-              loadCourses(); // Reload courses after adding
-            }, 2000);
-          } else {
-            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
+              setTimeout(() => {
+                addCourseModal.style.display = 'none';
+                addCourseForm.reset(); // Reset the form
+                loadCourses(); // Reload courses after adding
+              }, 2000);
+            } else {
+              statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${error.message}</div>`;
+          });
       });
     });
   </script>
@@ -1642,7 +1642,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Course Management Modals -->
   <div id="setCourseModal" class="modal">
     <div class="modal-content">
@@ -1675,7 +1675,7 @@
       </form>
     </div>
   </div>
-  
+
   <div id="addCourseModal" class="modal">
     <div class="modal-content">
       <span class="close" id="closeAddCourseModal">&times;</span>
@@ -1695,7 +1695,8 @@
         </div>
         <div style="margin-bottom: 20px;">
           <label for="newCourseDescription">Description:</label>
-          <textarea id="newCourseDescription" name="description" rows="4" placeholder="Enter course description"></textarea>
+          <textarea id="newCourseDescription" name="description" rows="4"
+            placeholder="Enter course description"></textarea>
         </div>
         <div style="margin-bottom: 20px;">
           <label for="newCourseStatus">Status:</label>

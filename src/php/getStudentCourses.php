@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $studentID = $input['studentID'];
     
     try {
-        // First, get the user's integer ID from their userID
         $userStmt = $conn->prepare("SELECT id, CONCAT(firstName, ' ', IFNULL(middleName,''), ' ', lastName, ' ', IFNULL(suffix,'')) AS fullName, userID FROM userstable WHERE userID = ?");
         $userStmt->bind_param("s", $studentID);
         $userStmt->execute();
@@ -33,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         $userStmt->close();
         
-        // Get student's courses and progress using integer ID
         $coursesQuery = "SELECT 
             sp.id,
             sp.course_id,
