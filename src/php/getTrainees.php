@@ -9,18 +9,20 @@ try {
     $userId = $_SESSION['userID'];
     
     $sql = "SELECT DISTINCT 
-            CONCAT(u.firstName, ' ', IFNULL(u.middleName, ''), ' ', u.lastName, ' ', IFNULL(u.suffix, '')) as name,
+            CONCAT(u.firstName, ' ', COALESCE(u.middleName, ''), ' ', u.lastName, ' ', COALESCE(u.suffix, '')) as name,
             u.email,
             c.courseName,
             COALESCE(sp.progress, 0) as progress
-            FROM userstable u 
-            JOIN enrolledtable et ON u.id = et.user_id 
-            JOIN coursestable c ON et.course_id = c.id 
-            JOIN assignedcourses ac ON c.id = ac.course_id 
-            JOIN userstable t ON ac.trainer_id = t.id 
-            LEFT JOIN studentprogress sp ON u.userID = sp.studentID AND c.courseID = sp.course_id
-            WHERE t.userID = ? AND et.status = 'approved' AND u.role = 'trainee'
-            ORDER BY u.firstName, u.lastName";
+        FROM userstable u 
+        JOIN enrolledtable et ON u.userID = et.user_id 
+        JOIN coursestable c ON et.course_id = c.courseID 
+        JOIN assignedcourses ac ON c.courseID = ac.course_id
+        JOIN userstable t ON ac.trainer_id = t.userID
+        LEFT JOIN studentprogress sp ON u.userID = sp.student_id AND c.courseID = sp.course_id
+        WHERE t.userID = ? 
+        AND et.status = 'approved' 
+        AND u.role = 'trainee'
+        ORDER BY u.firstName, u.lastName";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $userId);

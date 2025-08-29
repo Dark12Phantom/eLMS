@@ -9,6 +9,7 @@ try {
     $userId = $_SESSION['userID'];
     $sql = "SELECT 
             ac.id, 
+            c.courseID,
             c.courseName,
             COUNT(DISTINCT et.user_id) AS studentCount,
             COALESCE(AVG(sp.progress), 0) AS avgProgress,
@@ -36,6 +37,7 @@ try {
     $courses = [];
     while ($row = $result->fetch_assoc()) {
         $courses[] = [
+            'courseID' => $row['courseID'],
             'courseName' => $row['courseName'],
             'studentCount' => (int)$row['studentCount'],
             'avgProgress' => round((float)$row['avgProgress'], 1),

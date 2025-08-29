@@ -5,11 +5,6 @@ authenticate();
 
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
-    exit;
-}
-
 try {
     $courseId = $_POST['course_id'] ?? null;
     
@@ -18,7 +13,6 @@ try {
         exit;
     }
     
-    // Check if record exists
     $checkSql = "SELECT status FROM coursetracker WHERE course_id = ?";
     $stmt = $conn->prepare($checkSql);
     $stmt->bind_param("i", $courseId);
@@ -26,21 +20,19 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        // Update existing record
         $row = $result->fetch_assoc();
-        $newStatus = ($row['status'] == 1) ? 0 : 1;
+        $newStatus = ($row['status'] == "enabled") ? "disabled" : "enabled";
         
         $updateSql = "UPDATE coursetracker SET status = ? WHERE course_id = ?";
         $stmt = $conn->prepare($updateSql);
-        $stmt->bind_param("ii", $newStatus, $courseId);
+        $stmt->bind_param("si", $newStatus, $courseId);
         $stmt->execute();
     } else {
-        // Insert new record (default disabled = 0)
-        $insertSql = "INSERT INTO coursetracker (course_id, status) VALUES (?, 0)";
+        $insertSql = "INSERT INTO coursetracker (course_id, status) VALUES (?, 'enabled')";
         $stmt = $conn->prepare($insertSql);
         $stmt->bind_param("i", $courseId);
         $stmt->execute();
-        $newStatus = 0;
+        $newStatus = 'enabled';
     }
     
     echo json_encode([

@@ -8,9 +8,8 @@ header('Content-Type: application/json');
 try {
     $userId = $_SESSION['userID'];
     
-    // Get trainer's assigned courses
     $coursesSql = "SELECT COUNT(*) as course_count FROM assignedcourses ac 
-                   JOIN userstable u ON ac.trainer_id = u.id 
+                   JOIN userstable u ON ac.trainer_id = u.userID
                    WHERE u.userID = ?";
     $stmt = $conn->prepare($coursesSql);
     $stmt->bind_param("s", $userId);

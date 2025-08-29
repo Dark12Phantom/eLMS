@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 26, 2025 at 02:55 PM
+-- Generation Time: Aug 29, 2025 at 04:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -63,10 +63,17 @@ CREATE TABLE `announcementtable` (
 
 CREATE TABLE `assignedcourses` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
-  `trainer_id` int(11) NOT NULL,
+  `course_id` varchar(30) NOT NULL,
+  `trainer_id` varchar(30) NOT NULL,
   `trainerName` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `assignedcourses`
+--
+
+INSERT INTO `assignedcourses` (`id`, `course_id`, `trainer_id`, `trainerName`) VALUES
+(1, 'AGRINCII', '2025T-00001', 'Harley David Son');
 
 -- --------------------------------------------------------
 
@@ -211,9 +218,16 @@ INSERT INTO `coursestable` (`id`, `courseID`, `courseName`, `courseSchedule`, `d
 
 CREATE TABLE `coursetracker` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
-  `status` int(11) NOT NULL
+  `course_id` varchar(30) NOT NULL,
+  `status` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `coursetracker`
+--
+
+INSERT INTO `coursetracker` (`id`, `course_id`, `status`) VALUES
+(1, 'AGRINCII', 'Self-enroll On');
 
 -- --------------------------------------------------------
 
@@ -223,11 +237,18 @@ CREATE TABLE `coursetracker` (
 
 CREATE TABLE `enrolledtable` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `course_id` varchar(30) NOT NULL,
+  `user_id` varchar(30) NOT NULL,
   `enrollment_id` int(11) NOT NULL,
   `status` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `enrolledtable`
+--
+
+INSERT INTO `enrolledtable` (`id`, `course_id`, `user_id`, `enrollment_id`, `status`) VALUES
+(2, 'AGRINCII', '2025S-000001', 20, 'Approved');
 
 -- --------------------------------------------------------
 
@@ -237,9 +258,9 @@ CREATE TABLE `enrolledtable` (
 
 CREATE TABLE `enrollmenttable` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `course_id` int(11) DEFAULT NULL,
-  `teacher_id` int(11) DEFAULT NULL,
+  `user_id` varchar(30) DEFAULT NULL,
+  `course_id` varchar(30) DEFAULT NULL,
+  `teacher_id` varchar(30) DEFAULT NULL,
   `status` enum('pending','approved','denied') DEFAULT NULL,
   `enrolled_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -249,7 +270,7 @@ CREATE TABLE `enrollmenttable` (
 --
 
 INSERT INTO `enrollmenttable` (`id`, `user_id`, `course_id`, `teacher_id`, `status`, `enrolled_at`) VALUES
-(2, 21, 3, NULL, 'pending', '2025-08-23 00:30:00');
+(20, '2025S-000001', 'AGRINCII', '2025T-00001', 'approved', '2025-08-28 21:29:53');
 
 -- --------------------------------------------------------
 
@@ -286,7 +307,7 @@ CREATE TABLE `gradestable` (
 
 CREATE TABLE `modulestable` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) DEFAULT NULL,
+  `course_id` varchar(30) DEFAULT NULL,
   `title` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
@@ -438,6 +459,13 @@ CREATE TABLE `trainercourses` (
   `courseID` varchar(50) NOT NULL,
   `courseName` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trainercourses`
+--
+
+INSERT INTO `trainercourses` (`id`, `trainerID`, `courseID`, `courseName`) VALUES
+(4, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II');
 
 -- --------------------------------------------------------
 
@@ -595,8 +623,8 @@ ALTER TABLE `enrolledtable`
 ALTER TABLE `enrollmenttable`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `teacher_id` (`teacher_id`),
-  ADD KEY `course_id` (`course_id`);
+  ADD KEY `course_id` (`course_id`),
+  ADD KEY `teacher_id` (`teacher_id`);
 
 --
 -- Indexes for table `finalgradestable`
@@ -618,7 +646,7 @@ ALTER TABLE `gradestable`
 --
 ALTER TABLE `modulestable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `modulestable_ibfk_1` (`course_id`);
+  ADD KEY `course_id` (`course_id`);
 
 --
 -- Indexes for table `studentprogress`
@@ -695,13 +723,13 @@ ALTER TABLE `activitiestable`
 -- AUTO_INCREMENT for table `announcementtable`
 --
 ALTER TABLE `announcementtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `assignedcourses`
 --
 ALTER TABLE `assignedcourses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `basiccompetency`
@@ -731,19 +759,19 @@ ALTER TABLE `coursestable`
 -- AUTO_INCREMENT for table `coursetracker`
 --
 ALTER TABLE `coursetracker`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `enrolledtable`
 --
 ALTER TABLE `enrolledtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `enrollmenttable`
 --
 ALTER TABLE `enrollmenttable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `finalgradestable`
@@ -797,7 +825,7 @@ ALTER TABLE `traineestable`
 -- AUTO_INCREMENT for table `trainercourses`
 --
 ALTER TABLE `trainercourses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `trainerstable`
@@ -833,8 +861,8 @@ ALTER TABLE `announcementtable`
 -- Constraints for table `assignedcourses`
 --
 ALTER TABLE `assignedcourses`
-  ADD CONSTRAINT `assignedcourses_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `assignedcourses_ibfk_2` FOREIGN KEY (`trainer_id`) REFERENCES `trainerstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `assignedcourses_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `assignedcourses_ibfk_2` FOREIGN KEY (`trainer_id`) REFERENCES `trainerstable` (`trainerID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `basiccompetency`
@@ -852,23 +880,21 @@ ALTER TABLE `commoncompetency`
 -- Constraints for table `coursetracker`
 --
 ALTER TABLE `coursetracker`
-  ADD CONSTRAINT `coursetracker_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `coursetracker_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `enrolledtable`
 --
 ALTER TABLE `enrolledtable`
-  ADD CONSTRAINT `enrolledtable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `enrolledtable_ibfk_2` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollmenttable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `enrolledtable_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `enrolledtable_ibfk_2` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollmenttable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `enrollmenttable`
 --
 ALTER TABLE `enrollmenttable`
-  ADD CONSTRAINT `enrollmenttable_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`id`),
-  ADD CONSTRAINT `enrollmenttable_ibfk_2` FOREIGN KEY (`teacher_id`) REFERENCES `userstable` (`id`),
-  ADD CONSTRAINT `enrollmenttable_ibfk_3` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`);
+  ADD CONSTRAINT `enrollmenttable_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `enrollmenttable_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `trainercourses` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `enrollmenttable_ibfk_3` FOREIGN KEY (`teacher_id`) REFERENCES `trainerstable` (`trainerID`);
 
 --
 -- Constraints for table `finalgradestable`
@@ -887,7 +913,7 @@ ALTER TABLE `gradestable`
 -- Constraints for table `modulestable`
 --
 ALTER TABLE `modulestable`
-  ADD CONSTRAINT `modulestable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `modulestable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `studentprogress`

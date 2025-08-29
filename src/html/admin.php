@@ -113,9 +113,9 @@ if (isset($_POST['saveStatusBtn'])) {
       $userId = $_SESSION['userID'];
 
       $sql = "SELECT userID, firstName, middleName, lastName, suffix, role, profileImage 
-        FROM userstable WHERE id = ?";
+        FROM userstable WHERE userID = ?";
       $stmt = $conn->prepare($sql);
-      $stmt->bind_param("i", $userId);
+      $stmt->bind_param("s", $userId);
       $stmt->execute();
       $result = $stmt->get_result();
       $user = $result->fetch_assoc();

@@ -117,6 +117,10 @@ nav {
   color: var(--text-light);
 }
 
+.content li::marker{
+  content: none;
+}
+
 #account-popup {
   background: linear-gradient(
     135deg,
@@ -140,11 +144,6 @@ nav {
 #account-popup:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-}
-
-#account-popup svg {
-  width: 20px;
-  height: 20px;
 }
 
 main {
