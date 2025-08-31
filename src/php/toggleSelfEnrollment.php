@@ -15,7 +15,7 @@ try {
     
     $checkSql = "SELECT status FROM coursetracker WHERE course_id = ?";
     $stmt = $conn->prepare($checkSql);
-    $stmt->bind_param("i", $courseId);
+    $stmt->bind_param("s", $courseId);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -25,12 +25,12 @@ try {
         
         $updateSql = "UPDATE coursetracker SET status = ? WHERE course_id = ?";
         $stmt = $conn->prepare($updateSql);
-        $stmt->bind_param("si", $newStatus, $courseId);
+        $stmt->bind_param("ss", $newStatus, $courseId);
         $stmt->execute();
     } else {
         $insertSql = "INSERT INTO coursetracker (course_id, status) VALUES (?, 'enabled')";
         $stmt = $conn->prepare($insertSql);
-        $stmt->bind_param("i", $courseId);
+        $stmt->bind_param("s", $courseId);
         $stmt->execute();
         $newStatus = 'enabled';
     }

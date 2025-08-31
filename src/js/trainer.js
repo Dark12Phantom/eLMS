@@ -128,15 +128,91 @@ class TrainerDashboard {
 
     if (createActivityBtn) {
       createActivityBtn.addEventListener("click", () => {
+        this.loadCourseOptions();
         this.toggleForm(".createAct", ".addModule");
       });
     }
 
     if (uploadModuleBtn) {
       uploadModuleBtn.addEventListener("click", () => {
+        this.loadCourseOptions();
         this.toggleForm(".addModule", ".createAct");
       });
     }
+  }
+
+  async loadCourseOptions() {
+    try {
+      const activityDropdown = document.querySelector("#courseActivityOption");
+      const moduleDropdown = document.querySelector("#courseModuleOption");
+
+      if (
+        activityDropdown &&
+        activityDropdown.options.length > 1 &&
+        moduleDropdown &&
+        moduleDropdown.options.length > 1
+      ) {
+        return;
+      }
+
+      const response = await fetch("../php/getTrainerCourses.php");
+      const result = await response.json();
+
+      if (result.success && result.data.length > 0) {
+        this.populateCourseDropdowns(result.data);
+      } else {
+        this.showDropdownError(activityDropdown, "No courses available");
+        this.showDropdownError(moduleDropdown, "No courses available");
+      }
+    } catch (error) {
+      console.error("Error loading course options:", error);
+      const activityDropdown = document.querySelector("#courseActivityOption");
+      const moduleDropdown = document.querySelector("#courseModuleOption");
+      this.showDropdownError(activityDropdown, "Error loading courses");
+      this.showDropdownError(moduleDropdown, "Error loading courses");
+    }
+  }
+
+  showDropdownError(dropdown, message) {
+    if (!dropdown) return;
+    dropdown.innerHTML = "";
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = message;
+    option.disabled = true;
+    dropdown.appendChild(option);
+  }
+
+  populateCourseDropdowns(courses) {
+    const activityDropdown = document.querySelector("#courseActivityOption");
+    const moduleDropdown = document.querySelector("#courseModuleOption");
+
+    if (!activityDropdown || !moduleDropdown) return;
+
+    activityDropdown.innerHTML = activityDropdown.querySelector("option")
+      ? activityDropdown.innerHTML.split("</option>")[0] + "</option>"
+      : '<option value="">Select Course</option>';
+
+    moduleDropdown.innerHTML = moduleDropdown.querySelector("option")
+      ? moduleDropdown.innerHTML.split("</option>")[0] + "</option>"
+      : '<option value="">Select Course</option>';
+
+    courses.forEach((course) => {
+      const courseId = course.courseID || course.id || course.course_id;
+      const courseName = course.courseName || "Unnamed Course";
+
+      if (courseId && courseName) {
+        const activityOption = document.createElement("option");
+        activityOption.value = courseId;
+        activityOption.textContent = courseName;
+        activityDropdown.appendChild(activityOption);
+
+        const moduleOption = document.createElement("option");
+        moduleOption.value = courseId;
+        moduleOption.textContent = courseName;
+        moduleDropdown.appendChild(moduleOption);
+      }
+    });
   }
 
   toggleForm(showForm, hideForm) {
@@ -174,6 +250,7 @@ class TrainerDashboard {
     const title = form.querySelector("#actTitle").value.trim();
     const description = form.querySelector("#actDescription").value.trim();
     const dueDate = form.querySelector("#dueDate").value;
+    const activityType = form.querySelector("#activityType").value;
     const course = form.querySelector("#courseActivityOption").value;
     const file = form.querySelector("#uploadAct").files[0];
 
@@ -185,6 +262,7 @@ class TrainerDashboard {
     formData.append("actTitle", title);
     formData.append("description", description);
     formData.append("dueDate", dueDate);
+    formData.append("activityType", activityType);
     formData.append("courseActivityOption", course);
     if (file) {
       formData.append("uploadAct", file);
@@ -230,6 +308,12 @@ class TrainerDashboard {
     formData.append("courseModuleOption", course);
     formData.append("uploadModuleFile", file);
 
+    console.log("Module form values:");
+    console.log("Title:", title);
+    console.log("Description:", description);
+    console.log("Course ID:", course);
+    console.log("File:", file ? file.name : "No file");
+
     try {
       const response = await fetch("../php/uploadModule.php", {
         method: "POST",
@@ -241,6 +325,7 @@ class TrainerDashboard {
       if (result.success) {
         alert(result.message);
         this.resetForm(form);
+        this.loadModules();
       } else {
         alert("Error: " + result.message);
       }
@@ -255,7 +340,7 @@ class TrainerDashboard {
       dashboard: () => this.loadDashboardData(),
       "enrollment-request": () => this.loadEnrollmentRequests(),
       courses: () => this.loadTrainerCourses(),
-      "activities-modules": () => this.loadActivities(),
+      "activities-modules": () => this.loadActivities() && this.loadModules(),
       trainees: () => this.loadTrainees(),
       submissions: () => this.loadSubmissions(),
     };
@@ -303,6 +388,7 @@ class TrainerDashboard {
         recentEnrollmentDiv.innerHTML = "<p>No recent enrollment requests</p>";
       }
     }
+    updateCard(".c5 h2", data.totalEnrollments);
   }
 
   async loadEnrollmentRequests() {
@@ -415,14 +501,17 @@ class TrainerDashboard {
 
     courses.forEach((course, index) => {
       const row = document.createElement("tr");
-      const statusColor = course.selfEnrollmentStatus ? "#006aff" : "#bd1919";
-      const statusText = course.selfEnrollmentStatus ? "Enabled" : "Disabled";
-      const courseId =
-        course.courseID ||
-        course.course_id ||
-        course.id ||
-        course.courseId ||
-        `course-${index}`;
+
+      console.log(`Course ${index}:`, course);
+      console.log(
+        `selfEnrollStatus for ${course.courseName}:`,
+        course.selfEnrollStatus
+      );
+
+      const isEnabled = course.selfEnrollStatus === "enabled";
+      const statusColor = isEnabled ? "#006aff" : "#bd1919";
+      const statusText = isEnabled ? "Enabled" : "Disabled";
+      const courseId = course.courseID;
 
       row.innerHTML = `
                 <td>${course.courseName}</td>
@@ -430,6 +519,7 @@ class TrainerDashboard {
                 <td>${course.avgProgress}%</td>
                 <td>
                     <button type="button" class="stateBtn" data-id="${courseId}" 
+                            data-status="${isEnabled}"
                             style="background-color: ${statusColor}; color: white">
                         ${statusText}
                     </button>
@@ -451,31 +541,25 @@ class TrainerDashboard {
   }
 
   async toggleSelfEnrollment(courseId, buttonElement) {
-    try {
-      const formData = new FormData();
-      formData.append("course_id", courseId);
+    const formData = new FormData();
+    formData.append("course_id", courseId);
 
-      console.log("Sending course ID:", courseId);
+    const response = await fetch("../php/toggleSelfEnrollment.php", {
+      method: "POST",
+      body: formData,
+    });
 
-      const response = await fetch("../php/toggleSelfEnrollment.php", {
-        method: "POST",
-        body: formData,
-      });
+    const result = await response.json();
 
-      const result = await response.json();
+    if (result.success) {
+      const isEnabled = result.status === "enabled" || result.status === true;
+      const newText = isEnabled ? "Enabled" : "Disabled";
+      const newColor = isEnabled ? "#006aff" : "#bd1919";
 
-      if (result.success) {
-        const isEnabled = result.status === "enabled" || result.status === true;
-        const newText = isEnabled ? "Enabled" : "Disabled";
-        const newColor = isEnabled ? "#006aff" : "#bd1919";
-
-        buttonElement.textContent = newText;
-        buttonElement.style.backgroundColor = newColor;
-      } else {
-        alert("Error: " + result.message);
-      }
-    } catch (error) {
-      console.error("Error toggling enrollment:", error);
+      buttonElement.textContent = newText;
+      buttonElement.style.backgroundColor = newColor;
+    } else {
+      alert("Error: " + result.message);
     }
   }
 
@@ -493,35 +577,55 @@ class TrainerDashboard {
   }
 
   renderActivities(activities) {
-    const tbody = document.querySelector("#activities-modules tbody");
+    const tbody = document.querySelector("#activitiesTable tbody");
     if (!tbody) return;
 
     tbody.innerHTML = "";
 
     if (activities.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4">No activities found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6">No activities found</td></tr>';
       return;
     }
 
     activities.forEach((activity) => {
       const row = document.createElement("tr");
+      row.setAttribute("data-activity-id", activity.id);
       row.innerHTML = `
                 <td>${activity.title}</td>
                 <td>${activity.courseName}</td>
+                <td>${activity.type}</td>
                 <td>${activity.dueDate || "No due date"}</td>
                 <td>
                     <div class="buttons">
-                        <button type="button" class="editAct">Edit</button>
+                        <button type="button" class="editAct" onclick="trainerDashboard.handleEditActivity(this)">Edit</button>
                         <button type="button" class="deleteAct" data-id="${
                           activity.id
                         }" style="background-color: red">Delete</button>
                     </div>
                 </td>
+                <td><a href="${
+                  activity.file_path
+                }" target="_blank">View Activity</a></td>
             `;
       tbody.appendChild(row);
     });
 
     this.addDeleteEventListeners();
+  }
+
+  getActivityIdFromRow(row) {
+    return row.getAttribute("data-activity-id");
+  }
+
+  handleEditActivity(button) {
+    const row = button.closest("tr");
+    const activityId = this.getActivityIdFromRow(row);
+
+    if (activityId) {
+      this.openEditModal(activityId);
+    } else {
+      alert("Unable to identify activity for editing");
+    }
   }
 
   addDeleteEventListeners() {
@@ -533,6 +637,186 @@ class TrainerDashboard {
         }
       });
     });
+  }
+
+  async openEditModal(activityId) {
+    try {
+      console.log("Fetching activity data for ID:", activityId);
+      const response = await fetch(`../php/editActivity.php?id=${activityId}`);
+      const result = await response.json();
+      console.log("Server response:", result);
+
+      if (result.success) {
+        const activity = result.data;
+        this.showEditModal(activity);
+        await this.populateEditForm(activity);
+      } else {
+        alert("Error fetching activity data: " + result.message);
+        console.error("Error details:", result);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while fetching activity data");
+    }
+  }
+
+  showEditModal(activity) {
+    const modalHTML = `
+        <div id="editActivityModal" class="modal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+            <div class="modal-content" style="position: relative; background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Edit Activity</h2>
+                    <span class="close" onclick="trainerDashboard.closeEditModal()" style="cursor: pointer; font-size: 24px;">&times;</span>
+                </div>
+                <form id="editActivityForm" enctype="multipart/form-data">
+                    <input type="hidden" id="editActivityId" name="activityId" value="${activity.id}">
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editActTitle" style="display: block; margin-bottom: 5px;">Activity Title:</label>
+                        <input type="text" id="editActTitle" name="actTitle" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editDescription" style="display: block; margin-bottom: 5px;">Description:</label>
+                        <textarea id="editDescription" name="description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editDueDate" style="display: block; margin-bottom: 5px;">Due Date:</label>
+                        <input type="datetime-local" id="editDueDate" name="dueDate" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editActivityType" style="display: block; margin-bottom: 5px;">Activity Type:</label>
+                        <select id="editActivityType" name="activityType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">Select Type</option>
+                            <option value="activity">Activity</option>
+                            <option value="exam">Exam</option>
+                            <option value="project">Project</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editCourseOption" style="display: block; margin-bottom: 5px;">Course:</label>
+                        <select id="editCourseOption" name="courseActivityOption" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">Select Course</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label id="uploadNewFile" for="editUploadAct" style="display: block; margin-bottom: 5px;">Upload New File (optional):</label>
+                        <input type="file" id="editUploadAct" name="uploadAct" accept=".pdf,.doc,.docx,.txt" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <small>Current file: <span id="currentFileName"></span></small>
+                    </div>
+                    
+                    <div class="form-actions" style="text-align: right; margin-top: 20px;">
+                        <button type="button" onclick="trainerDashboard.closeEditModal()" style="margin-right: 10px; padding: 10px 20px; background-color: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Activity</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    const existingModal = document.getElementById("editActivityModal");
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    document
+      .getElementById("editActivityForm")
+      .addEventListener("submit", (e) => this.handleEditSubmit(e));
+  }
+
+  async populateEditForm(activity) {
+    document.getElementById("editActTitle").value = activity.title || "";
+    document.getElementById("editDescription").value =
+      activity.description || "";
+    document.getElementById("editDueDate").value = activity.due_date
+      ? this.formatDateTimeLocal(activity.due_date)
+      : "";
+    document.getElementById("editActivityType").value = activity.type || "";
+
+    const currentFileSpan = document.getElementById("currentFileName");
+    if (activity.file_path) {
+      const fileName = activity.file_path.split("/").pop();
+      currentFileSpan.textContent = fileName;
+    } else {
+      currentFileSpan.textContent = "No file uploaded";
+    }
+
+    await this.populateEditCourseDropdown(activity.courseID);
+  }
+
+  async populateEditCourseDropdown(selectedCourseId = null) {
+    try {
+      const response = await fetch("../php/getTrainerCourses.php");
+      const result = await response.json();
+
+      const select = document.getElementById("editCourseOption");
+      if (!select) return;
+
+      if (result.success && result.data.length > 0) {
+        result.data.forEach((course) => {
+          const option = document.createElement("option");
+          option.value = course.courseID || course.id;
+          option.textContent = course.courseName;
+          if ((course.courseID || course.id) === selectedCourseId) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error("Error loading courses for edit modal:", error);
+    }
+  }
+
+  formatDateTimeLocal(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  async handleEditSubmit(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("../php/editActivity.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Activity updated successfully!");
+        this.closeEditModal();
+        this.loadActivities();
+      } else {
+        alert("Error updating activity: " + result.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while updating the activity");
+    }
+  }
+
+  closeEditModal() {
+    const modal = document.getElementById("editActivityModal");
+    if (modal) {
+      modal.remove();
+    }
   }
 
   async deleteActivity(activityId, buttonElement) {
@@ -558,6 +842,229 @@ class TrainerDashboard {
       console.error("Error deleting activity:", error);
       alert("An error occurred while deleting the activity");
     }
+  }
+
+  async loadModules() {
+    try {
+      const response = await fetch("../php/getModules.php");
+      const result = await response.json();
+      console.log(result);
+
+      if (result.success) {
+        this.renderModules(result.data);
+      }
+    } catch (error) {
+      console.error("Error loading modeules:", error);
+    }
+  }
+
+  renderModules(modules) {
+    const tbody = document.querySelector("#modulesTable tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    if (modules.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6">No modules found</td></tr>';
+      return;
+    }
+
+    modules.forEach((module) => {
+      const row = document.createElement("tr");
+      row.setAttribute("data-module-id", module.id);
+      row.innerHTML = `
+                <td>${module.title}</td>
+                <td>${module.courseName}</td>
+                <td>${module.created_at}</td>
+                <td>
+                    <div class="buttons">
+                        <button type="button" class="editModule" onclick="trainerDashboard.handleEditModule(this)">Edit</button>
+                        <button type="button" class="deleteModule" data-id="${module.id}" style="background-color: red">Delete</button>
+                    </div>
+                </td>
+                <td><a href="${module.file_path}" target="_blank">View Module</a></td>
+            `;
+      tbody.appendChild(row);
+    });
+
+    this.addDeleteModuleEventListeners();
+  }
+
+  addDeleteModuleEventListeners() {
+    const deleteBtns = document.querySelectorAll(".deleteModule");
+    deleteBtns.forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (confirm("Are you sure you want to delete this module?")) {
+          await this.deleteModule(btn.dataset.id, btn);
+        }
+      });
+    });
+  }
+
+  async deleteModule(moduleId, buttonElement) {
+    try {
+      const formData = new FormData();
+      formData.append("module_id", moduleId);
+      console.log(moduleId);
+
+      const response = await fetch("../php/deleteModule.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+        const row = buttonElement.closest("tr");
+        if (row) row.remove();
+      } else {
+        alert("Error: " + result.message);
+      }
+    } catch (error) {
+      console.error("Error deleting module:", error);
+      alert("An error occurred while deleting the module");
+    }
+  }
+
+  getModuleIdFromRow(row) {
+    return row.getAttribute("data-module-id");
+  }
+
+  handleEditModule(button) {
+    const row = button.closest("tr");
+    const moduleId = this.getModuleIdFromRow(row);
+
+    if (moduleId) {
+      this.openEditModuleModal(moduleId);
+    } else {
+      alert("Unable to identify module for editing");
+    }
+  }
+
+  async openEditModuleModal(moduleId) {
+    try {
+      console.log("Fetching module data for ID:", moduleId);
+      const response = await fetch(`../php/editModule.php?id=${moduleId}`);
+      const result = await response.json();
+      console.log("Server response:", result);
+
+      if (result.success) {
+        const module = result.data;
+        this.showEditModuleModal(module);
+        await this.populateEditModuleForm(module);
+      } else {
+        alert("Error fetching module data: " + result.message);
+        console.error("Error details:", result);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while fetching module data");
+    }
+  }
+
+  showEditModuleModal(module) {
+    const modalHTML = `
+        <div id="editModuleModal" class="modal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+            <div class="modal-content" style="position: relative; background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Edit Module</h2>
+                    <span class="close" onclick="trainerDashboard.closeEditModuleModal()" style="cursor: pointer; font-size: 24px;">&times;</span>
+                </div>
+                <form id="editModuleForm" enctype="multipart/form-data">
+                    <input type="hidden" id="editModuleId" name="moduleId" value="${module.id}">
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editModuleTitle" style="display: block; margin-bottom: 5px;">Module Title:</label>
+                        <input type="text" id="editModuleTitle" name="moduleTitle" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editDescription" style="display: block; margin-bottom: 5px;">Description:</label>
+                        <textarea id="editDescription" name="description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="editCourseOption" style="display: block; margin-bottom: 5px;">Course:</label>
+                        <select id="editCourseOption" name="courseModuleOption" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">Select Course</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label id="uploadNewFile" for="editUploadModule" style="display: block; margin-bottom: 5px;">Upload New File (optional):</label>
+                        <input type="file" id="editUploadModule" name="uploadModuleFile" accept=".pdf,.doc,.docx,.txt" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <small>Current file: <span id="currentFileName"></span></small>
+                    </div>
+                    
+                    <div class="form-actions" style="text-align: right; margin-top: 20px;">
+                        <button type="button" onclick="trainerDashboard.closeEditModuleModal()" style="margin-right: 10px; padding: 10px 20px; background-color: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Module</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    const existingModal = document.getElementById("editModuleModal");
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    document
+      .getElementById("editModuleForm")
+      .addEventListener("submit", (e) => this.handleEditModuleSubmit(e));
+  }
+
+  closeEditModuleModal() {
+    const modal = document.getElementById("editModuleModal");
+    if (modal) {
+      modal.remove();
+    }
+  }
+
+  async handleEditModuleSubmit(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("../php/editModule.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Module updated successfully!");
+        this.closeEditModal();
+        this.loadActivities();
+      } else {
+        alert("Error updating module: " + result.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while updating the module");
+    }
+  }
+
+  async populateEditModuleForm(module) {
+    document.getElementById("editModuleTitle").value = module.title || "";
+    document.getElementById("editDescription").value = module.description || "";
+
+    const currentFileSpan = document.getElementById("currentFileName");
+    if (module.file_path) {
+      const fileName = module.file_path.split("/").pop();
+      currentFileSpan.textContent = fileName;
+    } else {
+      currentFileSpan.textContent = "No file uploaded";
+    }
+
+    await this.populateEditCourseDropdown(module.courseID);
   }
 
   async loadTrainees() {
@@ -983,17 +1490,18 @@ class TrainerDashboard {
         const response = await fetch("../php/getAnnouncements.php");
         const { success, data, message } = await response.json();
 
-        notificationsList.innerHTML = "";
+        if (notificationsList) {
+          notificationsList.innerHTML = "";
 
-        if (success && data.length > 0) {
-          data.forEach((announcement) => {
-            const item = document.createElement("div");
-            item.className = "notification-item";
-            item.innerHTML = `
+          if (success && data.length > 0) {
+            data.forEach((announcement) => {
+              const item = document.createElement("div");
+              item.className = "notification-item";
+              item.innerHTML = `
                             <div class="notification-header">
                                 <span class="type ${announcement.type.toLowerCase()}">${
-              announcement.type
-            }</span>
+                announcement.type
+              }</span>
                                 <small>${new Date(
                                   announcement.created_at
                                 ).toLocaleDateString()}</small>
@@ -1007,17 +1515,20 @@ class TrainerDashboard {
                                 : ""
                             }
                         `;
-            notificationsList.appendChild(item);
-          });
-        } else {
-          notificationsList.innerHTML = `<div class="no-notifications">${
-            message || "No announcements available"
-          }</div>`;
+              notificationsList.appendChild(item);
+            });
+          } else {
+            notificationsList.innerHTML = `<div class="no-notifications">${
+              message || "No announcements available"
+            }</div>`;
+          }
         }
       } catch (error) {
         console.error("Error loading announcements:", error);
-        notificationsList.innerHTML =
-          '<div class="error">Error loading announcements. Please try refreshing.</div>';
+        if (notificationsList) {
+          notificationsList.innerHTML =
+            '<div class="error">Error loading announcements. Please try refreshing.</div>';
+        }
       }
     };
 
@@ -1030,6 +1541,8 @@ class TrainerDashboard {
   }
 }
 
+let trainerDashboard;
+
 document.addEventListener("DOMContentLoaded", () => {
-  new TrainerDashboard();
+  trainerDashboard = new TrainerDashboard();
 });

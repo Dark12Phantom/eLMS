@@ -9,63 +9,60 @@ try {
     $trainerUserID = $_SESSION['userID'];
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $activityId = $_GET['id'] ?? '';
+        $moduleId = $_GET['id'] ?? '';
 
-        if (empty($activityId)) {
-            echo json_encode(['success' => false, 'message' => 'Activity ID is required']);
+        if (empty($moduleId)) {
+            echo json_encode(['success' => false, 'message' => 'Module ID is required']);
             exit;
         }
 
-        $getActivitySql = "SELECT a.id, a.title, a.description, a.due_date, a.type, a.file_path, 
+        $getModuleSql = "SELECT m.id, m.title, m.description, m.file_path, 
                                  c.courseID, c.courseName
-                          FROM activitiestable a
-                          JOIN coursestable c ON a.course_id = c.courseID
-                          WHERE a.id = ? AND a.created_by = ?";
-        $stmt = $conn->prepare($getActivitySql);
-        $stmt->bind_param("is", $activityId, $trainerUserID);
+                          FROM modulestable m
+                          JOIN coursestable c ON m.course_id = c.courseID
+                          WHERE m.id = ? AND m.trainerID = ?";
+        $stmt = $conn->prepare($getModuleSql);
+        $stmt->bind_param("is", $moduleId, $trainerUserID);
         $stmt->execute();
         $result = $stmt->get_result();
-        $activity = $result->fetch_assoc();
+        $module = $result->fetch_assoc();
 
-        if (!$activity) {
-            echo json_encode(['success' => false, 'message' => 'Activity not found or access denied']);
+        if (!$module) {
+            echo json_encode(['success' => false, 'message' => 'Module not found or access denied']);
             exit;
         }
 
-        echo json_encode(['success' => true, 'data' => $activity]);
+        echo json_encode(['success' => true, 'data' => $module]);
         exit;
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $activityId = $_POST['activityId'] ?? '';
-        $title = $_POST['actTitle'] ?? '';
+        $moduleId = $_POST['moduleId'] ?? '';
+        $title = $_POST['moduleTitle'] ?? '';
         $description = $_POST['description'] ?? '';
-        $dueDate = $_POST['dueDate'] ?? null;
-        $activityType = $_POST['activityType'] ?? '';
-        $courseID = $_POST['courseActivityOption'] ?? '';
+        $courseID = $_POST['courseModuleOption'] ?? '';
 
-        if (empty($activityId) || empty($title) || empty($courseID) || empty($activityType)) {
+        if (empty($moduleId) || empty($title) || empty($courseID)) {
             echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
             exit;
         }
 
-        $verifyActivitySql = "SELECT id, file_path, type FROM activitiestable WHERE id = ? AND created_by = ?";
-        $stmt = $conn->prepare($verifyActivitySql);
-        $stmt->bind_param("is", $activityId, $trainerUserID);
+        $verifyModuleSql = "SELECT id, file_path, type FROM modulestable WHERE id = ? AND trainerID = ?";
+        $stmt = $conn->prepare($verifyModuleSql);
+        $stmt->bind_param("is", $moduleId, $trainerUserID);
         $stmt->execute();
-        $activityResult = $stmt->get_result();
-        $existingActivity = $activityResult->fetch_assoc();
+        $moduleResult = $stmt->get_result();
+        $existingModule = $moduleResult->fetch_assoc();
         
-        if (!$existingActivity) {
+        if (!$existingModule) {
 
             echo json_encode([
                 'success' => false,
-                'message' => 'Activity not found or access denied'
+                'message' => 'Module not found or access denied'
             ]);
             exit;
         }
 
-        // Get course internal ID
         $getCourseIdSql = "SELECT courseID, id FROM coursestable WHERE courseID = ?";
         $stmt = $conn->prepare($getCourseIdSql);
         $stmt->bind_param("s", $courseID);
@@ -80,14 +77,14 @@ try {
 
         $courseInternalId = $courseData['courseID'];
 
-        $filePath = $existingActivity['file_path'];
-        if (isset($_FILES['uploadAct']) && $_FILES['uploadAct']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/activities/';
+        $filePath = $existingModule['file_path'];
+        if (isset($_FILES['uploadModuleFile']) && $_FILES['uploadModuleFile']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../uploads/modules/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
-            $file = $_FILES['uploadAct'];
+            $file = $_FILES['uploadModuleFile'];
             $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
             $allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
@@ -96,8 +93,8 @@ try {
                 exit;
             }
 
-            if ($existingActivity['file_path']) {
-                $oldFilePath = $existingActivity['file_path'];
+            if ($existingModule['file_path']) {
+                $oldFilePath = $existingModule['file_path'];
                 if (!file_exists($oldFilePath)) {
                     $oldFilePath = __DIR__ . '/' . $oldFilePath;
                 }
@@ -109,13 +106,13 @@ try {
                         error_log("Failed to delete old file: " . $oldFilePath);
                     }
                 } else {
-                    error_log("File not found for deletion: " . $existingActivity['file_path']);
+                    error_log("File not found for deletion: " . $existingModule['file_path']);
                 }
             }
 
-            $uniqueFileName = 'Activity_' . $title . '_' . $courseID . '.' . $fileExtension;
+            $uniqueFileName = 'Module_' . $title . '_' . $courseID . '.' . $fileExtension;
             $uploadPath = $uploadDir . $uniqueFileName;
-            $filePath = '../uploads/activities/' . $uniqueFileName;
+            $filePath = '../uploads/modules/' . $uniqueFileName;
 
             if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
                 echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
@@ -123,16 +120,16 @@ try {
             }
         }
 
-        $updateSql = "UPDATE activitiestable 
-                     SET course_id = ?, title = ?, description = ?, file_path = ?, due_date = ?, type = ? 
-                     WHERE id = ? AND created_by = ?";
+        $updateSql = "UPDATE modulestable 
+                     SET course_id = ?, trainerID = ?, title = ?, description = ?, file_path = ?
+                     WHERE id = ? AND trainerID = ?";
         $stmt = $conn->prepare($updateSql);
-        $stmt->bind_param("sssssiis", $courseInternalId, $title, $description, $filePath, $dueDate, $activityType, $activityId, $trainerUserID);
+        $stmt->bind_param("ss", $courseInternalId, $title, $description, $filePath, $moduleId, $trainerUserID);
 
         if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'Activity updated successfully']);
+            echo json_encode(['success' => true, 'message' => 'Module updated successfully']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to update activity']);
+            echo json_encode(['success' => false, 'message' => 'Failed to update module']);
         }
     }
 

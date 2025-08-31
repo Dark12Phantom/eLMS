@@ -147,7 +147,9 @@ nav {
 }
 
 main {
+  position: relative;
   margin-top: 80px;
+  width: 100vw;
 }
 
 #home {
@@ -162,11 +164,13 @@ main {
 
 .slider {
   position: relative;
-  width: 100%;
+  width: 90vw;
+  overflow: hidden;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .slides {
@@ -180,10 +184,10 @@ main {
 }
 
 .slides img {
-  width: 110%;
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.3;
+  opacity: 0.8;
   flex-shrink: 0;
 }
 
@@ -215,6 +219,16 @@ main {
   opacity: 0.9;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.slider-background{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -43%);
+  height: 100%;
+  z-index: -1000;
+  opacity: 0.1;
 }
 
 /* Section Styles */
@@ -380,14 +394,18 @@ section h1::after {
 }
 
 .closeMore {
+  display: none;
   color: var(--danger-color);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
   margin-top: 1rem;
-  display: inline-block;
   transition: var(--transition);
+}
+
+.card.active .closeMore{
+  display: inline-block;
 }
 
 .closeMore:hover {

@@ -20,7 +20,7 @@ try {
     $traineesSql = "SELECT COUNT(DISTINCT et.user_id) as trainee_count 
                     FROM enrolledtable et 
                     JOIN assignedcourses ac ON et.course_id = ac.course_id 
-                    JOIN userstable u ON ac.trainer_id = u.id 
+                    JOIN userstable u ON ac.trainer_id = u.userID
                     WHERE u.userID = ? AND et.status = 'approved'";
     $stmt = $conn->prepare($traineesSql);
     $stmt->bind_param("s", $userId);
@@ -32,7 +32,7 @@ try {
                        FROM submissionstable s 
                        JOIN activitiestable a ON s.activity_id = a.id 
                        JOIN assignedcourses ac ON a.course_id = ac.course_id 
-                       JOIN userstable u ON ac.trainer_id = u.id 
+                       JOIN userstable u ON ac.trainer_id = u.userID 
                        LEFT JOIN gradestable g ON s.id = g.submission_id 
                        WHERE u.userID = ? AND g.id IS NULL";
     $stmt = $conn->prepare($submissionsSql);
@@ -45,16 +45,28 @@ try {
                       CONCAT(u.firstName, ' ', u.middleName, ' ', u.lastName, ' ', u.suffix) as studentName,
                       e.enrolled_at 
                       FROM enrollmenttable e 
-                      JOIN coursestable c ON e.course_id = c.id 
-                      JOIN userstable u ON e.user_id = u.id 
-                      JOIN assignedcourses ac ON c.id = ac.course_id 
-                      JOIN userstable t ON ac.trainer_id = t.id 
+                      JOIN coursestable c ON e.course_id = c.courseID 
+                      JOIN userstable u ON e.user_id = u.userID 
+                      JOIN assignedcourses ac ON c.courseID = ac.course_id 
+                      JOIN userstable t ON ac.trainer_id = t.userID 
                       WHERE t.userID = ? AND e.status = 'pending' 
                       ORDER BY e.enrolled_at DESC LIMIT 1";
     $stmt = $conn->prepare($enrollmentSql);
     $stmt->bind_param("s", $userId);
     $stmt->execute();
     $enrollmentResult = $stmt->get_result()->fetch_assoc();
+
+    $enrollmentRequestTotalSql = "SELECT COUNT(*) AS enrollment_total
+                      FROM enrollmenttable e 
+                      JOIN coursestable c ON e.course_id = c.courseID 
+                      JOIN userstable u ON e.user_id = u.userID 
+                      JOIN assignedcourses ac ON c.courseID = ac.course_id 
+                      JOIN userstable t ON ac.trainer_id = t.userID 
+                      WHERE t.userID = ? AND e.status = 'pending'";
+    $stmt = $conn->prepare($enrollmentRequestTotalSql);
+    $stmt->bind_param("s", $userId);
+    $stmt -> execute();
+    $enrollmentRequestResult = $stmt -> get_result()->fetch_assoc();
     
     echo json_encode([
         'success' => true,
@@ -62,7 +74,8 @@ try {
             'courses' => $coursesResult['course_count'],
             'trainees' => $traineesResult['trainee_count'],
             'pendingSubmissions' => $submissionsResult['pending_count'],
-            'recentEnrollment' => $enrollmentResult
+            'recentEnrollment' => $enrollmentResult,
+            'totalEnrollments' => $enrollmentRequestResult['enrollment_total']
         ]
     ]);
     

@@ -64,8 +64,8 @@ if (isset($_SESSION['user'])) {
 
   <!-- MAIN CONTENT -->
   <main>
+    <img src="./images/school.png" alt="" class="slider-background">
     <section id="home">
-
       <div class="slider">
         <div class="slides">
           <img src="./uploads/images/agriculture.jpg" alt="">
@@ -291,6 +291,8 @@ if (isset($_SESSION['user'])) {
         });
 
         card.classList.add("active");
+
+        card.querySelector(".closeMore").style.display = "inline-block";
       });
     });
 
@@ -299,6 +301,8 @@ if (isset($_SESSION['user'])) {
         e.preventDefault();
         const card = link.closest(".card");
         card.classList.remove("active");
+
+        link.style.display = "none";
 
         seeMore.forEach(l => l.style.pointerEvents = "auto");
       });

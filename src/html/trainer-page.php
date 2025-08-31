@@ -100,7 +100,7 @@ authenticate();
             </div>
             <div class="card c5">
               <h3>Enrollment Requests</h3>
-              <p>No pending requests</p>
+              <h2>No pending requests</h2>
             </div>
           </div>
         </div>
@@ -188,6 +188,7 @@ authenticate();
                 }
                 ?>
               </select>
+
               <label for="uploadAct">
                 Upload Activity File (Optional)
                 <input type="file" name="uploadAct" id="uploadAct" accept=".pdf,.doc,.docx,.txt" />
@@ -236,6 +237,21 @@ authenticate();
                 <th>Type</th>
                 <th>Due Date</th>
                 <th>Actions</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+
+          <table id="modulesTable">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Course</th>
+                <th>Created At</th>
+                <th>Action</th>
+                <th>File</th>
               </tr>
             </thead>
             <tbody>

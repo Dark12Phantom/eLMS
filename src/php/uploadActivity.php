@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 try {
     $trainerUserID = $_SESSION['userID'];
     
-    $getTrainerIdSql = "SELECT id FROM userstable WHERE userID = ?";
+    $getTrainerIdSql = "SELECT userID FROM userstable WHERE userID = ?";
     $stmt = $conn->prepare($getTrainerIdSql);
     $stmt->bind_param("s", $trainerUserID);
     $stmt->execute();
@@ -20,7 +20,7 @@ try {
         exit;
     }
     
-    $trainerInternalId = $trainerData['id'];
+    $trainerInternalId = $trainerData['userID'];
     
     $title = $_POST['actTitle'] ?? '';
     $description = $_POST['description'] ?? '';
@@ -33,7 +33,7 @@ try {
         exit;
     }
     
-    $getCourseIdSql = "SELECT id FROM coursestable WHERE courseID = ?";
+    $getCourseIdSql = "SELECT courseID, id FROM coursestable WHERE courseID = ?";
     $stmt = $conn->prepare($getCourseIdSql);
     $stmt->bind_param("s", $courseID);
     $stmt->execute();
@@ -45,7 +45,7 @@ try {
         exit;
     }
     
-    $courseInternalId = $courseData['id'];
+    $courseInternalId = $courseData['courseID'];
     
     $filePath = null;
     if (isset($_FILES['uploadAct']) && $_FILES['uploadAct']['error'] === UPLOAD_ERR_OK) {
@@ -63,9 +63,9 @@ try {
             exit;
         }
         
-        $uniqueFileName = 'activity_' . time() . '_' . uniqid() . '.' . $fileExtension;
+        $uniqueFileName = 'Activity_' . $title . '_' . $courseID . '.' . $fileExtension;
         $uploadPath = $uploadDir . $uniqueFileName;
-        $filePath = 'uploads/activities/' . $uniqueFileName;
+        $filePath = '../uploads/activities/' . $uniqueFileName;
         
         if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
             echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
@@ -76,27 +76,9 @@ try {
     $insertSql = "INSERT INTO activitiestable (course_id, created_by, title, description, file_path, due_date, type) 
                   VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($insertSql);
-    $stmt->bind_param("iisssss", $courseInternalId, $trainerInternalId, $title, $description, $filePath, $dueDate, $activityType);
+    $stmt->bind_param("sssssss", $courseInternalId, $trainerInternalId, $title, $description, $filePath, $dueDate, $activityType);
     
     if ($stmt->execute()) {
-        $updateTrackingSql = "UPDATE trackingtable SET ";
-        switch (strtolower($activityType)) {
-            case 'activity':
-                $updateTrackingSql .= "totalActivity = totalActivity + 1";
-                break;
-            case 'exam':
-                $updateTrackingSql .= "totalExam = totalExam + 1";
-                break;
-            case 'project':
-                $updateTrackingSql .= "totalProjects = totalProjects + 1";
-                break;
-        }
-        $updateTrackingSql .= " WHERE course_id = ?";
-        
-        $updateStmt = $conn->prepare($updateTrackingSql);
-        $updateStmt->bind_param("s", $courseID);
-        $updateStmt->execute();
-        
         echo json_encode(['success' => true, 'message' => 'Activity created successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to create activity']);

@@ -18,7 +18,7 @@ try {
         JOIN coursestable c ON et.course_id = c.courseID 
         JOIN assignedcourses ac ON c.courseID = ac.course_id
         JOIN userstable t ON ac.trainer_id = t.userID
-        LEFT JOIN studentprogress sp ON u.userID = sp.student_id AND c.courseID = sp.course_id
+        LEFT JOIN studentprogress sp ON u.userID = sp.studentID AND c.courseID = sp.course_id
         WHERE t.userID = ? 
         AND et.status = 'approved' 
         AND u.role = 'trainee'

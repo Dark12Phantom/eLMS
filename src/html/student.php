@@ -72,14 +72,14 @@ authenticate();
               <h3>Enrolled Courses</h3>
               <?php
               require_once "../php/DatabaseConnection.php";
-              
+
               $getStudentIdSql = "SELECT id FROM userstable WHERE userID = ?";
               $stmt = $conn->prepare($getStudentIdSql);
               $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
               $studentResult = $stmt->get_result();
               $studentData = $studentResult->fetch_assoc();
-              
+
               $sqlEnrolled = "SELECT COUNT(*) AS total FROM enrolledtable WHERE user_id = ? AND status = 'Approved'";
               $stmt = $conn->prepare($sqlEnrolled);
               $stmt->bind_param("s", $_SESSION['userID']);
@@ -147,7 +147,7 @@ authenticate();
                     $resMod = $stmtMod->get_result();
                     $module = $resMod->fetch_assoc();
                     $moduleName = $module ? $module['title'] : "No recent modules";
-                ?>
+                    ?>
                     <div class="wrapper">
                       <div class="infos">
                         <h4><?= htmlspecialchars($course['courseName']) ?></h4>
@@ -162,7 +162,7 @@ authenticate();
                         <button class="materials" disabled>No Materials</button>
                       <?php endif; ?>
                     </div>
-                <?php }
+                  <?php }
                 } else {
                   echo "<p style='text-align:center; width:100%;'>No courses yet</p>";
                 }
@@ -193,7 +193,7 @@ authenticate();
           </div>
         </div>
       </section>
-      
+
       <section id="courses">
         <div class="container">
           <h2>My Courses</h2>
@@ -208,26 +208,28 @@ authenticate();
             </thead>
             <tbody>
               <?php
+
               $sqlMy = "SELECT en.id AS enrollmentId, 
-                     c.id AS courseId, 
+                     c.courseID AS courseId, 
                      c.courseName, 
                      en.status, 
                      t.trainerName,
                      sp.progress
-              FROM enrolledtable en
-              JOIN coursestable c 
-                  ON en.course_id = c.id
-              JOIN assignedcourses ac 
-                  ON c.id = ac.course_id
-              JOIN trainerstable t 
-                  ON ac.trainer_id = t.id
-              LEFT JOIN studentprogress sp
-                  ON sp.studentID = ? AND sp.course_id = c.courseID
-              WHERE en.user_id = ? 
-                AND en.status = 'Approved'";
+                    FROM enrolledtable en
+                    JOIN coursestable c 
+                        ON en.course_id = c.courseID
+                    JOIN assignedcourses ac 
+                        ON c.courseID = ac.course_id
+                    JOIN trainerstable t 
+                        ON ac.trainer_id = t.trainerID
+                    LEFT JOIN studentprogress sp
+                        ON sp.studentID = ? AND sp.course_id = c.courseID
+                    WHERE en.user_id = ? 
+                      AND en.status = 'approved'
+                      ";
 
               $stmt = $conn->prepare($sqlMy);
-              $stmt->bind_param("si", $_SESSION['userID'], $studentInternalId);
+              $stmt->bind_param("ss", $_SESSION['userID'], $_SESSION['userID']);
               $stmt->execute();
               $result = $stmt->get_result();
 
@@ -241,7 +243,7 @@ authenticate();
 
                   $sqlMat = "SELECT file_path FROM modulestable WHERE course_id = ?";
                   $stmtMat = $conn->prepare($sqlMat);
-                  $stmtMat->bind_param("i", $row['courseId']);
+                  $stmtMat->bind_param("s", $row['courseId']);
                   $stmtMat->execute();
                   $resMat = $stmtMat->get_result();
 
@@ -249,7 +251,7 @@ authenticate();
                   if ($resMat->num_rows > 0) {
                     while ($mat = $resMat->fetch_assoc()) {
                       $file = htmlspecialchars($mat['file_path']);
-                      echo "<a href='../$file' download>" . basename($file) . "</a><br>";
+                      echo "<a href='$file' download>" . basename($file) . "</a><br>";
                     }
                   } else {
                     echo "No materials";
@@ -269,14 +271,18 @@ authenticate();
           <h2>Available Courses</h2>
           <table>
             <?php
+            // Modified query to join with course tracker/status table
             $sqlAvailable = "SELECT c.courseID AS course_id, 
-                                    c.courseName, 
-                                    e.status
-                              FROM coursestable c
-                              LEFT JOIN enrollmenttable e 
-                                    ON e.course_id = c.id 
-                                    AND e.user_id = ?
-                              ";
+                            c.courseName, 
+                            e.status as enrollment_status,
+                            ct.status as course_status  -- Assuming course status is in coursetracker
+                     FROM coursestable c
+                     LEFT JOIN enrollmenttable e 
+                            ON e.course_id = c.courseID 
+                            AND e.user_id = ?
+                     LEFT JOIN coursetracker ct 
+                            ON ct.course_id = c.courseID  -- Join with course status table
+                     ";
 
             $stmt = $conn->prepare($sqlAvailable);
             $stmt->bind_param("s", $_SESSION['userID']);
@@ -284,36 +290,42 @@ authenticate();
             $result = $stmt->get_result();
 
             echo "
-                  <thead>
-                    <tr>
-                      <th>Courses</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  ";
+          <thead>
+            <tr>
+              <th>Courses</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          ";
 
             while ($row = $result->fetch_assoc()) {
-              $courseName = $row['courseName'];
-              $status = ucfirst($row['status'] ?? "No Record");
+              if (!empty($row['enrollment_status']) && $row['enrollment_status'] !== "No Record") {
+                continue;
+              }
 
-              $disabled = ($status !== "No Record") ? "disabled" : "";
+              $courseName = $row['courseName'];
+              $enrollmentStatus = ucfirst($row['enrollment_status'] ?? "No Record");
+              $courseStatus = $row['course_status'] ?? 'enabled';
+            
+              $disabled = ($courseStatus === 'disabled' || $enrollmentStatus !== "No Record") ? "disabled" : "";
 
               echo "
-                    <tr>
-                      <td>{$courseName}</td>
-                      <td>{$status}</td>
-                      <td>
-                        <button type='button' class='enrollBtn' 
-                                data-course-id='{$row['course_id']}' 
-                                data-course-name='{$courseName}' 
-                                {$disabled}>
-                          Enroll
-                        </button>
-                      </td>
-                    </tr>
-                    ";
+              <tr>
+                <td>{$courseName}</td>
+                <td>{$enrollmentStatus}</td>
+                <td>
+                  <button type='button' class='enrollBtn' 
+                          data-course-id='{$row['course_id']}' 
+                          data-course-name='{$courseName}' 
+                          {$disabled}
+                          data-course-status='{$courseStatus}'>
+                    Enroll
+                  </button>
+                </td>
+              </tr>
+              ";
             }
 
             echo "</tbody>";
@@ -333,7 +345,7 @@ authenticate();
           </div>
         </div>
       </section>
-      
+
       <section id="activities">
         <div class="container">
           <h2>My Activities</h2>

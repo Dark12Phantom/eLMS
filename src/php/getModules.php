@@ -8,15 +8,14 @@ header('Content-Type: application/json');
 try {
     $trainerUserID = $_SESSION['userID'];
     
-    $sql = "SELECT a.id, a.title, c.courseName, a.type,
-            DATE_FORMAT(a.due_date, '%m-%d-%Y') as dueDate, a.file_path,
-            a.created_at
-            FROM activitiestable a 
-            JOIN coursestable c ON a.course_id = c.courseID
+    $sql = "SELECT m.id, m.title, c.courseName, m.file_path,
+            m.created_at
+            FROM modulestable m 
+            JOIN coursestable c ON m.course_id = c.courseID
             JOIN assignedcourses ac ON c.courseID = ac.course_id
             JOIN userstable u ON ac.trainer_id = u.userID
             WHERE u.userID = ?
-            ORDER BY a.created_at DESC";
+            ORDER BY m.created_at DESC";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $trainerUserID);
