@@ -591,22 +591,26 @@ class TrainerDashboard {
       const row = document.createElement("tr");
       row.setAttribute("data-activity-id", activity.id);
       row.innerHTML = `
-                <td>${activity.title}</td>
-                <td>${activity.courseName}</td>
-                <td>${activity.type}</td>
-                <td>${activity.dueDate || "No due date"}</td>
-                <td>
-                    <div class="buttons">
-                        <button type="button" class="editAct" onclick="trainerDashboard.handleEditActivity(this)">Edit</button>
-                        <button type="button" class="deleteAct" data-id="${
-                          activity.id
-                        }" style="background-color: red">Delete</button>
-                    </div>
-                </td>
-                <td><a href="${
-                  activity.file_path
-                }" target="_blank">View Activity</a></td>
-            `;
+    <td>${activity.title}</td>
+    <td>${activity.courseName}</td>
+    <td>${activity.type}</td>
+    <td>${activity.dueDate || "No due date"}</td>
+    <td>
+        <div class="buttons">
+            <button type="button" class="editAct" onclick="trainerDashboard.handleEditActivity(this)">Edit</button>
+            <button type="button" class="deleteAct" data-id="${
+              activity.id
+            }" style="background-color: red">Delete</button>
+        </div>
+    </td>
+    <td>
+        ${
+          activity.file_path && activity.file_path.trim() !== ""
+            ? `<a href="${activity.file_path}" target="_blank">View Activity</a>`
+            : "-"
+        }
+    </td>
+`;
       tbody.appendChild(row);
     });
 
@@ -1132,18 +1136,22 @@ class TrainerDashboard {
       const actionButton =
         submission.gradeStatus === "Graded"
           ? `<button type="button" class="viewSubmissions" disabled>Already Graded (${submission.grade}/100)</button>`
-          : `<button type="button" class="viewSubmissions" data-id="${submission.id}" data-name="${submission.traineeName}" data-date="${submission.dateSubmitted}" data-file="${submission.filePath}">Add Grade and Comment</button>`;
+          : `<button type="button" class="viewSubmissions" 
+             data-submission-id="${submission.id}" 
+             data-name="${submission.traineeName}" 
+             data-date="${submission.dateSubmitted}" 
+             data-file="${submission.filePath}">Add Grade and Comment</button>`;
 
       row.innerHTML = `
-                <td>${submission.traineeName}</td>
-                <td>${submission.courseName}</td>
-                <td>${submission.activityTitle}</td>
-                <td>${submission.dateSubmitted}</td>
-                <td>
-                    ${actionButton}
-                    <form class="gradeActivity" action=""></form>
-                </td>
-            `;
+              <td>${submission.traineeName}</td>
+              <td>${submission.courseName}</td>
+              <td>${submission.activityTitle}</td>
+              <td>${submission.dateSubmitted}</td>
+              <td>
+                  ${actionButton}
+                  <form class="gradeActivity" action=""></form>
+              </td>
+          `;
       tbody.appendChild(row);
     });
 
@@ -1162,20 +1170,28 @@ class TrainerDashboard {
 
         if (gradeForm.innerHTML.trim() === "") {
           gradeForm.innerHTML = `
-                        <p><strong>Submitted by: </strong>${btn.dataset.name}</p>
-                        <p><strong>Date Submitted: </strong>${btn.dataset.date}</p>
-                        <p><strong>File: </strong><a href="../${btn.dataset.file}" target="_blank" class="file-link">View Submission</a></p>
-                        <label>
-                            Grade Activity:
-                            <input type="number" name="grade" min="0" max="100" required>
-                        </label>
-                        <label>
-                            Add Comment:
-                            <textarea name="comment" rows="3" cols="30" placeholder="Add your comment here"></textarea>
-                        </label>
-                        <button type="submit" class="gradeBtn">Grade</button>
-                        <button type="button" class="closeGradeBtn">Close</button>
-                    `;
+                    <p><strong>Submitted by: </strong>${btn.dataset.name}</p>
+                    <p><strong>Date Submitted: </strong>${btn.dataset.date}</p>
+                    <p><strong>File: </strong><a href="../${btn.dataset.file}" target="_blank" class="file-link">View Submission</a></p>
+                    <label>
+                        Grade Activity:
+                        <input type="number" name="grade" min="0" max="100" step="0.01" required>
+                    </label>
+                    <label>
+                        Pass/Fail:
+                        <select name="remarks" required>
+                            <option value="">Select...</option>
+                            <option value="passed">Passed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </label>
+                    <label>
+                        Add Comment:
+                        <textarea name="comment" rows="3" cols="30" placeholder="Add your feedback here"></textarea>
+                    </label>
+                    <button type="submit" class="gradeBtn">Grade</button>
+                    <button type="button" class="closeGradeBtn">Close</button>
+                `;
 
           gradeForm
             .querySelector(".closeGradeBtn")
@@ -1185,7 +1201,7 @@ class TrainerDashboard {
 
           gradeForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            await this.submitGrade(btn.dataset.id, gradeForm, btn);
+            await this.submitGrade(btn.dataset.submissionId, gradeForm, btn);
           });
         } else {
           gradeForm.innerHTML = "";
@@ -1196,13 +1212,24 @@ class TrainerDashboard {
 
   async submitGrade(submissionId, gradeForm, buttonElement) {
     try {
-      const grade = gradeForm.querySelector('input[name="grade"]').value;
+      const grade = parseFloat(
+        gradeForm.querySelector('input[name="grade"]').value
+      );
       const comment = gradeForm.querySelector('textarea[name="comment"]').value;
+
+      if (isNaN(grade) || grade < 0 || grade > 100) {
+        alert("Please enter a valid grade between 0 and 100.");
+        return;
+      }
+
+      const passingGrade = 60;
+      const remarks = grade >= passingGrade ? "passed" : "failed";
 
       const formData = new FormData();
       formData.append("submission_id", submissionId);
       formData.append("grade", grade);
-      formData.append("comment", comment);
+      formData.append("feedback", comment);
+      formData.append("remarks", remarks);
 
       const response = await fetch("../php/gradeSubmission.php", {
         method: "POST",
@@ -1212,10 +1239,10 @@ class TrainerDashboard {
       const result = await response.json();
 
       if (result.success) {
-        alert(result.message);
+        alert(result.message + ` (${remarks.toUpperCase()})`);
         gradeForm.innerHTML = "";
         buttonElement.disabled = true;
-        buttonElement.textContent = `Graded (${grade}/100)`;
+        buttonElement.textContent = `Graded (${grade}/100) - ${remarks.toUpperCase()}`;
         this.loadDashboardData();
       } else {
         alert("Error: " + result.message);

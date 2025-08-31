@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 29, 2025 at 04:24 PM
+-- Generation Time: Aug 31, 2025 at 04:53 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,8 +29,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `activitiestable` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) DEFAULT NULL,
-  `created_by` int(11) DEFAULT NULL,
+  `course_id` varchar(30) DEFAULT NULL,
+  `created_by` varchar(30) DEFAULT NULL,
   `title` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
@@ -38,6 +38,14 @@ CREATE TABLE `activitiestable` (
   `due_date` datetime DEFAULT NULL,
   `type` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activitiestable`
+--
+
+INSERT INTO `activitiestable` (`id`, `course_id`, `created_by`, `title`, `description`, `file_path`, `created_at`, `due_date`, `type`) VALUES
+(16, 'AGRINCII', '2025T-00001', 'dagadg', 'adfgdsg', '../uploads/activities/Activity_dagadg_AGRINCII.txt', '2025-08-31 16:56:42', '2025-08-31 00:00:00', 'Activity'),
+(17, 'AGRINCII', '2025T-00001', 'dasfdasfadsgfad', 'asdgafdgadfgadgfadfds', NULL, '2025-08-31 21:57:40', '2025-08-31 00:00:00', 'Exam');
 
 -- --------------------------------------------------------
 
@@ -227,7 +235,7 @@ CREATE TABLE `coursetracker` (
 --
 
 INSERT INTO `coursetracker` (`id`, `course_id`, `status`) VALUES
-(1, 'AGRINCII', 'Self-enroll On');
+(1, 'AGRINCII', 'enabled');
 
 -- --------------------------------------------------------
 
@@ -248,7 +256,8 @@ CREATE TABLE `enrolledtable` (
 --
 
 INSERT INTO `enrolledtable` (`id`, `course_id`, `user_id`, `enrollment_id`, `status`) VALUES
-(2, 'AGRINCII', '2025S-000001', 20, 'Approved');
+(5, 'AGRINCII', '2025S-00003', 29, 'approved'),
+(7, 'AGRINCII', '2025S-000001', 33, 'approved');
 
 -- --------------------------------------------------------
 
@@ -270,7 +279,8 @@ CREATE TABLE `enrollmenttable` (
 --
 
 INSERT INTO `enrollmenttable` (`id`, `user_id`, `course_id`, `teacher_id`, `status`, `enrolled_at`) VALUES
-(20, '2025S-000001', 'AGRINCII', '2025T-00001', 'approved', '2025-08-28 21:29:53');
+(29, '2025S-00003', 'AGRINCII', NULL, 'approved', '2025-08-29 23:11:47'),
+(33, '2025S-000001', 'AGRINCII', NULL, 'approved', '2025-08-31 17:55:19');
 
 -- --------------------------------------------------------
 
@@ -294,9 +304,11 @@ CREATE TABLE `finalgradestable` (
 CREATE TABLE `gradestable` (
   `id` int(11) NOT NULL,
   `submission_id` int(11) DEFAULT NULL,
+  `studentID` varchar(30) NOT NULL,
   `grade` decimal(5,2) DEFAULT NULL,
   `feedback` text DEFAULT NULL,
-  `graded_at` datetime DEFAULT current_timestamp()
+  `graded_at` datetime DEFAULT current_timestamp(),
+  `remarks` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -308,11 +320,19 @@ CREATE TABLE `gradestable` (
 CREATE TABLE `modulestable` (
   `id` int(11) NOT NULL,
   `course_id` varchar(30) DEFAULT NULL,
+  `trainerID` varchar(30) NOT NULL,
   `title` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `modulestable`
+--
+
+INSERT INTO `modulestable` (`id`, `course_id`, `trainerID`, `title`, `description`, `file_path`, `created_at`) VALUES
+(13, 'AGRINCII', '2025T-00001', 'dasfdfdasfa', 'dfadsfasdfasf', '../uploads/modules/Module_dasfdfdasfa_AGRINCII.txt', '2025-08-31 17:44:37');
 
 -- --------------------------------------------------------
 
@@ -332,6 +352,14 @@ CREATE TABLE `studentprogress` (
   `progress` decimal(5,2) NOT NULL DEFAULT 0.00,
   `last_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ;
+
+--
+-- Dumping data for table `studentprogress`
+--
+
+INSERT INTO `studentprogress` (`id`, `studentID`, `course_id`, `courseName`, `trackingID`, `submittedActivity`, `submittedExam`, `submittedProjects`, `progress`, `last_updated`) VALUES
+(24, '2025S-00003', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-08-29 23:12:51'),
+(26, '2025S-000001', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-08-31 17:56:21');
 
 --
 -- Triggers `studentprogress`
@@ -386,9 +414,10 @@ DELIMITER ;
 CREATE TABLE `submissionstable` (
   `id` int(11) NOT NULL,
   `activity_id` int(11) DEFAULT NULL,
-  `student_id` int(11) DEFAULT NULL,
+  `student_id` varchar(30) DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
-  `submitted_at` datetime DEFAULT current_timestamp()
+  `submitted_at` datetime DEFAULT current_timestamp(),
+  `type` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -422,7 +451,7 @@ CREATE TABLE `trackingtable` (
 --
 
 INSERT INTO `trackingtable` (`id`, `course_id`, `totalActivity`, `totalExam`, `totalProjects`) VALUES
-(1, 'AGRINCII', 85, 4, 2),
+(1, 'AGRINCII', 92, 6, 2),
 (2, 'TNCII', 78, 4, 3),
 (3, 'JLC', 91, 4, 1);
 
@@ -439,13 +468,6 @@ CREATE TABLE `traineestable` (
   `status` text NOT NULL,
   `enrolledDate` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `traineestable`
---
-
-INSERT INTO `traineestable` (`id`, `studentID`, `studentName`, `status`, `enrolledDate`) VALUES
-(10, '2025S-00003', 'Ruby Xander Cube', 'Idle', '2025-08-25');
 
 -- --------------------------------------------------------
 
@@ -554,8 +576,8 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `activitiestable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `activitiestable_ibfk_1` (`course_id`),
-  ADD KEY `activitiestable_ibfk_2` (`created_by`);
+  ADD KEY `created_by` (`created_by`),
+  ADD KEY `course_id` (`course_id`);
 
 --
 -- Indexes for table `announcementtable`
@@ -639,14 +661,16 @@ ALTER TABLE `finalgradestable`
 --
 ALTER TABLE `gradestable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `submission_id` (`submission_id`);
+  ADD KEY `submission_id` (`submission_id`),
+  ADD KEY `studentID` (`studentID`);
 
 --
 -- Indexes for table `modulestable`
 --
 ALTER TABLE `modulestable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `course_id` (`course_id`);
+  ADD KEY `course_id` (`course_id`),
+  ADD KEY `trainerID` (`trainerID`);
 
 --
 -- Indexes for table `studentprogress`
@@ -662,8 +686,8 @@ ALTER TABLE `studentprogress`
 --
 ALTER TABLE `submissionstable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `activity_id` (`activity_id`),
-  ADD KEY `student_id` (`student_id`);
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `activity_id` (`activity_id`);
 
 --
 -- Indexes for table `timetracker`
@@ -717,7 +741,7 @@ ALTER TABLE `userstable`
 -- AUTO_INCREMENT for table `activitiestable`
 --
 ALTER TABLE `activitiestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `announcementtable`
@@ -759,19 +783,19 @@ ALTER TABLE `coursestable`
 -- AUTO_INCREMENT for table `coursetracker`
 --
 ALTER TABLE `coursetracker`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `enrolledtable`
 --
 ALTER TABLE `enrolledtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `enrollmenttable`
 --
 ALTER TABLE `enrollmenttable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `finalgradestable`
@@ -789,7 +813,7 @@ ALTER TABLE `gradestable`
 -- AUTO_INCREMENT for table `modulestable`
 --
 ALTER TABLE `modulestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `studentprogress`
@@ -847,8 +871,8 @@ ALTER TABLE `userstable`
 -- Constraints for table `activitiestable`
 --
 ALTER TABLE `activitiestable`
-  ADD CONSTRAINT `activitiestable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `activitiestable_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `userstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `activitiestable_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `activitiestable_ibfk_3` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`);
 
 --
 -- Constraints for table `announcementtable`
@@ -907,13 +931,15 @@ ALTER TABLE `finalgradestable`
 -- Constraints for table `gradestable`
 --
 ALTER TABLE `gradestable`
-  ADD CONSTRAINT `gradestable_ibfk_1` FOREIGN KEY (`submission_id`) REFERENCES `submissionstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `gradestable_ibfk_1` FOREIGN KEY (`submission_id`) REFERENCES `submissionstable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `gradestable_ibfk_2` FOREIGN KEY (`studentID`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `modulestable`
 --
 ALTER TABLE `modulestable`
-  ADD CONSTRAINT `modulestable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `modulestable_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `modulestable_ibfk_2` FOREIGN KEY (`trainerID`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `studentprogress`
@@ -927,8 +953,8 @@ ALTER TABLE `studentprogress`
 -- Constraints for table `submissionstable`
 --
 ALTER TABLE `submissionstable`
-  ADD CONSTRAINT `submissionstable_ibfk_1` FOREIGN KEY (`activity_id`) REFERENCES `activitiestable` (`id`),
-  ADD CONSTRAINT `submissionstable_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `userstable` (`id`);
+  ADD CONSTRAINT `submissionstable_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `submissionstable_ibfk_2` FOREIGN KEY (`activity_id`) REFERENCES `activitiestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `timetracker`

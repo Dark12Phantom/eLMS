@@ -271,17 +271,16 @@ authenticate();
           <h2>Available Courses</h2>
           <table>
             <?php
-            // Modified query to join with course tracker/status table
             $sqlAvailable = "SELECT c.courseID AS course_id, 
                             c.courseName, 
                             e.status as enrollment_status,
-                            ct.status as course_status  -- Assuming course status is in coursetracker
+                            ct.status as course_status
                      FROM coursestable c
                      LEFT JOIN enrollmenttable e 
                             ON e.course_id = c.courseID 
                             AND e.user_id = ?
                      LEFT JOIN coursetracker ct 
-                            ON ct.course_id = c.courseID  -- Join with course status table
+                            ON ct.course_id = c.courseID
                      ";
 
             $stmt = $conn->prepare($sqlAvailable);

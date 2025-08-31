@@ -19,10 +19,10 @@ try {
             g.feedback
             FROM submissionstable s 
             JOIN activitiestable a ON s.activity_id = a.id 
-            JOIN coursestable c ON a.course_id = c.id 
-            JOIN userstable u ON s.student_id = u.id 
-            JOIN assignedcourses ac ON c.id = ac.course_id 
-            JOIN userstable t ON ac.trainer_id = t.id 
+            JOIN coursestable c ON a.course_id = c.courseID 
+            JOIN userstable u ON s.student_id = u.userID 
+            JOIN assignedcourses ac ON c.courseID = ac.course_id 
+            JOIN userstable t ON ac.trainer_id = t.userID 
             LEFT JOIN gradestable g ON s.id = g.submission_id
             WHERE t.userID = ?
             ORDER BY s.submitted_at DESC";

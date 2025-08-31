@@ -1135,3 +1135,8 @@ footer {
   color: var(--secondary-color);
   cursor: pointer;
 }
+
+.gradeActivity{
+  display: flex;
+  flex-direction: column;
+}
