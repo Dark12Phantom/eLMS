@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 31, 2025 at 04:53 PM
+-- Generation Time: Sep 02, 2025 at 02:50 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -62,6 +62,13 @@ CREATE TABLE `announcementtable` (
   `expires_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `announcementtable`
+--
+
+INSERT INTO `announcementtable` (`id`, `course_id`, `created_by`, `type`, `message`, `expires_at`, `created_at`) VALUES
+(36, 3, NULL, 'announcement', 'WAS DONT', NULL, '2025-09-02 12:17:01');
 
 -- --------------------------------------------------------
 
@@ -186,7 +193,10 @@ INSERT INTO `corecompetency` (`id`, `courseID`, `corePoints`) VALUES
 (14, 9, 'Operate light vehicles'),
 (15, 9, 'Perform defensive driving techniques'),
 (16, 10, 'Construct men’s trousers'),
-(17, 10, 'Construct polo shirts and barong');
+(17, 10, 'Construct polo shirts and barong'),
+(18, 11, 'core 1'),
+(19, 11, 'core 2'),
+(20, 11, 'core 3');
 
 -- --------------------------------------------------------
 
@@ -256,7 +266,6 @@ CREATE TABLE `enrolledtable` (
 --
 
 INSERT INTO `enrolledtable` (`id`, `course_id`, `user_id`, `enrollment_id`, `status`) VALUES
-(5, 'AGRINCII', '2025S-00003', 29, 'approved'),
 (7, 'AGRINCII', '2025S-000001', 33, 'approved');
 
 -- --------------------------------------------------------
@@ -279,7 +288,6 @@ CREATE TABLE `enrollmenttable` (
 --
 
 INSERT INTO `enrollmenttable` (`id`, `user_id`, `course_id`, `teacher_id`, `status`, `enrolled_at`) VALUES
-(29, '2025S-00003', 'AGRINCII', NULL, 'approved', '2025-08-29 23:11:47'),
 (33, '2025S-000001', 'AGRINCII', NULL, 'approved', '2025-08-31 17:55:19');
 
 -- --------------------------------------------------------
@@ -311,6 +319,13 @@ CREATE TABLE `gradestable` (
   `remarks` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `gradestable`
+--
+
+INSERT INTO `gradestable` (`id`, `submission_id`, `studentID`, `grade`, `feedback`, `graded_at`, `remarks`) VALUES
+(5, 1, '2025S-000001', 87.00, 'fhfghfjhgjfhg', '2025-09-01 00:34:39', 'passed');
+
 -- --------------------------------------------------------
 
 --
@@ -332,7 +347,7 @@ CREATE TABLE `modulestable` (
 --
 
 INSERT INTO `modulestable` (`id`, `course_id`, `trainerID`, `title`, `description`, `file_path`, `created_at`) VALUES
-(13, 'AGRINCII', '2025T-00001', 'dasfdfdasfa', 'dfadsfasdfasf', '../uploads/modules/Module_dasfdfdasfa_AGRINCII.txt', '2025-08-31 17:44:37');
+(13, 'AGRINCII', '2025T-00001', 'EDIT', 'FADASEM', '../uploads/modules/Module_dasfdfdasfa_AGRINCII.txt', '2025-08-31 17:44:37');
 
 -- --------------------------------------------------------
 
@@ -358,8 +373,8 @@ CREATE TABLE `studentprogress` (
 --
 
 INSERT INTO `studentprogress` (`id`, `studentID`, `course_id`, `courseName`, `trackingID`, `submittedActivity`, `submittedExam`, `submittedProjects`, `progress`, `last_updated`) VALUES
-(24, '2025S-00003', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-08-29 23:12:51'),
-(26, '2025S-000001', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-08-31 17:56:21');
+(26, '2025S-000001', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 1, 0, 0, 0.72, '2025-09-01 00:34:51'),
+(27, '2025S-00003', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-09-02 12:01:08');
 
 --
 -- Triggers `studentprogress`
@@ -420,6 +435,13 @@ CREATE TABLE `submissionstable` (
   `type` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `submissionstable`
+--
+
+INSERT INTO `submissionstable` (`id`, `activity_id`, `student_id`, `file_path`, `submitted_at`, `type`) VALUES
+(1, 16, '2025S-000001', 'uploads/submissions/2025S-000001_16_1756652858.txt', '2025-08-31 23:07:38', '');
+
 -- --------------------------------------------------------
 
 --
@@ -469,6 +491,13 @@ CREATE TABLE `traineestable` (
   `enrolledDate` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `traineestable`
+--
+
+INSERT INTO `traineestable` (`id`, `studentID`, `studentName`, `status`, `enrolledDate`) VALUES
+(11, '2025S-00003', 'Ruby Xander Cube', 'Ongoing', '2025-09-02');
+
 -- --------------------------------------------------------
 
 --
@@ -487,7 +516,8 @@ CREATE TABLE `trainercourses` (
 --
 
 INSERT INTO `trainercourses` (`id`, `trainerID`, `courseID`, `courseName`) VALUES
-(4, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II');
+(4, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II'),
+(5, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II');
 
 -- --------------------------------------------------------
 
@@ -552,11 +582,11 @@ CREATE TABLE `userstable` (
 --
 
 INSERT INTO `userstable` (`id`, `userID`, `firstName`, `middleName`, `lastName`, `suffix`, `gender`, `age`, `birthDate`, `bio`, `role`, `mobileNumber`, `email`, `password`, `education`, `profileImage`, `dateCreated`) VALUES
-(21, '2025S-000001', 'Erick', 'Cats', 'Gaceta', '', 'M', 22, '2025-08-28', 'Student of Benguet Technical School', 'trainee', '+639201555544', 'gacetaerick124@gmail.com', '$2y$10$vpy.68.Y/QDm6WLf2btzzuIA2I9tHHQy3Zixc5eQPkzAuZICs.GRq', 'College', 'uploads/profiles/user_21_1755881782.png', '2025-08-23'),
+(21, '2025S-000001', 'Erick', 'Cats', 'Gaceta', '', 'M', 22, '2025-08-28', 'Student of Benguet Technical School', 'guest', '+639201555544', 'gacetaerick124@gmail.com', '$2y$10$vpy.68.Y/QDm6WLf2btzzuIA2I9tHHQy3Zixc5eQPkzAuZICs.GRq', 'College', 'uploads/profiles/user_21_1755881782.png', '2025-08-23'),
 (31, '2025A-000006', 'Anne', 'Sacramento', 'Thesia', '', 'F', 45, '1980-06-18', 'Graduate of Doctor of Philosophy (PhD) in Administration and Supervision', 'admin', '+639201551234', 'annesthesia@bts.gov.ph', '$2y$10$FF7v5rny92ODpf4jahUAxe0f5.u8P6UfmcoqNNlI3BCyBN5AWeA36', 'Graduate', 'uploads/profiles/user_31_1756211718.jpg', '2025-08-23'),
 (32, '2025S-00002', 'Dre', 'Santos', 'Maker', 'JR', 'M', 26, '1999-03-23', 'Student of Benguet Technical School', 'guest', '+639692012345', 'dre.ss.maker@gmail.com', '$2y$10$YiBnAu5mAwNi9n55zjT94eshUvQfxetlZUhzuQSUMoq/xSKp4A3p2', 'SHS', '', '2025-08-23'),
 (57, '2025T-00001', 'Harley', 'David', 'Son', '', 'M', 0, '2025-08-26', '', 'trainer', '+639201555544', 'harley.son@bts.gov.ph', '$2y$10$/rtkNK9mJSIwt/alWtq4euZeCcoxAAD6QeQpHdOx4eg1zZL0owXoq', 'Bachelor\'s Degree', '', '2025-08-25'),
-(58, '2025S-00003', 'Ruby', 'Xander', 'Cube', '', 'F', 0, '2025-08-26', '', 'trainee', '+639692066682', 'ruby.cube@bts.gov.ph', '$2y$10$/3CPHDnJkm4fXMkWCUUyOO32h6bHdWjPEOpknPqioZ6.Dv6PPutcy', 'SHS', '', '2025-08-25');
+(59, '2025S-00003', 'Ruby', 'Xander', 'Cube', '', 'F', 23, '2002-02-05', 'Senior High School', 'trainee', '+639019283786', 'ruby.cube@bts.gov.ph', '$2y$10$YnXr4wqrQlvLHgVnr/Gmh.XlDDR.lZ23hRCcQ53hdx.GVCNVdhFN6', 'SHS', '', '2025-09-02');
 
 -- --------------------------------------------------------
 
@@ -635,9 +665,9 @@ ALTER TABLE `coursetracker`
 --
 ALTER TABLE `enrolledtable`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `course_id` (`course_id`),
   ADD KEY `enrollment_id` (`enrollment_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `course_id` (`course_id`);
 
 --
 -- Indexes for table `enrollmenttable`
@@ -747,7 +777,7 @@ ALTER TABLE `activitiestable`
 -- AUTO_INCREMENT for table `announcementtable`
 --
 ALTER TABLE `announcementtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `assignedcourses`
@@ -759,25 +789,25 @@ ALTER TABLE `assignedcourses`
 -- AUTO_INCREMENT for table `basiccompetency`
 --
 ALTER TABLE `basiccompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `commoncompetency`
 --
 ALTER TABLE `commoncompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `corecompetency`
 --
 ALTER TABLE `corecompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `coursestable`
 --
 ALTER TABLE `coursestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `coursetracker`
@@ -807,7 +837,7 @@ ALTER TABLE `finalgradestable`
 -- AUTO_INCREMENT for table `gradestable`
 --
 ALTER TABLE `gradestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `modulestable`
@@ -825,7 +855,7 @@ ALTER TABLE `studentprogress`
 -- AUTO_INCREMENT for table `submissionstable`
 --
 ALTER TABLE `submissionstable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `timetracker`
@@ -843,13 +873,13 @@ ALTER TABLE `trackingtable`
 -- AUTO_INCREMENT for table `traineestable`
 --
 ALTER TABLE `traineestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `trainercourses`
 --
 ALTER TABLE `trainercourses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `trainerstable`
@@ -861,7 +891,7 @@ ALTER TABLE `trainerstable`
 -- AUTO_INCREMENT for table `userstable`
 --
 ALTER TABLE `userstable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- Constraints for dumped tables
@@ -910,7 +940,9 @@ ALTER TABLE `coursetracker`
 -- Constraints for table `enrolledtable`
 --
 ALTER TABLE `enrolledtable`
-  ADD CONSTRAINT `enrolledtable_ibfk_2` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollmenttable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `enrolledtable_ibfk_2` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollmenttable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `enrolledtable_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `userstable` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `enrolledtable_ibfk_4` FOREIGN KEY (`course_id`) REFERENCES `coursestable` (`courseID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `enrollmenttable`
