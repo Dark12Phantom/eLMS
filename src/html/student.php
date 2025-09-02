@@ -88,26 +88,25 @@ authenticate();
               $totalEnrolled = ($row = $res->fetch_assoc()) ? $row['total'] : 0;
               ?>
               <h2><?= $totalEnrolled ?></h2>
-              <p><i>Courses</i></p>
+              <p><i>Course(s)</i></p>
             </div>
             <div class="card c2">
-              <h3>Hours Studied</h3>
+              <h3>Pending Activities</h3>
               <?php
-              $sqlHours = "SELECT SUM(time) AS totalHours FROM timetracker WHERE user_id = ?";
-              $stmt = $conn->prepare($sqlHours);
-              $stmt->bind_param("s", $_SESSION['userID']);
+              $sqlPending = "SELECT COUNT(DISTINCT a.id) AS pendingActivities, s.student_id FROM activitiestable a LEFT JOIN submissionstable s ON s.activity_id = a.id AND s.student_id = ? WHERE s.activity_id";
+              $stmt = $conn->prepare($sqlPending);
+              $stmt->bind_param("s", $_SESSION["userID"]);
               $stmt->execute();
               $res = $stmt->get_result();
-              $row = $res->fetch_assoc();
-              $totalHours = $row['totalHours'] ?? 0;
+              $totalPending = ($row = $res->fetch_assoc()) ? (int)$row["pendingActivities"] :0;
+
+              echo "<h2>$totalPending</h2>";
               ?>
-              <h2><?= $totalHours ?></h2>
-              <p><i>Hours</i></p>
             </div>
             <div class="card c3">
               <h3>Average Grade</h3>
               <?php
-              $sqlAvg = "SELECT COALESCE(AVG(total_grade), 0) AS avgGrade FROM finalgradestable WHERE user_id = ?";
+              $sqlAvg = "SELECT COALESCE(AVG(grade), 0) AS avgGrade FROM gradestable WHERE studentID = ?";
               $stmt = $conn->prepare($sqlAvg);
               $stmt->bind_param("s", $_SESSION['userID']);
               $stmt->execute();
@@ -122,11 +121,11 @@ authenticate();
               <h3>My Courses (Quick Access)</h3>
               <div class="inside-container">
                 <?php
-                $sqlCourses = "SELECT en.id AS enrollmentId, c.id AS courseId, c.courseName, t.trainerName
+                $sqlCourses = "SELECT en.id AS enrollmentId, c.courseID AS courseId, c.courseName, t.trainerName
                    FROM enrolledtable en
-                   JOIN coursestable c ON en.course_id = c.id
-                   JOIN assignedcourses ac ON c.id = ac.course_id
-                   JOIN trainerstable t ON ac.trainer_id = t.id
+                   JOIN coursestable c ON en.course_id = c.courseID
+                   JOIN assignedcourses ac ON c.courseID = ac.course_id
+                   JOIN trainerstable t ON ac.trainer_id = t.trainerID
                    WHERE en.user_id = ? AND en.status = 'Approved'
                    LIMIT 2";
 
@@ -156,7 +155,7 @@ authenticate();
                       </div>
                       <?php if ($module): ?>
                         <button class="materials">
-                          <a href="../<?= htmlspecialchars($module['file_path']) ?>" download>Download</a>
+                          <a href="<?= htmlspecialchars($module['file_path']) ?>" download>Download</a>
                         </button>
                       <?php else: ?>
                         <button class="materials" disabled>No Materials</button>
@@ -307,7 +306,7 @@ authenticate();
               $courseName = $row['courseName'];
               $enrollmentStatus = ucfirst($row['enrollment_status'] ?? "No Record");
               $courseStatus = $row['course_status'] ?? 'enabled';
-            
+
               $disabled = ($courseStatus === 'disabled' || $enrollmentStatus !== "No Record") ? "disabled" : "";
 
               echo "

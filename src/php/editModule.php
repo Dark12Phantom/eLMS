@@ -47,7 +47,7 @@ try {
             exit;
         }
 
-        $verifyModuleSql = "SELECT id, file_path, type FROM modulestable WHERE id = ? AND trainerID = ?";
+        $verifyModuleSql = "SELECT id, file_path, title, description FROM modulestable WHERE id = ? AND trainerID = ?";
         $stmt = $conn->prepare($verifyModuleSql);
         $stmt->bind_param("is", $moduleId, $trainerUserID);
         $stmt->execute();
@@ -121,10 +121,10 @@ try {
         }
 
         $updateSql = "UPDATE modulestable 
-                     SET course_id = ?, trainerID = ?, title = ?, description = ?, file_path = ?
+                     SET course_id = ?, title = ?, description = ?, file_path = ?
                      WHERE id = ? AND trainerID = ?";
         $stmt = $conn->prepare($updateSql);
-        $stmt->bind_param("ss", $courseInternalId, $title, $description, $filePath, $moduleId, $trainerUserID);
+        $stmt->bind_param("ssssis", $courseInternalId, $title, $description, $filePath, $moduleId, $trainerUserID);
 
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Module updated successfully']);

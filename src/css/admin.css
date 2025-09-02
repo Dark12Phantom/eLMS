@@ -377,6 +377,7 @@ table {
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
+  margin-top: 30px;
 }
 
 table thead {
@@ -477,7 +478,7 @@ table tbody tr td button {
 }
 
 .container {
-  display: flex;
+  display: block;
   flex-direction: column;
   width: 100%;
   background: var(--bg-primary);
@@ -538,7 +539,6 @@ table tbody tr td button {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
   z-index: -1;
   backdrop-filter: blur(4px);
 }

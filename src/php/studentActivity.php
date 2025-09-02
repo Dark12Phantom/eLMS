@@ -23,6 +23,7 @@ $studentID = $studentData['userID'];
 $joinTable = 'SELECT 
     a.id AS activity_id, 
     a.title AS title, 
+    a.description AS actDesc,
     a.type AS activity_type,
     c.courseID AS courseID, 
     c.courseName AS courseName, 
@@ -48,6 +49,7 @@ if ($result->num_rows > 0) {
   echo "<thead>
               <tr>
                 <th>Activity</th>
+                <th>Description</th>
                 <th>Type</th>
                 <th>Course</th>
                 <th>Due</th>
@@ -59,7 +61,7 @@ if ($result->num_rows > 0) {
             <tbody>";
   while ($row = $result->fetch_assoc()) {
     if ($row['grade'] !== null) {
-      $status = "Graded ({$row['grade']}/100)";
+      $status = "Graded";
     } elseif ($row['submission_id'] !== null) {
       $status = "Submitted";
     } else {
@@ -68,11 +70,12 @@ if ($result->num_rows > 0) {
 
     echo "<tr>
                 <td>" . htmlspecialchars($row['title']) . "</td>
+                <td>". htmlspecialchars($row['actDesc']) ."</td>
                 <td>" . htmlspecialchars($row['activity_type']) . "</td>
                 <td>" . htmlspecialchars($row['courseName']) . "</td>
                 <td>" . htmlspecialchars(date("d-m-Y", strtotime($row['due_date']))) . "</td>
                 <td>{$status}</td>
-                <td>";
+                <td style='position: relative;'>";
 
     if ($status === "Pending") {
       echo '<form class="activity-form" enctype="multipart/form-data">
@@ -96,7 +99,51 @@ if ($result->num_rows > 0) {
             </div>
           </form>';
     } elseif (strpos($status, "Graded") === 0 && !empty($row['feedback'])) {
-      echo "<button onclick=\"alert('Grade: " . htmlspecialchars($row['grade']) . "/100\\nFeedback: " . htmlspecialchars($row['feedback']) . "')\">View Grade</button>";
+      $activityId = $row['activity_id'];
+      $feedback = $row['feedback'];
+      $grade = $row['grade'];
+      echo "<button class='viewGradeBtn' data-grade='" . htmlspecialchars($row['grade']) . "' 
+              data-feedback='" . htmlspecialchars($row['feedback']) . "'>
+        View Grade
+      </button>
+      <div id='gradeContainer-$activityId'></div>";
+      echo "<script>
+                document.querySelectorAll('.viewGradeBtn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                  e.stopPropagation();
+
+                  const grade = btn.dataset.grade;
+                  const feedback = btn.dataset.feedback;
+                  const container = btn.nextElementSibling;
+
+                  container.innerHTML = '';
+
+                  const overlay = document.createElement('div');
+                  overlay.style.position = 'absolute';
+                  overlay.style.background = '#fff';
+                  overlay.style.top = '0';
+                  overlay.style.left = '0';
+                  overlay.style.padding = '10px';
+                  overlay.style.border = '1px solid #ccc';
+                  overlay.style.zIndex = '999';
+
+                  overlay.innerHTML = `
+                    <p>Grade: $grade/100</p>
+                    <p>Feedback: $feedback</p>
+                  `;
+
+                  container.appendChild(overlay);
+
+                  const closeOver = (event) => {
+                    if (!overlay.contains(event.target) && event.target !== btn) {
+                      overlay.remove();
+                      document.removeEventListener('click', closeOver)
+                    }
+                  };
+                  document.addEventListener('click', closeOver);
+                });
+              });
+            </script>";
     } else {
       echo "-";
     }

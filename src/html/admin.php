@@ -18,7 +18,7 @@ if (isset($_POST['assignCourseBtn'])) {
 
   if ($trainerRowID && !empty($courseIDs)) {
     $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-    $stmt->bind_param("i", $trainerRowID);
+    $stmt->bind_param("s", $trainerRowID);
     $stmt->execute();
     $stmt->bind_result($trainerID);
     $stmt->fetch();
@@ -50,30 +50,34 @@ if (isset($_POST['assignCourseBtn'])) {
   }
 }
 
+
+
 if (isset($_POST['saveStatusBtn'])) {
   $trainerRowID = $_POST['trainerRowID'] ?? null;
   $status = $_POST['status'] ?? null;
 
   if ($trainerRowID && $status) {
-    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
-    $stmt->bind_param("i", $trainerRowID);
+    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE trainerID = ?");
+    $stmt->bind_param("s", $trainerRowID);
     $stmt->execute();
     $stmt->bind_result($trainerID);
     $stmt->fetch();
     $stmt->close();
+
+    echo "<script>console.log('trainerID from DB: " . $trainerID . "');</script>";
 
     if (!$trainerID) {
       echo '<script>alert("Invalid trainer selected.");</script>';
       exit;
     }
 
-    $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE id=?');
-    $stmt->bind_param('si', $status, $trainerRowID);
+    $stmt = $conn->prepare('UPDATE trainerstable SET status=? WHERE trainerID=?');
+    $stmt->bind_param('ss', $status, $trainerID);
 
     if ($stmt->execute()) {
       $stmt->close();
 
-      if ($status === 'on leave' || $status === 'dismissed') {
+      if ($status === 'dismissed') {
         $del = $conn->prepare("DELETE FROM trainercourses WHERE trainerID = ?");
         $del->bind_param("s", $trainerID);
         $del->execute();
@@ -88,6 +92,118 @@ if (isset($_POST['saveStatusBtn'])) {
   }
 }
 
+
+
+require_once '../php/DatabaseConnection.php';
+
+function renderTraineesTable($conn)
+{
+  $sql = "SELECT 
+                  u.id AS userRowID,
+                  u.userID,
+                  u.email,
+                  t.id AS traineeRowID,
+                  t.studentID,
+                  t.studentName,
+                  t.status,
+                  t.enrolledDate
+                FROM traineestable t
+                INNER JOIN userstable u ON u.userID = t.studentID
+                WHERE u.role = 'trainee'
+                ORDER BY t.enrolledDate DESC";
+
+  $result = $conn->query($sql);
+
+  if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+      echo "<tr>";
+      echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+      echo "<td>" . htmlspecialchars($row['studentName']) . "</td>";
+      echo "<td>" . htmlspecialchars($row['userID']) . "</td>";
+      echo "<td>" . (!empty($row['enrolledDate']) ? date("m-d-Y", strtotime($row['enrolledDate'])) : '-') . "</td>";
+      $assignedCourses = [];
+      $stmt = $conn->prepare("SELECT courseName FROM studentprogress WHERE studentID = ?");
+      $stmt->bind_param("s", $row['studentID']);
+      $stmt->execute();
+      $res = $stmt->get_result();
+      while ($crs = $res->fetch_assoc()) {
+        $assignedCourses[] = $crs['courseName'];
+      }
+      $stmt->close();
+
+      echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+
+      echo "<td>";
+      if ($row['status'] === 'Idle') {
+        echo "<button class='addTaineeCourseBtn' 
+                            data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "' >
+                            Add Course
+                        </button>";
+      } elseif ($row['status'] === 'Ongoing') {
+        echo "<button class='addMoreTaineeCourseBtn' data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "'>Add More Course</button>";
+      } else {
+        echo "-";
+      }
+      echo "</td>";
+
+      echo "<td><button class='seeStudentCourses'>See Courses</button></td>";
+
+      echo "</tr>";
+    }
+  } else {
+    echo "<tr><td colspan='8'>No students found</td></tr>";
+  }
+}
+
+function renderGuestTable($conn)
+{
+  $sql = "SELECT 
+      u.userID,  
+      CONCAT(
+        u.firstName, ' ', 
+        IFNULL(u.middleName,''), ' ', 
+        u.lastName, ' ', 
+        IFNULL(u.suffix,'')
+      ) AS fullName,
+      u.email,
+      CASE 
+        WHEN sp.studentID IS NOT NULL 
+             AND en.user_id IS NULL 
+             AND (sp.progress = 0 OR sp.progress = 100)
+        THEN 'Idle'
+
+        WHEN sp.studentID IS NOT NULL 
+             AND (en.user_id IS NOT NULL)
+             AND sp.progress BETWEEN 0.1 AND 99.99
+        THEN 'Ongoing'
+
+        ELSE 'No Enrollment Record'
+      END AS user_status,
+      u.dateCreated
+    FROM userstable u
+    LEFT JOIN studentprogress sp ON u.userID = sp.studentID
+    LEFT JOIN enrolledtable en ON u.userID = en.user_id
+    WHERE u.role = 'guest'
+  ";
+
+  if ($stmt = $conn->prepare($sql)) {
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+      while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
+        echo "<td>" . htmlspecialchars($row["fullName"]) . "</td>";
+        echo "<td>" . htmlspecialchars($row["userID"]) . "</td>";
+        echo "<td>" . htmlspecialchars($row["dateCreated"]) . "</td>";
+        echo "<td>" . htmlspecialchars($row["user_status"]) . "</td>";
+        echo "</tr>";
+      }
+    }
+    $stmt->close();
+  }
+}
 
 ?>
 
@@ -325,7 +441,7 @@ if (isset($_POST['saveStatusBtn'])) {
                 <th>Username</th>
                 <th>Name</th>
                 <th>ID</th>
-                <th>Date Hired</th>
+                <th>Date Enrolled</th>
                 <th>Status</th>
                 <th>Add Course</th>
                 <th>Action</th>
@@ -333,69 +449,27 @@ if (isset($_POST['saveStatusBtn'])) {
             </thead>
             <tbody>
               <?php
-              require_once '../php/DatabaseConnection.php';
-
-              function renderTraineesTable($conn)
-              {
-                $sql = "SELECT 
-            u.id AS userRowID,
-            u.userID,
-            CONCAT(u.firstName, ' ', IFNULL(u.middleName,''), ' ', u.lastName, ' ', IFNULL(u.suffix,'')) AS fullName,
-            u.email,
-            t.id AS trainerRowID,
-            t.studentID,
-            t.status,
-            t.enrolledDate
-          FROM traineestable t
-          INNER JOIN userstable u ON u.userID = t.studentID
-          WHERE u.role = 'trainee'
-          ORDER BY t.enrolledDate DESC";
-
-                $result = $conn->query($sql);
-
-                if ($result && $result->num_rows > 0) {
-                  while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['fullName']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['userID']) . "</td>";
-                    echo "<td>" . (!empty($row['enrolledDate']) ? date("m-d-Y", strtotime($row['enrolledDate'])) : '-') . "</td>";
-                    $assignedCourses = [];
-                    $stmt = $conn->prepare("SELECT courseName FROM studentprogress WHERE studentID = ?");
-                    $stmt->bind_param("s", $row['studentID']);
-                    $stmt->execute();
-                    $res = $stmt->get_result();
-                    while ($crs = $res->fetch_assoc()) {
-                      $assignedCourses[] = $crs['courseName'];
-                    }
-                    $stmt->close();
-
-                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-
-                    echo "<td>";
-                    if ($row['status'] === 'Idle') {
-                      echo "<button class='addTaineeCourseBtn' 
-                            data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "' >
-                            Add Course
-                        </button>";
-                    } elseif ($row['status'] === 'Ongoing') {
-                      echo "<button class='addMoreTaineeCourseBtn' data-id='" . htmlspecialchars($row['studentID'], ENT_QUOTES) . "'>Add More Course</button>";
-                    } else {
-                      echo "-";
-                    }
-                    echo "</td>";
-
-                    echo "<td><button class='seeStudentCourses'>See Courses</button></td>";
-
-                    echo "</tr>";
-                  }
-                } else {
-                  echo "<tr><td colspan='8'>No students found</td></tr>";
-                }
-              }
-
               renderTraineesTable($conn);
               ?>
+            </tbody>
+          </table>
+          <h3>Registered Trainees/Guests</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>ID</th>
+                <th>Date Registered</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <?php
+                renderGuestTable($conn);
+                ?>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -454,7 +528,6 @@ if (isset($_POST['saveStatusBtn'])) {
               </tr>
             </thead>
             <tbody id="announcementsTableBody">
-              <!-- Announcements will be loaded dynamically -->
             </tbody>
           </table>
         </div>
@@ -474,7 +547,6 @@ if (isset($_POST['saveStatusBtn'])) {
               </tr>
             </thead>
             <tbody id="coursesTableBody">
-              <!-- Course data will be loaded dynamically -->
             </tbody>
           </table>
           <button type="button" id="setCourse">Set Course</button>
@@ -1049,8 +1121,6 @@ if (isset($_POST['saveStatusBtn'])) {
     document.addEventListener('DOMContentLoaded', function () {
       const availableCourses = <?php echo json_encode($courses); ?>;
 
-      console.log('Available Courses: ', availableCourses)
-
       document.addEventListener('click', function (e) {
         if (e.target.classList.contains('addTaineeCourseBtn') || e.target.classList.contains('addMoreTaineeCourseBtn')) {
           const studentID = e.target.getAttribute('data-id');
@@ -1418,7 +1488,6 @@ if (isset($_POST['saveStatusBtn'])) {
   </script>
   <!-- COURSES TABLE GENERATION -->
   <script>
-    // Load courses data for the Course Management section
     document.addEventListener('DOMContentLoaded', function () {
       const coursesTableBody = document.getElementById('coursesTableBody');
       const setCourseBtn = document.getElementById('setCourse');
@@ -1435,29 +1504,21 @@ if (isset($_POST['saveStatusBtn'])) {
 
       let coursesData = [];
 
-      // Function to load courses
       function loadCourses() {
-        // Fetch courses data from the server
         fetch('../php/getCourses.php')
           .then(response => response.json())
           .then(data => {
             if (data.success) {
               coursesData = data.courses;
 
-              // Clear any existing content
               coursesTableBody.innerHTML = '';
 
-              // Clear and populate the course select dropdown
               courseSelect.innerHTML = '<option value="">-- Select a course --</option>';
 
-              // Check if there are courses to display
               if (coursesData && coursesData.length > 0) {
-                // Populate the table with course data
                 coursesData.forEach(course => {
-                  // Add to table
                   const row = document.createElement('tr');
 
-                  // Create and append table cells
                   const codeCell = document.createElement('td');
                   codeCell.textContent = course.courseID;
                   row.appendChild(codeCell);
@@ -1471,20 +1532,17 @@ if (isset($_POST['saveStatusBtn'])) {
                   row.appendChild(scheduleCell);
 
                   const statusCell = document.createElement('td');
-                  statusCell.textContent = course.status === '1' ? 'Offered' : 'Not Offered';
+                  statusCell.textContent = course.status === 'Offered' ? 'Offered' : 'Not Offered';
                   row.appendChild(statusCell);
 
-                  // Add the row to the table
                   coursesTableBody.appendChild(row);
 
-                  // Add to dropdown
                   const option = document.createElement('option');
                   option.value = course.courseID;
                   option.textContent = `${course.courseID} - ${course.courseName}`;
                   courseSelect.appendChild(option);
                 });
               } else {
-                // Display a message if no courses are found
                 const row = document.createElement('tr');
                 const cell = document.createElement('td');
                 cell.colSpan = 4;
@@ -1494,7 +1552,6 @@ if (isset($_POST['saveStatusBtn'])) {
                 coursesTableBody.appendChild(row);
               }
             } else {
-              // Display error message if the request failed
               console.error('Failed to load courses:', data.message);
               const row = document.createElement('tr');
               const cell = document.createElement('td');
@@ -1517,20 +1574,16 @@ if (isset($_POST['saveStatusBtn'])) {
           });
       }
 
-      // Initial load of courses
       loadCourses();
 
-      // Set Course button click handler
       setCourseBtn.addEventListener('click', function () {
         setCourseModal.style.display = 'block';
       });
 
-      // Add Course button click handler
       addCourseBtn.addEventListener('click', function () {
         addCourseModal.style.display = 'block';
       });
 
-      // Close modal handlers
       closeSetCourseModal.addEventListener('click', function () {
         setCourseModal.style.display = 'none';
       });
@@ -1547,7 +1600,6 @@ if (isset($_POST['saveStatusBtn'])) {
         addCourseModal.style.display = 'none';
       });
 
-      // Close modals when clicking outside
       window.addEventListener('click', function (event) {
         if (event.target === setCourseModal) {
           setCourseModal.style.display = 'none';
@@ -1557,7 +1609,6 @@ if (isset($_POST['saveStatusBtn'])) {
         }
       });
 
-      // Course select change handler
       courseSelect.addEventListener('change', function () {
         const selectedCourseID = this.value;
         if (selectedCourseID) {
@@ -1569,7 +1620,6 @@ if (isset($_POST['saveStatusBtn'])) {
         }
       });
 
-      // Set Course form submit handler
       setCourseForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const statusDiv = document.getElementById('setCourseStatus');
@@ -1588,7 +1638,7 @@ if (isset($_POST['saveStatusBtn'])) {
               statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
               setTimeout(() => {
                 setCourseModal.style.display = 'none';
-                loadCourses(); // Reload courses after update
+                loadCourses();
               }, 2000);
             } else {
               statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
@@ -1600,7 +1650,6 @@ if (isset($_POST['saveStatusBtn'])) {
           });
       });
 
-      // Add Course form submit handler
       addCourseForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const statusDiv = document.getElementById('addCourseStatus');
@@ -1619,8 +1668,8 @@ if (isset($_POST['saveStatusBtn'])) {
               statusDiv.innerHTML = `<div style="color: green; padding: 10px; background: #d4edda; border-radius: 4px;">${data.message}</div>`;
               setTimeout(() => {
                 addCourseModal.style.display = 'none';
-                addCourseForm.reset(); // Reset the form
-                loadCourses(); // Reload courses after adding
+                addCourseForm.reset();
+                loadCourses();
               }, 2000);
             } else {
               statusDiv.innerHTML = `<div style="color: red; padding: 10px; background: #f8d7da; border-radius: 4px;">Error: ${data.message}</div>`;
@@ -1705,12 +1754,56 @@ if (isset($_POST['saveStatusBtn'])) {
             <option value="Not Offered">Not Offered</option>
           </select>
         </div>
+
+        <div style="margin-bottom: 20px;" id="basicCom">
+          <label for="basicCompetency">Basic Competency/ies</label>
+          <input type="text" name="basicCompetency[]" class="basicCompetency">
+          <button type="button" id="addBasic">Add Basic Competency</button>
+        </div>
+        <div style="margin-bottom: 20px;" id="commonCom">
+          <label for="commonCompetency">Common Competency/ies</label>
+          <input type="text" name="commonCompetency[]" id="commonCompetency">
+          <button type="button" id="addCommon">Add Common Competency</button>
+        </div>
+        <div style="margin-bottom: 20px;" id="coreCom">
+          <label for="coreCompetency">Core Competency/ies</label>
+          <input type="text" name="coreCompetency[]" id="coreCompetency">
+          <button type="button" id="addCore">Add Core Competency</button>
+        </div>
         <div id="addCourseStatus" style="margin-top: 15px; display: none;"></div>
         <div style="display: flex; justify-content: space-between; margin-top: 20px;">
           <button type="submit" class="btn-primary">Add Course</button>
           <button type="button" id="cancelAddCourse" class="btn-secondary">Cancel</button>
         </div>
       </form>
+      <script>
+        document.getElementById("addBasic").addEventListener('click', () => {
+          const div = document.getElementById("basicCom");
+          const newInput = document.createElement('input');
+          newInput.type = 'text';
+          newInput.name = 'basicCompetency[]';
+          newInput.classList.add('basicCompetency');
+          div.append(newInput);
+        })
+
+        document.getElementById("addCommon").addEventListener('click', () => {
+          const div = document.getElementById("commonCom");
+          const newInput = document.createElement('input');
+          newInput.type = 'text';
+          newInput.name = 'commonCompetency[]';
+          newInput.classList.add('commonCompetency');
+          div.append(newInput);
+        })
+
+        document.getElementById("addCore").addEventListener('click', () => {
+          const div = document.getElementById("coreCom");
+          const newInput = document.createElement('input');
+          newInput.type = 'text';
+          newInput.name = 'coreCompetency[]';
+          newInput.classList.add('coreCompetency');
+          div.append(newInput);
+        })
+      </script>
     </div>
   </div>
 </body>

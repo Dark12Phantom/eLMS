@@ -2,7 +2,6 @@
 require 'DatabaseConnection.php';
 header('Content-Type: application/json');
 
-// Only allow GET requests
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     echo json_encode([
         'success' => false,
@@ -12,12 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    // Get optional parameters
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
     $course_id = isset($_GET['course_id']) ? $_GET['course_id'] : null;
     $type = isset($_GET['type']) ? $_GET['type'] : null;
     
-    // Build the query with filters
     $query = "SELECT a.*, c.courseName, c.courseID
               FROM announcementtable a 
               LEFT JOIN coursestable c ON a.course_id = c.courseID 
@@ -26,14 +23,12 @@ try {
     $params = [];
     $types = '';
     
-    // Add course filter if specified
     if ($course_id) {
         $query .= " AND a.course_id = ?";
         $params[] = $course_id;
         $types .= 's';
     }
     
-    // Add type filter if specified
     if ($type) {
         $query .= " AND a.type = ?";
         $params[] = $type;
@@ -42,14 +37,12 @@ try {
     
     $query .= " ORDER BY a.created_at DESC";
     
-    // Add limit
     if ($limit > 0) {
         $query .= " LIMIT ?";
         $params[] = $limit;
         $types .= 'i';
     }
     
-    // Prepare and execute the statement
     if (!empty($params)) {
         $stmt = $conn->prepare($query);
         if (!$stmt) {
@@ -67,7 +60,6 @@ try {
     
     $announcements = [];
     while ($row = $result->fetch_assoc()) {
-        // Calculate time ago
         $created_time = new DateTime($row['created_at']);
         $current_time = new DateTime();
         $interval = $current_time->diff($created_time);
@@ -82,7 +74,6 @@ try {
             $time_ago = 'Just now';
         }
         
-        // Determine course display
         $course_display = 'General';
         if ($row['courseName']) {
             $course_display = $row['courseName'];
@@ -90,7 +81,6 @@ try {
             $course_display = $row['courseID'] ?: $row['course_id'];
         }
         
-        // Check if announcement is expiring soon (within 24 hours)
         $is_expiring = false;
         if ($row['expires_at']) {
             $expires_time = new DateTime($row['expires_at']);
@@ -112,7 +102,6 @@ try {
         ];
     }
     
-    // Close statement if used
     if (isset($stmt)) {
         $stmt->close();
     }

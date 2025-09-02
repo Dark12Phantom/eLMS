@@ -17,6 +17,10 @@ $courseName = $_POST['courseName'] ?? '';
 $courseSchedule = $_POST['courseSchedule'] ?? '';
 $description = $_POST['description'] ?? '';
 $status = $_POST['status'] ?? '';
+$basicCompetencies = $_POST['basicCompetency'] ?? [];
+$commonCompetencies = $_POST['commonCompetency'] ?? [];
+$coreCompetencies = $_POST['coreCompetency'] ?? [];
+
 
 // Validate the input
 if (empty($courseID) || empty($courseName) || empty($status)) {
@@ -43,22 +47,53 @@ if ($checkResult->num_rows > 0) {
 }
 $checkStmt->close();
 
-// Convert status to database format (1 for Offered, 0 for Not Offered)
-$statusValue = ($status === 'Offered') ? '1' : '0';
+$statusValue = ($status === 'Offered') ? 'Offered' : 'Not Offered';
 
-// Default file path for new courses
 $filePath = 'uploads/images/default-course.jpg';
 
 try {
     // Prepare the SQL statement
     $stmt = $conn->prepare("INSERT INTO coursestable (courseID, courseName, courseSchedule, description, filePath, status) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssss", $courseID, $courseName, $courseSchedule, $description, $filePath, $statusValue);
-    
+
     // Execute the statement
     if ($stmt->execute()) {
+        $courseTableID = $conn->insert_id;
+        if (!empty($basicCompetencies)) {
+            $stmtBasic = $conn->prepare("INSERT INTO basiccompetency (courseID, basicPoints) VALUES (?, ?)");
+            foreach ($basicCompetencies as $point) {
+                if (!empty(trim($point))) {
+                    $stmtBasic->bind_param("is", $courseTableID, $point);
+                    $stmtBasic->execute();
+                }
+            }
+            $stmtBasic->close();
+        }
+
+        if (!empty($commonCompetencies)) {
+            $stmtCommon = $conn->prepare("INSERT INTO commoncompetency (courseID, commonPoints) VALUES (?, ?)");
+            foreach ($commonCompetencies as $point) {
+                if (!empty(trim($point))) {
+                    $stmtCommon->bind_param("is", $courseTableID, $point);
+                    $stmtCommon->execute();
+                }
+            }
+            $stmtCommon->close();
+        }
+
+        if (!empty($coreCompetencies)) {
+            $stmtCore = $conn->prepare("INSERT INTO corecompetency (courseID, corePoints) VALUES (?, ?)");
+            foreach ($coreCompetencies as $point) {
+                if (!empty(trim($point))) {
+                    $stmtCore->bind_param("is", $courseTableID, $point);
+                    $stmtCore->execute();
+                }
+            }
+            $stmtCore->close();
+        }
         echo json_encode([
             'success' => true,
-            'message' => 'Course added successfully.'
+            'message' => 'Course and competencies added successfully.'
         ]);
     } else {
         echo json_encode([
@@ -66,7 +101,7 @@ try {
             'message' => 'Failed to add course: ' . $stmt->error
         ]);
     }
-    
+
     $stmt->close();
 } catch (Exception $e) {
     echo json_encode([
@@ -74,6 +109,7 @@ try {
         'message' => 'Database error: ' . $e->getMessage()
     ]);
 }
+
 
 $conn->close();
 ?>
