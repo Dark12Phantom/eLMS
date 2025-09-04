@@ -220,7 +220,7 @@ if (isset($_SESSION['user'])) {
             </select>
             <input name="bdate" id="bdate" type="text" onfocus="(this.type='date')" onblur="(this.type='text')"
               placeholder="Birthdate" required />
-            <input name="cnum" id="cnum" type="number" placeholder="Mobile Number" required />
+            <input name="cnum" id="cnum" type="tel" maxlength="11" placeholder="Mobile Number" required />
             <select name="education" id="education" required>
               <option value="" selected disabled hidden>
                 Highest Attained Education

@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $_SESSION['role'] = $row['role'];
         $_SESSION['firstName'] = $row['firstName'];
 
-        if ($row['role'] == 'trainee') {
-            $page = "./html/student.php";
+        if ($row['role'] == 'trainee' || $row['role'] == 'guest') {
+            $page = "./html/student.php#dashboard";
         } elseif ($row['role'] == 'trainer') {
             $page = "./html/trainer-page.php";
         } elseif ($row['role'] == 'admin') {

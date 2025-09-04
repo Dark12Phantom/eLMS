@@ -20,6 +20,7 @@ if (!$studentData) {
 
 $studentID = $studentData['userID'];
 
+// Modified query to only show activities from courses the student is enrolled in
 $joinTable = 'SELECT 
     a.id AS activity_id, 
     a.title AS title, 
@@ -36,12 +37,13 @@ $joinTable = 'SELECT
     g.remarks
 FROM activitiestable a
 JOIN coursestable c ON a.course_id = c.courseID
+JOIN enrolledtable e ON e.course_id = c.courseID AND e.user_id = ? AND e.status = "approved"
 LEFT JOIN submissionstable s ON s.activity_id = a.id AND s.student_id = ?
 LEFT JOIN gradestable g ON g.submission_id = s.id
 ORDER BY a.due_date ASC';
 
 $stmt = $conn->prepare($joinTable);
-$stmt->bind_param("s", $studentID);
+$stmt->bind_param("ss", $studentID, $studentID);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -165,6 +167,7 @@ if ($result->num_rows > 0) {
   echo "<thead>
               <tr>
                 <th>Activity</th>
+                <th>Description</th>
                 <th>Type</th>
                 <th>Course</th>
                 <th>Due</th>
@@ -176,7 +179,7 @@ if ($result->num_rows > 0) {
             <tbody>
               <tr class='noData'>
                 <td colspan='7'>
-                  <p>No files yet. Activities will appear here!</p>
+                  <p>No activities yet. Activities from your enrolled courses will appear here!</p>
                 </td>
               </tr>
             </tbody>";
