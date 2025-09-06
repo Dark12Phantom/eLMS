@@ -31,6 +31,8 @@ $joinTable = 'SELECT
     a.due_date, 
     a.file_path AS file_path,
     g.grade,
+    g.score,
+    g.totalItems,
     s.id AS submission_id,
     g.graded_at,
     g.feedback, 
@@ -100,9 +102,11 @@ if ($result->num_rows > 0) {
                 </button>
             </div>
           </form>';
-    } elseif (strpos($status, "Graded") === 0 && !empty($row['feedback'])) {
+    } elseif (strpos($status, "Graded") === 0) {
       $activityId = $row['activity_id'];
       $feedback = $row['feedback'];
+      $score = $row['score'];
+      $totalItems = $row['totalItems'];
       $grade = $row['grade'];
       echo "<button class='viewGradeBtn' data-grade='" . htmlspecialchars($row['grade']) . "' 
               data-feedback='" . htmlspecialchars($row['feedback']) . "'>
@@ -114,6 +118,8 @@ if ($result->num_rows > 0) {
                 btn.addEventListener('click', e => {
                   e.stopPropagation();
 
+                  const score = btn.dataset.score;
+                  const total = btn.dataset.totalItems;
                   const grade = btn.dataset.grade;
                   const feedback = btn.dataset.feedback;
                   const container = btn.nextElementSibling;
@@ -130,7 +136,8 @@ if ($result->num_rows > 0) {
                   overlay.style.zIndex = '999';
 
                   overlay.innerHTML = `
-                    <p>Grade: $grade/100</p>
+                    <p>Score: $score/$totalItems</p>
+                    <p>Percentage: $grade%</p>
                     <p>Feedback: $feedback</p>
                   `;
 

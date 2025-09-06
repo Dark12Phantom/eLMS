@@ -10,7 +10,7 @@ try {
     
     $sql = "SELECT a.id, a.title, c.courseName, a.type,
             DATE_FORMAT(a.due_date, '%m-%d-%Y') as dueDate, a.file_path,
-            a.created_at
+            DATE_FORMAT(a.created_at, '%m-%d-%Y') AS startDate
             FROM activitiestable a 
             JOIN coursestable c ON a.course_id = c.courseID
             JOIN assignedcourses ac ON c.courseID = ac.course_id

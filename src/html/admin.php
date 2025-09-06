@@ -286,7 +286,6 @@ function renderGuestTable($conn)
               <label>Middle Name:</label><input type="text" name="middleName"><br>
               <label>Last Name:</label><input type="text" name="lastName" required><br>
               <label>Suffix:</label><input type="text" name="suffix"><br>
-              <label>Gender:</label>
               <label for="gender">Gender:</label>
               <select id="gender" name="gender" required>
                 <option value="" disabled selected>Select Gender</option>
@@ -562,7 +561,6 @@ function renderGuestTable($conn)
         </div>
       </section>
     </div>
-    <div id="catalog"></div>
   </main>
 
 

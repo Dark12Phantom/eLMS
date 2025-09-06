@@ -235,6 +235,7 @@ authenticate();
                 <th>Activity</th>
                 <th>Course</th>
                 <th>Type</th>
+                <th>Start Date</th>
                 <th>Due Date</th>
                 <th>Actions</th>
                 <th>File</th>

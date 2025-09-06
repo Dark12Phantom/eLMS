@@ -594,6 +594,7 @@ class TrainerDashboard {
     <td>${activity.title}</td>
     <td>${activity.courseName}</td>
     <td>${activity.type}</td>
+    <td>${activity.startDate}</td>
     <td>${activity.dueDate || "No due date"}</td>
     <td>
         <div class="buttons">
@@ -1174,16 +1175,16 @@ class TrainerDashboard {
                     <p><strong>Date Submitted: </strong>${btn.dataset.date}</p>
                     <p><strong>File: </strong><a href="../${btn.dataset.file}" target="_blank" class="file-link">View Submission</a></p>
                     <label>
-                        Grade Activity:
-                        <input type="number" name="grade" min="0" max="100" step="0.01" required>
+                        Score of Student:
+                        <input type="number" name="score" min="0" max="100" step="0.01" required>
                     </label>
                     <label>
-                        Pass/Fail:
-                        <select name="remarks" required>
-                            <option value="">Select...</option>
-                            <option value="passed">Passed</option>
-                            <option value="failed">Failed</option>
-                        </select>
+                        Total Items:
+                        <input type="number" name="total" min="0" max="100" step="0.01" required>
+                    </label>
+                    <label style="display: none;">
+                        Activity Grade:
+                        <input type="number" name="grade" min="0" max="100" step="0.01" readonly required>
                     </label>
                     <label>
                         Add Comment:
@@ -1212,9 +1213,25 @@ class TrainerDashboard {
 
   async submitGrade(submissionId, gradeForm, buttonElement) {
     try {
-      const grade = parseFloat(
-        gradeForm.querySelector('input[name="grade"]').value
+      const score = parseInt(
+        gradeForm.querySelector('input[name="score"]').value
       );
+
+      const total = parseInt(
+        gradeForm.querySelector('input[name="total"]').value
+      );
+
+      let grade = 0;
+      if (total > 0 && !isNaN(score)) {
+        grade = (score / total) * 100;
+      }
+
+      const gradeInput = gradeForm.querySelector('input[name="grade"]');
+
+      gradeInput.value = grade.toFixed(2);
+
+      console.log(gradeInput);
+
       const comment = gradeForm.querySelector('textarea[name="comment"]').value;
 
       if (isNaN(grade) || grade < 0 || grade > 100) {
@@ -1222,12 +1239,14 @@ class TrainerDashboard {
         return;
       }
 
-      const passingGrade = 60;
+      const passingGrade = 75;
       const remarks = grade >= passingGrade ? "passed" : "failed";
 
       const formData = new FormData();
       formData.append("submission_id", submissionId);
-      formData.append("grade", grade);
+      formData.append("score", score);
+      formData.append("total", total);
+      formData.append("grade", grade.toFixed(2));
       formData.append("feedback", comment);
       formData.append("remarks", remarks);
 

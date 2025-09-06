@@ -39,16 +39,14 @@ if (isset($_SESSION['user'])) {
       <div id="logo">
         <img src="./images/school.jpg" alt="SCHOOL LOGO" />
         <div class="text-logo">
-          <h1><strong>B</strong>enguet</h1>
-          <h1><strong>T</strong>echnical</h1>
-          <h1><strong>S</strong>chool</h1>
+          <h1><strong>B</strong>enguet <strong>T</strong>echnical <strong>S</strong>chool</h1>
         </div>
       </div>
       <div id="nav-list">
         <ul>
           <li><a href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
           <li><a href="#courses">Courses</a></li>
+          <li><a href="#about">About</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
@@ -71,11 +69,11 @@ if (isset($_SESSION['user'])) {
           <img src="./uploads/images/agriculture.jpg" alt="">
           <img src="./uploads/images/automotive.jpg" alt="">
           <img src="./uploads/images/breadmaking.jpg" alt="">
-          <img src="./uploads/images/dressmaking.webp" alt="">
-          <img src="./uploads/images/driving.webp" alt="">
+          <img src="./uploads/images/dressmaking.jpg" alt="">
+          <img src="./uploads/images/driving.jpg" alt="">
           <img src="./uploads/images/hairdressing.webp" alt="">
           <img src="./uploads/images/japanese.jpg" alt="">
-          <img src="./uploads/images/tailoring.webp" alt="">
+          <img src="./uploads/images/tailoring.jpg" alt="">
         </div>
         <div class="desc">
           <h1>Learn Anytime, Anywhere</h1>

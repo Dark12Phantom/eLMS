@@ -5,6 +5,8 @@ authenticate();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $submissionId = $_POST['submission_id'] ?? null;
+    $score = $_POST['score'] ?? null;
+    $totalItems = $_POST['total'] ?? null;
     $grade = $_POST['grade'] ?? null;
     $feedback = $_POST['feedback'] ?? '';
     $remarks = $_POST['remarks'] ?? null;
@@ -80,21 +82,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Insert or update grade
         if ($existingGrade) {
-            $updateGradeSql = "UPDATE gradestable SET grade = ?, feedback = ?, remarks = ?, graded_at = NOW() WHERE id = ?";
+            $updateGradeSql = "UPDATE gradestable SET score = ?, totalItems = ?, grade = ?, feedback = ?, remarks = ?, graded_at = NOW() WHERE id = ?";
             error_log("DEBUG: Update grade SQL: " . $updateGradeSql);
             
             $stmt = $conn->prepare($updateGradeSql);
-            $stmt->bind_param("dssi", $grade, $feedback, $newRemarks, $existingGrade['id']);
+            $stmt->bind_param("iidssi", $score, $totalItems, $grade, $feedback, $newRemarks, $existingGrade['id']);
             if (!$stmt->execute()) {
                 throw new Exception('Update grade failed: ' . $stmt->error);
             }
             error_log("DEBUG: Grade updated successfully");
         } else {
-            $insertGradeSql = "INSERT INTO gradestable (submission_id, studentID, grade, feedback, remarks, graded_at) VALUES (?, ?, ?, ?, ?, NOW())";
+            $insertGradeSql = "INSERT INTO gradestable (submission_id, studentID, score, totalItems, grade, feedback, remarks, graded_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
             error_log("DEBUG: Insert grade SQL: " . $insertGradeSql);
             
             $stmt = $conn->prepare($insertGradeSql);
-            $stmt->bind_param("isdss", $submissionId, $studentID, $grade, $feedback, $newRemarks);
+            $stmt->bind_param("isiidss", $submissionId, $studentID, $score, $totalItems, $grade, $feedback, $newRemarks);
             if (!$stmt->execute()) {
                 throw new Exception('Insert grade failed: ' . $stmt->error);
             }
