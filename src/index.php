@@ -66,14 +66,15 @@ if (isset($_SESSION['user'])) {
     <section id="home">
       <div class="slider">
         <div class="slides">
-          <img src="./uploads/images/agriculture.jpg" alt="">
-          <img src="./uploads/images/automotive.jpg" alt="">
-          <img src="./uploads/images/breadmaking.jpg" alt="">
-          <img src="./uploads/images/dressmaking.jpg" alt="">
-          <img src="./uploads/images/driving.jpg" alt="">
-          <img src="./uploads/images/hairdressing.webp" alt="">
-          <img src="./uploads/images/japanese.jpg" alt="">
-          <img src="./uploads/images/tailoring.jpg" alt="">
+          <?php
+          $dir = __DIR__ . "/uploads/images/";
+          $files = glob($dir . "*.{jpg,jpeg,png,webp,gif}", GLOB_BRACE);
+
+          foreach ($files as $file) {
+            $basename = basename($file);
+            echo '<img src="./uploads/images/' . htmlspecialchars($basename) . '" alt="">';
+          }
+          ?>
         </div>
         <div class="desc">
           <h1>Learn Anytime, Anywhere</h1>
@@ -408,28 +409,30 @@ if (isset($_SESSION['user'])) {
 
 <!-- SLIDER -->
 <script>
-  const slides = document.querySelector(".slides");
-  const slideCount = slides.children.length;
-  let index = 0;
-  const pauseTime = 3000;
-  const transitionTime = 500;
+  document.addEventListener("DOMContentLoaded", () => {
+    const slides = document.querySelector(".slides");
+    let slideCount = slides.children.length;
+    let index = 0;
+    const pauseTime = 3000;
+    const transitionTime = 500;
 
-  function nextSlide() {
-    index++;
+    function nextSlide() {
+      index++;
 
-    if (index >= slideCount) {
-      index = 0;
-      slides.style.transition = "none";
-      slides.style.transform = `translateX(0px)`;
-      slides.offsetWidth;
-    } else {
-      slides.style.transition = `transform ${transitionTime}ms ease`;
-      const slideWidth = slides.children[0].offsetWidth;
-      slides.style.transform = `translateX(-${slideWidth * index}px)`;
+      if (index >= slideCount) {
+        index = 0;
+        slides.style.transition = "none";
+        slides.style.transform = `translateX(0px)`;
+        slides.offsetWidth;
+      } else {
+        slides.style.transition = `transform ${transitionTime}ms ease`;
+        const slideWidth = slides.children[0].offsetWidth;
+        slides.style.transform = `translateX(-${slideWidth * index}px)`;
+      }
     }
-  }
 
-  setInterval(nextSlide, pauseTime + transitionTime);
+    setInterval(nextSlide, pauseTime + transitionTime);
+  });
 </script>
 
 </html>

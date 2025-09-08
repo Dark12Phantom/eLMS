@@ -13,41 +13,55 @@ class StudentDashboard {
   }
 
   initializeNavigation() {
-    const tabElements = document.querySelectorAll(
-      ".dashboard, .courses, .activities, .enrollment, .profile"
-    );
-    const sectionElements = document.querySelectorAll(
-      "#dashboard, #courses, #activities, #enrollment, #profile"
-    );
+  const tabElements = document.querySelectorAll(
+    ".dashboard, .courses, .activities, .enrollment, .profile"
+  );
+  const sectionElements = document.querySelectorAll(
+    "#dashboard, #courses, #activities, #enrollment, #profile"
+  );
 
-    const handleTabClick = (clickedTab) => {
-      const tabClass = clickedTab.classList[0];
-      const matchingSection = document.getElementById(tabClass);
+  function showSectionById(id) {
+    const tab = document.querySelector(`.${id}`);
+    const section = document.getElementById(id);
 
-      tabElements.forEach((el) => el.classList.remove("active"));
-      sectionElements.forEach((el) => el.classList.remove("active"));
+    if (!tab || !section) return;
 
-      clickedTab.classList.add("active");
-      if (matchingSection) {
-        matchingSection.classList.add("active");
-      }
+    tabElements.forEach(el => el.classList.remove("active"));
+    sectionElements.forEach(el => el.classList.remove("active"));
 
-      localStorage.setItem("activeTab", tabClass);
-    };
+    tab.classList.add("active");
+    section.classList.add("active");
 
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedTab = localStorage.getItem("activeTab");
-      const defaultTab = savedTab
-        ? document.querySelector(`.${savedTab}`)
-        : document.querySelector(".dashboard");
-
-      if (defaultTab) handleTabClick(defaultTab);
-    });
-
-    tabElements.forEach((tab) => {
-      tab.addEventListener("click", () => handleTabClick(tab));
-    });
+    localStorage.setItem("activeTab", id);
   }
+
+  function handleTabClick(tab) {
+    const tabClass = tab.classList[0];
+    location.hash = tabClass;
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const hash = location.hash.replace("#", "");
+    const savedTab = localStorage.getItem("activeTab");
+
+    if (hash) {
+      showSectionById(hash);
+    } else if (savedTab) {
+      showSectionById(savedTab);
+    } else {
+      showSectionById("dashboard");
+    }
+  });
+
+  window.addEventListener("hashchange", () => {
+    const hash = location.hash.replace("#", "");
+    if (hash) showSectionById(hash);
+  });
+
+  tabElements.forEach(tab => {
+    tab.addEventListener("click", () => handleTabClick(tab));
+  });
+}
 
   initializeCourseEnrollment() {
     const popup = document.getElementById("popup-enrollment");

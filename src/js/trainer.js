@@ -19,40 +19,52 @@ class TrainerDashboard {
       "#dashboard, #enrollment-request, #courses, #activities-modules, #trainees, #submissions, #profile"
     );
 
-    const handleTabClick = (clickedTab) => {
-      const tabClass = clickedTab.classList[0];
-      const targetId = tabClass === "redir" ? "enrollment-request" : tabClass;
-      const matchingSection = document.getElementById(targetId);
+    const showSectionById = (id) => {
+      let targetId = id === "redir" ? "enrollment-request" : id;
+      const tab =
+        id === "redir"
+          ? document.querySelector(".redir")
+          : document.querySelector(`.${targetId}`);
+      const section = document.getElementById(targetId);
+
+      if (!tab || !section) return;
 
       tabElements.forEach((el) => el.classList.remove("active"));
       sectionElements.forEach((el) => el.classList.remove("active"));
 
-      clickedTab.classList.add("active");
-      if (matchingSection) {
-        matchingSection.classList.add("active");
+      tab.classList.add("active");
+      section.classList.add("active");
+
+      if (typeof this.initializeSection === "function") {
         this.initializeSection(targetId);
       }
 
       localStorage.setItem("activeTab", targetId);
     };
 
-    const savedTab = localStorage.getItem("activeTab");
-    let initialTab;
+    const handleTabClick = (tab) => {
+      const tabClass = tab.classList[0];
+      const targetId = tabClass === "redir" ? "enrollment-request" : tabClass;
+      location.hash = targetId;
+    };
 
-    if (savedTab) {
-      initialTab = document.querySelector(`.${savedTab}`);
-      if (!initialTab && savedTab === "enrollment-request") {
-        initialTab = document.querySelector(".redir");
+    window.addEventListener("DOMContentLoaded", () => {
+      const hash = location.hash.replace("#", "");
+      const savedTab = localStorage.getItem("activeTab");
+
+      if (hash) {
+        showSectionById(hash);
+      } else if (savedTab) {
+        showSectionById(savedTab);
+      } else {
+        showSectionById("dashboard");
       }
-    }
+    });
 
-    if (!initialTab) {
-      initialTab = document.querySelector(".dashboard");
-    }
-
-    if (initialTab) {
-      handleTabClick(initialTab);
-    }
+    window.addEventListener("hashchange", () => {
+      const hash = location.hash.replace("#", "");
+      if (hash) showSectionById(hash);
+    });
 
     tabElements.forEach((tab) => {
       tab.addEventListener("click", () => handleTabClick(tab));
@@ -66,10 +78,7 @@ class TrainerDashboard {
     redirLinks.forEach((link) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
-        const redirTab = document.querySelector(".redir");
-        if (redirTab) {
-          redirTab.click();
-        }
+        location.hash = "enrollment-request";
       });
     });
   }

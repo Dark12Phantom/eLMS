@@ -24,9 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         if ($row['role'] == 'trainee' || $row['role'] == 'guest') {
             $page = "./html/student.php#dashboard";
         } elseif ($row['role'] == 'trainer') {
-            $page = "./html/trainer-page.php";
+            $page = "./html/trainer-page.php#dashboard";
         } elseif ($row['role'] == 'admin') {
-            $page = "./html/admin.php";
+            $page = "./html/admin.php#trainerMgt";
         }
 
         $data = [
