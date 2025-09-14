@@ -41,6 +41,8 @@ try {
     
     echo json_encode([
         'success' => true,
+        'count' => count($trainees), // debug count
+        'userId' => $userId,         // debug session ID
         'data' => $trainees
     ]);
     

@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Sep 02, 2025 at 02:50 PM
+-- Host: localhost
+-- Generation Time: Sep 14, 2025 at 10:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -266,7 +266,7 @@ CREATE TABLE `enrolledtable` (
 --
 
 INSERT INTO `enrolledtable` (`id`, `course_id`, `user_id`, `enrollment_id`, `status`) VALUES
-(7, 'AGRINCII', '2025S-000001', 33, 'approved');
+(8, 'AGRINCII', '2025S-000001', 34, 'approved');
 
 -- --------------------------------------------------------
 
@@ -288,7 +288,7 @@ CREATE TABLE `enrollmenttable` (
 --
 
 INSERT INTO `enrollmenttable` (`id`, `user_id`, `course_id`, `teacher_id`, `status`, `enrolled_at`) VALUES
-(33, '2025S-000001', 'AGRINCII', NULL, 'approved', '2025-08-31 17:55:19');
+(34, '2025S-000001', 'AGRINCII', NULL, 'approved', '2025-09-14 16:46:13');
 
 -- --------------------------------------------------------
 
@@ -316,15 +316,17 @@ CREATE TABLE `gradestable` (
   `grade` decimal(5,2) DEFAULT NULL,
   `feedback` text DEFAULT NULL,
   `graded_at` datetime DEFAULT current_timestamp(),
-  `remarks` text NOT NULL
+  `remarks` text NOT NULL,
+  `score` int(11) NOT NULL,
+  `totalItems` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `gradestable`
 --
 
-INSERT INTO `gradestable` (`id`, `submission_id`, `studentID`, `grade`, `feedback`, `graded_at`, `remarks`) VALUES
-(5, 1, '2025S-000001', 87.00, 'fhfghfjhgjfhg', '2025-09-01 00:34:39', 'passed');
+INSERT INTO `gradestable` (`id`, `submission_id`, `studentID`, `grade`, `feedback`, `graded_at`, `remarks`, `score`, `totalItems`) VALUES
+(6, 1, '2025S-000001', 80.00, '', '2025-09-14 16:47:41', 'passed', 40, 50);
 
 -- --------------------------------------------------------
 
@@ -366,15 +368,14 @@ CREATE TABLE `studentprogress` (
   `submittedProjects` int(11) NOT NULL,
   `progress` decimal(5,2) NOT NULL DEFAULT 0.00,
   `last_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `studentprogress`
 --
 
 INSERT INTO `studentprogress` (`id`, `studentID`, `course_id`, `courseName`, `trackingID`, `submittedActivity`, `submittedExam`, `submittedProjects`, `progress`, `last_updated`) VALUES
-(26, '2025S-000001', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 1, 0, 0, 0.72, '2025-09-01 00:34:51'),
-(27, '2025S-00003', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 0, 0, 0, 0.00, '2025-09-02 12:01:08');
+(28, '2025S-000001', 'AGRINCII', 'Agricultural Crops Production NC II', 1, 1, 0, 0, 0.36, '2025-09-14 16:47:41');
 
 --
 -- Triggers `studentprogress`
@@ -496,7 +497,7 @@ CREATE TABLE `traineestable` (
 --
 
 INSERT INTO `traineestable` (`id`, `studentID`, `studentName`, `status`, `enrolledDate`) VALUES
-(11, '2025S-00003', 'Ruby Xander Cube', 'Ongoing', '2025-09-02');
+(11, '2025S-00003', 'Ruby Xander Cube', 'Idle', '2025-09-02');
 
 -- --------------------------------------------------------
 
@@ -516,8 +517,7 @@ CREATE TABLE `trainercourses` (
 --
 
 INSERT INTO `trainercourses` (`id`, `trainerID`, `courseID`, `courseName`) VALUES
-(4, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II'),
-(5, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II');
+(4, '2025T-00001', 'AGRINCII', 'Agricultural Crops Production NC II');
 
 -- --------------------------------------------------------
 
@@ -587,15 +587,6 @@ INSERT INTO `userstable` (`id`, `userID`, `firstName`, `middleName`, `lastName`,
 (32, '2025S-00002', 'Dre', 'Santos', 'Maker', 'JR', 'M', 26, '1999-03-23', 'Student of Benguet Technical School', 'guest', '+639692012345', 'dre.ss.maker@gmail.com', '$2y$10$YiBnAu5mAwNi9n55zjT94eshUvQfxetlZUhzuQSUMoq/xSKp4A3p2', 'SHS', '', '2025-08-23'),
 (57, '2025T-00001', 'Harley', 'David', 'Son', '', 'M', 0, '2025-08-26', '', 'trainer', '+639201555544', 'harley.son@bts.gov.ph', '$2y$10$/rtkNK9mJSIwt/alWtq4euZeCcoxAAD6QeQpHdOx4eg1zZL0owXoq', 'Bachelor\'s Degree', '', '2025-08-25'),
 (59, '2025S-00003', 'Ruby', 'Xander', 'Cube', '', 'F', 23, '2002-02-05', 'Senior High School', 'trainee', '+639019283786', 'ruby.cube@bts.gov.ph', '$2y$10$YnXr4wqrQlvLHgVnr/Gmh.XlDDR.lZ23hRCcQ53hdx.GVCNVdhFN6', 'SHS', '', '2025-09-02');
-
--- --------------------------------------------------------
-
---
--- Structure for view `trainers_view`
---
-DROP TABLE IF EXISTS `trainers_view`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `trainers_view`  AS SELECT `userstable`.`id` AS `trainerID`, concat(`userstable`.`firstName`,' ',ifnull(`userstable`.`middleName`,''),' ',`userstable`.`lastName`,' ',ifnull(`userstable`.`suffix`,'')) AS `trainerName` FROM `userstable` WHERE `userstable`.`role` = 'trainer' ;
 
 --
 -- Indexes for dumped tables
@@ -819,13 +810,13 @@ ALTER TABLE `coursetracker`
 -- AUTO_INCREMENT for table `enrolledtable`
 --
 ALTER TABLE `enrolledtable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `enrollmenttable`
 --
 ALTER TABLE `enrollmenttable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `finalgradestable`
@@ -837,7 +828,7 @@ ALTER TABLE `finalgradestable`
 -- AUTO_INCREMENT for table `gradestable`
 --
 ALTER TABLE `gradestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `modulestable`
@@ -849,7 +840,7 @@ ALTER TABLE `modulestable`
 -- AUTO_INCREMENT for table `studentprogress`
 --
 ALTER TABLE `studentprogress`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `submissionstable`
@@ -892,6 +883,15 @@ ALTER TABLE `trainerstable`
 --
 ALTER TABLE `userstable`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `trainers_view`
+--
+DROP TABLE IF EXISTS `trainers_view`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `trainers_view`  AS SELECT `userstable`.`id` AS `trainerID`, concat(`userstable`.`firstName`,' ',ifnull(`userstable`.`middleName`,''),' ',`userstable`.`lastName`,' ',ifnull(`userstable`.`suffix`,'')) AS `trainerName` FROM `userstable` WHERE `userstable`.`role` = 'trainer' ;
 
 --
 -- Constraints for dumped tables

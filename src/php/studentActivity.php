@@ -21,7 +21,7 @@ if (!$studentData) {
 $studentID = $studentData['userID'];
 
 // Modified query to only show activities from courses the student is enrolled in
-$joinTable = 'SELECT 
+$sql = 'SELECT 
     a.id AS activity_id, 
     a.title AS title, 
     a.description AS actDesc,
@@ -44,7 +44,7 @@ LEFT JOIN submissionstable s ON s.activity_id = a.id AND s.student_id = ?
 LEFT JOIN gradestable g ON g.submission_id = s.id
 ORDER BY a.due_date ASC';
 
-$stmt = $conn->prepare($joinTable);
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("ss", $studentID, $studentID);
 $stmt->execute();
 $result = $stmt->get_result();

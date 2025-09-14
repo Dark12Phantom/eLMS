@@ -417,7 +417,9 @@ authenticate();
     <p>© 2025 Benguet Technical School. All rights reserved.</p>
   </footer>
 
-  <script src="../js/student.js"></script>
+
 </body>
+
+  <script src="../js/student.js"></script>
 
 </html>
