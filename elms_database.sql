@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Sep 14, 2025 at 10:48 AM
+-- Generation Time: Sep 16, 2025 at 05:12 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -107,24 +107,68 @@ CREATE TABLE `basiccompetency` (
 --
 
 INSERT INTO `basiccompetency` (`id`, `courseID`, `basicPoints`) VALUES
-(1, 3, 'Receive and respond to workplace communication'),
-(2, 3, 'Work with others'),
-(3, 3, 'Demonstrate work values'),
-(4, 4, 'Participate in workplace communication'),
-(5, 4, 'Work in team environment'),
-(6, 5, 'Receive and respond to workplace communication'),
-(7, 5, 'Work with others'),
-(8, 5, 'Demonstrate work values'),
-(9, 6, 'Receive and respond to workplace communication'),
-(10, 6, 'Work with others'),
-(11, 7, 'Participate in workplace communication'),
-(12, 7, 'Work in team environment'),
-(13, 8, 'Participate in workplace communication'),
-(14, 8, 'Work in team environment'),
-(15, 9, 'Observe road safety'),
-(16, 9, 'Work in team environment'),
-(17, 10, 'Participate in workplace communication'),
-(18, 10, 'Work with others');
+(1, 3, 'Participate in workplace communication '),
+(2, 3, 'Work in a team environment'),
+(3, 3, 'Solve/address general workplace problems '),
+(4, 3, 'Develop career and life decisions '),
+(5, 3, 'Contribute to workplace innovation '),
+(6, 3, 'Present relevant information '),
+(7, 3, 'Practice occupational health and safety procedures '),
+(8, 3, 'Exercise efficient and effective sustainable practices in the workplace '),
+(10, 3, 'Practice entrepreneurial skills in the workplace '),
+(11, 4, 'Receive and respond to workplace communication'),
+(12, 4, 'Work with others'),
+(13, 4, 'Solve/address routine problems'),
+(14, 4, 'Enhance self-management skills'),
+(15, 4, 'Support innovation'),
+(16, 4, 'Access and maintain information'),
+(17, 4, 'Follow occupational safety and health policies and procedures'),
+(18, 4, 'Apply environmental work standards'),
+(19, 4, 'Adopt entrepreneurial mindset in the workplace'),
+(20, 5, 'Participate in workplace communication'),
+(21, 5, 'Work in a team environment'),
+(23, 5, 'Solve/address general workplace problems'),
+(24, 5, 'Develop career and life decisions'),
+(25, 5, 'Contribute to workplace innovation'),
+(26, 5, 'Present relevant information'),
+(27, 5, 'Practice occupational health and safety procedures'),
+(28, 5, 'Exercise efficient and effective sustainable practices in the workplace'),
+(29, 5, 'Practice entrepreneurial skills in the workplace'),
+(30, 6, 'Participate in workplace communication'),
+(31, 6, 'Work in a team environment'),
+(32, 6, 'Practice career professionalism'),
+(33, 6, 'Practice occupational health and safety'),
+(34, 7, 'Participate in workplace communication'),
+(35, 7, 'Work in a team environment'),
+(36, 7, 'Solve/address general workplace problems'),
+(37, 7, 'Develop career and life decisions'),
+(38, 7, 'Contribute to workplace innovation'),
+(39, 7, 'Present relevant information'),
+(40, 7, 'Practice occupational health and safety procedures'),
+(41, 7, 'Exercise efficient and effective sustainable practices in the workplace'),
+(42, 7, 'Practice entrepreneurial skills in the workplace'),
+(43, 8, 'Participate in workplace communication'),
+(44, 8, 'Work in a team environment'),
+(45, 8, 'Practice career professionalism'),
+(46, 8, 'Practice occupational health and safety'),
+(47, 9, 'Participate in workplace communication'),
+(48, 9, 'Work in a team environment '),
+(49, 9, 'Solve/address general workplace problems'),
+(50, 9, 'Develop career and life decisions'),
+(51, 9, 'Contribute to workplace innovation'),
+(52, 9, 'Present relevant information'),
+(53, 9, 'Practice occupational health and safety procedures '),
+(54, 9, 'Exercise efficient and effective sustainable practices in the workplace '),
+(55, 9, 'Practice entrepreneurial skills in the workplace '),
+(56, 10, 'Participate in workplace communication'),
+(57, 10, 'Work in a team environment'),
+(58, 10, 'Solve/address general workplace problems'),
+(59, 10, 'Develop career and life decisions'),
+(60, 10, 'Contribute to workplace innovation'),
+(61, 10, 'Present relevant information'),
+(62, 10, 'Practice occupational health and safety procedures'),
+(63, 10, 'Exercise efficient and effective sustainable practices in the workplace'),
+(64, 10, 'Practice entrepreneurial skills in the workplace');
 
 -- --------------------------------------------------------
 
@@ -143,22 +187,43 @@ CREATE TABLE `commoncompetency` (
 --
 
 INSERT INTO `commoncompetency` (`id`, `courseID`, `commonPoints`) VALUES
-(1, 3, 'Apply safety measures\r\n'),
+(1, 3, 'Apply Safety Measures in Farm Operations '),
 (2, 3, 'Use farm tools and equipment'),
-(3, 4, 'Use automotive hand tools'),
-(4, 4, 'Perform mensuration and calculations'),
-(5, 5, 'Use of tools, equipment and facilities'),
-(6, 5, 'Perform mensuration and calculations'),
-(7, 6, 'Use sewing tools and equipment'),
-(8, 6, 'Draft and cut patterns'),
-(9, 7, 'Use hairdressing tools'),
-(10, 7, 'Practice personal hygiene'),
-(11, 8, 'Demonstrate cultural sensitivity'),
-(12, 8, 'Practice correct pronunciation'),
-(13, 9, 'Check and inspect vehicles'),
-(14, 9, 'Perform basic troubleshooting'),
-(15, 10, 'Use of tools and equipment'),
-(16, 10, 'Practice proper cutting techniques');
+(3, 3, 'Perform estimation and basic calculation '),
+(4, 3, 'Process farm wastes'),
+(5, 3, 'Perform record keeping'),
+(6, 4, 'Validate vehicle specification'),
+(7, 4, 'Move and Position Vehicle'),
+(8, 4, 'Utilize automotive tools'),
+(9, 4, 'Perform mensuration and calculation'),
+(10, 4, 'Utilize workshop facilities and equipment'),
+(11, 4, 'Prepare servicing parts and consumables'),
+(12, 4, 'Prepare vehicle for servicing and releasing'),
+(13, 5, 'Develop and Updated Industry Knowledge'),
+(14, 5, 'Observe Workplace Hygiene Procedures'),
+(15, 5, 'Perform Computer Operations'),
+(16, 5, 'Perform Workplace and Safety Practices'),
+(17, 5, 'Provide Effective Customer Service'),
+(18, 6, 'Carry Out Measurements and Calculations'),
+(19, 6, 'Apply Quality Standards'),
+(20, 6, 'Perform Basic Maintenance'),
+(21, 6, 'Set Up and Operate Machines'),
+(22, 7, 'Maintain an effective relationship with clients/ customers '),
+(23, 7, 'Manage own performance'),
+(24, 7, 'Apply quality standards'),
+(25, 7, 'Maintain a safe clean and efficient work environment'),
+(26, 8, 'Introduce the general features of Japanese Culture'),
+(27, 8, 'Introduce the Japanese Work Ethics'),
+(28, 9, 'Apply appropriate sealant/adhesive'),
+(29, 9, 'Perform shop maintenance'),
+(30, 9, 'Read, Interpret and Apply Specifications and Manual'),
+(31, 9, 'Use and apply lubricant/coolant'),
+(32, 9, 'Perform Mensuration and Calculation'),
+(33, 9, 'Move and Position Vehicle'),
+(34, 10, 'Carry Out Measurements and Calculations'),
+(35, 10, 'Apply Quality Standards'),
+(36, 10, 'Perform Basic Maintenance'),
+(37, 10, 'Set Up and Operate Machines');
 
 -- --------------------------------------------------------
 
@@ -177,26 +242,46 @@ CREATE TABLE `corecompetency` (
 --
 
 INSERT INTO `corecompetency` (`id`, `courseID`, `corePoints`) VALUES
-(1, 3, 'Prepare land for agricultural crop production'),
-(2, 3, 'Care and manage crops'),
-(3, 4, 'Perform under-chassis preventive maintenance'),
-(4, 4, 'Service battery and ignition system'),
-(5, 5, 'Prepare bakery products'),
-(6, 5, 'Prepare pastry products'),
-(7, 6, 'Sew casual dresses'),
-(8, 6, 'Sew skirts and blouses'),
-(9, 7, 'Perform hair cutting'),
-(10, 7, 'Perform hair coloring'),
-(11, 7, 'Perform hair styling'),
-(12, 8, 'Speak basic Nihongo'),
-(13, 8, 'Understand Japanese customs and etiquette'),
-(14, 9, 'Operate light vehicles'),
-(15, 9, 'Perform defensive driving techniques'),
-(16, 10, 'Construct men’s trousers'),
-(17, 10, 'Construct polo shirts and barong'),
-(18, 11, 'core 1'),
-(19, 11, 'core 2'),
-(20, 11, 'core 3');
+(1, 3, 'Perform nursery operations'),
+(2, 3, 'Plant crops'),
+(3, 3, 'Care and maintain crops'),
+(4, 3, 'Carry-out harvest and postharvest operations'),
+(5, 4, 'Perform pre-delivery inspection'),
+(6, 4, 'Perform periodic maintenance of automotive engine'),
+(7, 4, 'Perform periodic maintenance of drive train'),
+(8, 4, 'Perform periodic maintenance of brake system'),
+(9, 4, 'Perform periodic maintenance of suspension system'),
+(10, 4, 'Perform periodic maintenance of steering system'),
+(11, 5, 'Prepare and produce bakery products'),
+(12, 5, 'Prepare and produce pastry products'),
+(13, 5, 'Prepare and present gateaux, tortes and cakes'),
+(14, 5, 'Prepare and display petits fours'),
+(15, 5, 'Prepare and serve other types of desserts'),
+(16, 6, 'Draft and Cut Pattern for Casual Apparel'),
+(17, 6, 'Prepare and Cut Materials for Casual Apparel'),
+(18, 6, 'Sew Casual Apparel'),
+(19, 6, 'Apply Finishing Touches on Casual Apparel'),
+(20, 7, 'Perform pre and post hair care activities'),
+(21, 7, 'Perform Hair and Scalp Treatment'),
+(22, 7, 'Perform Basic hair coloring'),
+(23, 7, 'Perform Basic Hair Bleaching'),
+(24, 7, 'Perform Basic Hair Perming'),
+(25, 7, 'Perform hair straightening'),
+(26, 7, 'Perform basic haircutting'),
+(27, 8, 'Practice the basic Japanese Writing System and their Alphabets'),
+(28, 8, 'Practice the Japanese Sounds of Alphabets and Pronunciation'),
+(29, 8, 'Practice the Japanese Grammar and Application in Sentence Construction'),
+(30, 8, 'Apply the Japanese Counters in a conversation'),
+(31, 8, 'Perform Japanese Greetings   of honorifics in a conversation'),
+(32, 8, 'Participate in Ordinary Conversation'),
+(33, 9, 'Carry out minor vehicle maintenance and servicing'),
+(34, 9, 'Drive light vehicles'),
+(35, 9, 'Observe traffic rules and regulations'),
+(36, 9, 'Implement and coordinate accident/ emergency procedures'),
+(37, 10, 'Draft and Cut Pattern for Casual Apparel'),
+(38, 10, 'Prepare and Cut Materials for Casual Apparel'),
+(39, 10, 'Sew Casual\r\nApparel\r\n'),
+(40, 10, 'Apply Finishing Touches on Casual Apparel');
 
 -- --------------------------------------------------------
 
@@ -222,10 +307,10 @@ INSERT INTO `coursestable` (`id`, `courseID`, `courseName`, `courseSchedule`, `d
 (3, 'AGRINCII', 'Agricultural Crops Production NC II', 'M-F 1:00 - 3:00', 'Learn crop production, farm tools usage, and sustainable agriculture techniques.', 'uploads/images/agriculture.jpg', 'Offered'),
 (4, 'ASNCI', 'Automotive Servicing NC I', 'T-Th 9:00 - 11:00', 'Get started with basic automotive maintenance and repair services.', 'uploads/images/automotive.jpg', 'Offered'),
 (5, 'BAPPNCII', 'Bread and Pastry Production NC II', 'M-W 9:00 - 11:00', 'Master the fundamentals of baking and pastry preparation.', 'uploads/images/breadmaking.jpg', 'Offered'),
-(6, 'DRSNCII', 'Dressmaking NC II', 'F-Sat 10:00 - 12:00', 'Learn how to design, measure, cut, and sew dresses professionally.', 'uploads/images/dressmaking.webp', 'Offered'),
+(6, 'DRSNCII', 'Dressmaking NC II', 'F-Sat 10:00 - 12:00', 'Learn how to design, measure, cut, and sew dresses professionally.', 'uploads/images/dressmaking.jpg', 'Offered'),
 (7, 'HDSNCII', 'Hairdressing NC II', 'Th-F 9:00 -12:00', 'Gain skills in hair cutting, coloring, styling, and salon operations.', 'uploads/images/hairdressing.webp', 'Offered'),
 (8, 'JLC', 'Japanese Language and Culture', 'W 1:00-4:00', 'Study basic Nihongo and understand essential aspects of Japanese culture.', 'uploads/images/japanese.jpg', 'Offered'),
-(9, 'DRINCII', 'Driving NC II', 'Sat 8:00 - 12:00', 'Develop safe driving skills and gain vehicle operation knowledge.', 'uploads/images/driving.webp', 'Not Offered'),
+(9, 'DRINCII', 'Driving NC II', 'Sat 8:00 - 12:00', 'Develop safe driving skills and gain vehicle operation knowledge.', 'uploads/images/driving.jpg', 'Not Offered'),
 (10, 'TNCII', 'Tailoring NC II', 'T 9:00 - 12:00', 'Train in precision tailoring, pattern making, and garment construction.', 'uploads/images/tailoring.webp', 'Offered');
 
 -- --------------------------------------------------------
@@ -321,13 +406,6 @@ CREATE TABLE `gradestable` (
   `totalItems` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `gradestable`
---
-
-INSERT INTO `gradestable` (`id`, `submission_id`, `studentID`, `grade`, `feedback`, `graded_at`, `remarks`, `score`, `totalItems`) VALUES
-(6, 1, '2025S-000001', 80.00, '', '2025-09-14 16:47:41', 'passed', 40, 50);
-
 -- --------------------------------------------------------
 
 --
@@ -349,7 +427,7 @@ CREATE TABLE `modulestable` (
 --
 
 INSERT INTO `modulestable` (`id`, `course_id`, `trainerID`, `title`, `description`, `file_path`, `created_at`) VALUES
-(13, 'AGRINCII', '2025T-00001', 'EDIT', 'FADASEM', '../uploads/modules/Module_dasfdfdasfa_AGRINCII.txt', '2025-08-31 17:44:37');
+(14, 'AGRINCII', '2025T-00001', 'PERFOMING NURSERY OPERATION', 'Competency-based Learning Material', '../uploads/modules/Module_PERFOMING NURSERY OPERATION_AGRINCII.pdf', '2025-09-16 21:51:41');
 
 -- --------------------------------------------------------
 
@@ -780,19 +858,19 @@ ALTER TABLE `assignedcourses`
 -- AUTO_INCREMENT for table `basiccompetency`
 --
 ALTER TABLE `basiccompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `commoncompetency`
 --
 ALTER TABLE `commoncompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `corecompetency`
 --
 ALTER TABLE `corecompetency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `coursestable`
@@ -834,7 +912,7 @@ ALTER TABLE `gradestable`
 -- AUTO_INCREMENT for table `modulestable`
 --
 ALTER TABLE `modulestable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `studentprogress`
@@ -929,6 +1007,12 @@ ALTER TABLE `basiccompetency`
 --
 ALTER TABLE `commoncompetency`
   ADD CONSTRAINT `commoncompetency_ibfk_1` FOREIGN KEY (`courseID`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `corecompetency`
+--
+ALTER TABLE `corecompetency`
+  ADD CONSTRAINT `corecompetency_ibfk_1` FOREIGN KEY (`courseID`) REFERENCES `coursestable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `coursetracker`
