@@ -434,7 +434,7 @@ function renderGuestTable($conn)
                 </option>
               </select><br>
               <div class="buttons">
-                <button type="submit">Add Trainer</button>
+                <button type="submit">Add Trainee</button>
                 <button type="button" id="closeTrainee">Close</button>
               </div>
             </form>

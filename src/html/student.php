@@ -194,7 +194,8 @@ authenticate();
       </section>
 
       <section id="courses">
-        <div class="container">
+        <button type="button" id="switchButton">Switch to Unenrolled Courses</button>
+        <div class="container toggled" id="myCourses">
           <h2>My Courses</h2>
           <table>
             <thead>
@@ -266,7 +267,8 @@ authenticate();
             </tbody>
           </table>
         </div>
-        <div class="container">
+
+        <div class="container" id="availableCourse">
           <h2>Available Courses</h2>
           <table>
             <?php
@@ -330,6 +332,33 @@ authenticate();
             ?>
           </table>
         </div>
+
+        <style>
+          #myCourses,#availableCourse{
+            display: none;
+          }
+          #myCourses.toggled,#availableCourse.toggled{
+            display: flex;
+            flex-direction: column;
+          }
+        </style>
+          <script>
+            const switchButton = document.getElementById('switchButton');
+            const myCourses = document.getElementById('myCourses');
+            const availableCourse = document.getElementById('availableCourse');
+
+            switchButton.addEventListener('click', () => {
+              if(myCourses.classList.contains('toggled')){
+                myCourses.classList.remove('toggled')
+                availableCourse.classList.add('toggled')
+                switchButton.textContent = "Switch to Active Courses"
+              } else {
+                myCourses.classList.add('toggled')
+                availableCourse.classList.remove('toggled')
+                switchButton.textContent = "Switch to Unenrolled Courses"
+              }
+            })
+          </script>
 
         <div id="popup-enrollment">
           <div>

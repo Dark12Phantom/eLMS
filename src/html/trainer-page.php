@@ -265,8 +265,7 @@ authenticate();
             display: none;
           }
           #activitiesTable.active,#modulesTable.active,#createActivity.active,#uploadModule.active{
-            display: flex;
-            flex-direction: column;
+            display: table;
           }
         </style>
           <script>
