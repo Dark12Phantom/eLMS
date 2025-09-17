@@ -17,10 +17,10 @@ if (isset($_POST['assignCourseBtn'])) {
   $courseIDs = $_POST['courseID'] ?? [];
 
   if ($trainerRowID && !empty($courseIDs)) {
-    $stmt = $conn->prepare("SELECT trainerID FROM trainerstable WHERE id = ?");
+    $stmt = $conn->prepare("SELECT trainerID, trainerName FROM trainerstable WHERE id = ?");
     $stmt->bind_param("s", $trainerRowID);
     $stmt->execute();
-    $stmt->bind_result($trainerID);
+    $stmt->bind_result($trainerID, $trainerName);
     $stmt->fetch();
     $stmt->close();
 
@@ -40,6 +40,11 @@ if (isset($_POST['assignCourseBtn'])) {
       if ($courseName) {
         $insert = $conn->prepare("INSERT INTO trainercourses (trainerID, courseID, courseName) VALUES (?, ?, ?)");
         $insert->bind_param("sss", $trainerID, $courseID, $courseName);
+        $insert->execute();
+        $insert->close();
+
+        $insert = $conn -> prepare("INSERT INTO assignedcourses(course_id, trainer_id, trainerName) VALUES (?, ?, ?)");
+        $insert->bind_param("sss", $courseID, $trainerID, $trainerName);
         $insert->execute();
         $insert->close();
       }

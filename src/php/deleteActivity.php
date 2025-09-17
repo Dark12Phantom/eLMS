@@ -31,12 +31,12 @@ try {
         exit;
     }
     
-    $userIdNumber = $userResult->fetch_assoc()['id'];
+    $userIdNumber = $userResult->fetch_assoc()['userID'];
     
     
     $verifySql = "SELECT file_path FROM activitiestable WHERE id = ? AND created_by = ?";
     $stmt = $conn->prepare($verifySql);
-    $stmt->bind_param("ii", $activityId, $userIdNumber);
+    $stmt->bind_param("is", $activityId, $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -50,7 +50,7 @@ try {
     
     $deleteSql = "DELETE FROM activitiestable WHERE id = ? AND created_by = ?";
     $stmt = $conn->prepare($deleteSql);
-    $stmt->bind_param("ii", $activityId, $userIdNumber);
+    $stmt->bind_param("is", $activityId, $userId);
     $stmt->execute();
     
     

@@ -143,8 +143,9 @@ authenticate();
       
       <section id="activities-modules">
         <div class="container">
+          <button type="button" id="switchButton">Switch to Modules</button>
           <div class="uploadActForms">
-            <button type="button" id="createActivity">Create Activity</button>
+            <button class="active" type="button" id="createActivity">Create Activity</button>
             <button type="button" id="uploadModule">Upload Module</button>
 
             <form class="createAct">
@@ -229,7 +230,7 @@ authenticate();
             </form>
           </div>
 
-          <table id="activitiesTable">
+          <table class="active" id="activitiesTable">
             <thead>
               <tr>
                 <th>Activity</th>
@@ -259,6 +260,39 @@ authenticate();
             </tbody>
           </table>
         </div>
+        <style>
+          #activitiesTable,#modulesTable,#createActivity,#uploadModule{
+            display: none;
+          }
+          #activitiesTable.active,#modulesTable.active,#createActivity.active,#uploadModule.active{
+            display: flex;
+            flex-direction: column;
+          }
+        </style>
+          <script>
+            const switchButton = document.getElementById('switchButton');
+            const activityTab = document.getElementById('activitiesTable');
+            const moduleTab = document.getElementById('modulesTable');
+            const createActivity = document.getElementById('createActivity');
+            const uploadModule = document.getElementById('uploadModule');
+
+
+            switchButton.addEventListener('click', () => {
+              if(createActivity.classList.contains('active') && activityTab.classList.contains('active')){
+                createActivity.classList.remove('active')
+                activityTab.classList.remove('active')
+                uploadModule.classList.add('active')
+                moduleTab.classList.add('active')
+                switchButton.textContent = "Switch to Activities"
+              } else {
+                createActivity.classList.add('active')
+                activityTab.classList.add('active')
+                uploadModule.classList.remove('active')
+                moduleTab.classList.remove('active')
+                switchButton.textContent = "Switch to Modules"
+              }
+            })
+          </script>
       </section>
       
       <section id="trainees">

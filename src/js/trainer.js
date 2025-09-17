@@ -1144,9 +1144,9 @@ class TrainerDashboard {
     submissions.forEach((submission) => {
       const row = document.createElement("tr");
       const actionButton =
-        submission.gradeStatus === "Graded"
-          ? `<button type="button" class="viewSubmissions" disabled>Already Graded (${submission.grade}/100)</button>`
-          : `<button type="button" class="viewSubmissions" 
+        submission.gradeStatus === "Graded" 
+        ? `<button type="button" class="viewSubmissions">Edit Grade (${submission.grade}/100)</button>` 
+        : `<button type="button" class="viewSubmissions" 
              data-submission-id="${submission.id}" 
              data-name="${submission.traineeName}" 
              data-date="${submission.dateSubmitted}" 
