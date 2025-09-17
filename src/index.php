@@ -53,7 +53,7 @@ if (isset($_SESSION['user'])) {
       <a id="account-popup">
         <div class="content">
           <li>
-            <p>Login/Signup</p>
+            <p>Login</p>
           </li>
         </div>
       </a>

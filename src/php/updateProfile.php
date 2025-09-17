@@ -82,9 +82,9 @@ foreach ($fields as $key => $value) {
 
 $setStr = implode(', ', $setParts);
 $params[] = $userId;
-$types .= 'i';
+$types .= 's';
 
-$sql = "UPDATE userstable SET $setStr WHERE id = ?";
+$sql = "UPDATE userstable SET $setStr WHERE userID = ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
