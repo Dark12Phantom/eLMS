@@ -98,7 +98,7 @@ authenticate();
               $stmt->bind_param("s", $_SESSION["userID"]);
               $stmt->execute();
               $res = $stmt->get_result();
-              $totalPending = ($row = $res->fetch_assoc()) ? (int)$row["pendingActivities"] :0;
+              $totalPending = ($row = $res->fetch_assoc()) ? (int) $row["pendingActivities"] : 0;
 
               echo "<h2>$totalPending</h2>";
               ?>
@@ -208,6 +208,22 @@ authenticate();
             </thead>
             <tbody>
               <?php
+              $limit = 15;
+              $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+              if ($page < 1)
+                $page = 1;
+              $offset = ($page - 1) * $limit;
+
+              $countSql = "SELECT COUNT(*) AS total
+             FROM enrolledtable en
+             JOIN coursestable c ON en.course_id = c.courseID
+             WHERE en.user_id = ? AND en.status = 'approved'";
+              $countStmt = $conn->prepare($countSql);
+              $countStmt->bind_param("s", $_SESSION['userID']);
+              $countStmt->execute();
+              $countResult = $countStmt->get_result();
+              $totalRows = $countResult->fetch_assoc()['total'];
+              $totalPages = ceil($totalRows / $limit);
 
               $sqlMy = "SELECT en.id AS enrollmentId, 
                      c.courseID AS courseId, 
@@ -226,10 +242,10 @@ authenticate();
                         ON sp.studentID = ? AND sp.course_id = c.courseID
                     WHERE en.user_id = ? 
                       AND en.status = 'approved'
-                      ";
+                    LIMIT ? OFFSET ?";
 
               $stmt = $conn->prepare($sqlMy);
-              $stmt->bind_param("ss", $_SESSION['userID'], $_SESSION['userID']);
+              $stmt->bind_param("ssii", $_SESSION['userID'], $_SESSION['userID'], $limit, $offset);
               $stmt->execute();
               $result = $stmt->get_result();
 
@@ -266,12 +282,54 @@ authenticate();
               ?>
             </tbody>
           </table>
+          <div class="pagination">
+            <!-- Prev Button -->
+            <a href="?page=<?php echo max(1, $page - 1); ?>"
+              class="page-btn <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+              &laquo; Prev
+            </a>
+
+            <!-- Page Numbers -->
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a href="?page=<?php echo $i; ?>" class="page-btn <?php echo ($i == $page) ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+
+            <!-- Next Button -->
+            <a href="?page=<?php echo min($totalPages, $page + 1); ?>"
+              class="page-btn <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+              Next &raquo;
+            </a>
+          </div>
         </div>
 
         <div class="container" id="availableCourse">
           <h2>Available Courses</h2>
           <table>
             <?php
+            $limit2 = 15;
+            $page2 = isset($_GET['page2']) ? (int) $_GET['page2'] : 1;
+            if ($page2 < 1)
+              $page2 = 1;
+            $offset2 = ($page2 - 1) * $limit2;
+
+            // Count total available courses (not enrolled)
+            $countSql2 = "SELECT COUNT(*) AS total
+                  FROM coursestable c
+                  WHERE c.courseID NOT IN (
+                      SELECT en.course_id
+                      FROM enrolledtable en
+                      WHERE en.user_id = ? AND en.status = 'approved'
+                  )";
+            $countStmt2 = $conn->prepare($countSql2);
+            $countStmt2->bind_param("s", $_SESSION['userID']);
+            $countStmt2->execute();
+            $countResult2 = $countStmt2->get_result();
+            $totalRows2 = $countResult2->fetch_assoc()['total'];
+            $totalPages2 = ceil($totalRows2 / $limit2);
+
+            // Fetch limited results
             $sqlAvailable = "SELECT c.courseID AS course_id, 
                             c.courseName, 
                             e.status as enrollment_status,
@@ -282,83 +340,109 @@ authenticate();
                             AND e.user_id = ?
                      LEFT JOIN coursetracker ct 
                             ON ct.course_id = c.courseID
-                     ";
+                     WHERE c.courseID NOT IN (
+                        SELECT en.course_id
+                        FROM enrolledtable en
+                        WHERE en.user_id = ? AND en.status = 'approved'
+                     )
+                     LIMIT ? OFFSET ?";
 
-            $stmt = $conn->prepare($sqlAvailable);
-            $stmt->bind_param("s", $_SESSION['userID']);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $stmt2 = $conn->prepare($sqlAvailable);
+            $stmt2->bind_param("ssii", $_SESSION['userID'], $_SESSION['userID'], $limit2, $offset2);
+            $stmt2->execute();
+            $result2 = $stmt2->get_result();
 
             echo "
-          <thead>
-            <tr>
-              <th>Courses</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-          ";
+    <thead>
+      <tr>
+        <th>Courses</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+    ";
 
-            while ($row = $result->fetch_assoc()) {
-              if (!empty($row['enrollment_status']) && $row['enrollment_status'] !== "No Record") {
-                continue;
+            if ($result2->num_rows > 0) {
+              while ($row = $result2->fetch_assoc()) {
+                if (!empty($row['enrollment_status']) && $row['enrollment_status'] !== "No Record") {
+                  continue;
+                }
+
+                $courseName = htmlspecialchars($row['courseName']);
+                $enrollmentStatus = ucfirst($row['enrollment_status'] ?? "No Record");
+                $courseStatus = $row['course_status'] ?? 'enabled';
+                $disabled = ($courseStatus === 'disabled' || $enrollmentStatus !== "No Record") ? "disabled" : "";
+
+                echo "
+        <tr>
+          <td>{$courseName}</td>
+          <td>{$enrollmentStatus}</td>
+          <td>
+            <button type='button' class='enrollBtn' 
+                    data-course-id='{$row['course_id']}' 
+                    data-course-name='{$courseName}' 
+                    {$disabled}
+                    data-course-status='{$courseStatus}'>
+              Enroll
+            </button>
+          </td>
+        </tr>
+        ";
               }
-
-              $courseName = $row['courseName'];
-              $enrollmentStatus = ucfirst($row['enrollment_status'] ?? "No Record");
-              $courseStatus = $row['course_status'] ?? 'enabled';
-
-              $disabled = ($courseStatus === 'disabled' || $enrollmentStatus !== "No Record") ? "disabled" : "";
-
-              echo "
-              <tr>
-                <td>{$courseName}</td>
-                <td>{$enrollmentStatus}</td>
-                <td>
-                  <button type='button' class='enrollBtn' 
-                          data-course-id='{$row['course_id']}' 
-                          data-course-name='{$courseName}' 
-                          {$disabled}
-                          data-course-status='{$courseStatus}'>
-                    Enroll
-                  </button>
-                </td>
-              </tr>
-              ";
+            } else {
+              echo "<tr><td colspan='3' style='text-align:center;'>No available courses found.</td></tr>";
             }
 
             echo "</tbody>";
             ?>
           </table>
+
+          <!-- Pagination for Available Courses -->
+          <div class="pagination">
+            <a href="?page2=<?php echo max(1, $page2 - 1); ?>"
+              class="<?php echo ($page2 <= 1) ? 'disabled' : ''; ?>">&laquo; Prev</a>
+
+            <?php for ($i = 1; $i <= $totalPages2; $i++): ?>
+              <a href="?page2=<?php echo $i; ?>" class="<?php echo ($i == $page2) ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+
+            <a href="?page2=<?php echo min($totalPages2, $page2 + 1); ?>"
+              class="<?php echo ($page2 >= $totalPages2) ? 'disabled' : ''; ?>">Next &raquo;</a>
+          </div>
         </div>
 
         <style>
-          #myCourses,#availableCourse{
+          #myCourses,
+          #availableCourse {
             display: none;
           }
-          #myCourses.toggled,#availableCourse.toggled{
+
+          #myCourses.toggled,
+          #availableCourse.toggled {
             display: flex;
             flex-direction: column;
           }
         </style>
-          <script>
-            const switchButton = document.getElementById('switchButton');
-            const myCourses = document.getElementById('myCourses');
-            const availableCourse = document.getElementById('availableCourse');
+        <script>
+          const switchButton = document.getElementById('switchButton');
+          const myCourses = document.getElementById('myCourses');
+          const availableCourse = document.getElementById('availableCourse');
 
-            switchButton.addEventListener('click', () => {
-              if(myCourses.classList.contains('toggled')){
-                myCourses.classList.remove('toggled')
-                availableCourse.classList.add('toggled')
-                switchButton.textContent = "Switch to Active Courses"
-              } else {
-                myCourses.classList.add('toggled')
-                availableCourse.classList.remove('toggled')
-                switchButton.textContent = "Switch to Unenrolled Courses"
-              }
-            })
-          </script>
+          switchButton.addEventListener('click', () => {
+            if (myCourses.classList.contains('toggled')) {
+              myCourses.classList.remove('toggled')
+              availableCourse.classList.add('toggled')
+              switchButton.textContent = "Switch to Active Courses"
+            } else {
+              myCourses.classList.add('toggled')
+              availableCourse.classList.remove('toggled')
+              switchButton.textContent = "Switch to Unenrolled Courses"
+            }
+          })
+        </script>
 
         <div id="popup-enrollment">
           <div>
@@ -381,7 +465,27 @@ authenticate();
             include '../php/studentActivity.php';
             ?>
           </table>
-        </div>
+
+          <div class="pagination">
+            <!-- Prev Button -->
+            <a href="?page=<?php echo max(1, $page - 1); ?>"
+              class="page-btn <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+              &laquo; Prev
+            </a>
+
+            <!-- Page Numbers -->
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a href="?page=<?php echo $i; ?>" class="page-btn <?php echo ($i == $page) ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+
+            <!-- Next Button -->
+            <a href="?page=<?php echo min($totalPages, $page + 1); ?>"
+              class="page-btn <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+              Next &raquo;
+            </a>
+          </div>
       </section>
 
       <section id="enrollment">
@@ -397,12 +501,34 @@ authenticate();
             </thead>
             <tbody>
               <?php
-              $query = "SELECT c.courseName, e.enrolled_at AS requestDate, e.status
+              // Pagination setup
+              $limit3 = 15;
+              $page3 = isset($_GET['page3']) ? (int) $_GET['page3'] : 1;
+              if ($page3 < 1)
+                $page3 = 1;
+              $offset3 = ($page3 - 1) * $limit3;
+
+              // Count total records
+              $countQuery3 = "SELECT COUNT(*) AS total
                         FROM enrollmenttable e
                         JOIN coursestable c ON e.course_id = c.courseID
                         WHERE e.user_id = ?";
+              $countStmt3 = $conn->prepare($countQuery3);
+              $countStmt3->bind_param("s", $_SESSION['userID']);
+              $countStmt3->execute();
+              $countResult3 = $countStmt3->get_result();
+              $totalRows3 = $countResult3->fetch_assoc()['total'];
+              $totalPages3 = ceil($totalRows3 / $limit3);
+
+              // Fetch limited results
+              $query = "SELECT c.courseName, e.enrolled_at AS requestDate, e.status
+                  FROM enrollmenttable e
+                  JOIN coursestable c ON e.course_id = c.courseID
+                  WHERE e.user_id = ?
+                  ORDER BY e.enrolled_at DESC
+                  LIMIT ? OFFSET ?";
               $stmt = $conn->prepare($query);
-              $stmt->bind_param("s", $_SESSION['userID']);
+              $stmt->bind_param("sii", $_SESSION['userID'], $limit3, $offset3);
               $stmt->execute();
               $result = $stmt->get_result();
 
@@ -420,6 +546,25 @@ authenticate();
               ?>
             </tbody>
           </table>
+
+          <!-- Pagination Controls -->
+          <div class="pagination">
+            <a href="?page3=<?php echo max(1, $page3 - 1); ?>"
+              class="page-btn <?php echo ($page3 <= 1) ? 'disabled' : ''; ?>">
+              &laquo; Prev
+            </a>
+
+            <?php for ($i = 1; $i <= $totalPages3; $i++): ?>
+              <a href="?page3=<?php echo $i; ?>" class="page-btn <?php echo ($i == $page3) ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+
+            <a href="?page3=<?php echo min($totalPages3, $page3 + 1); ?>"
+              class="page-btn <?php echo ($page3 >= $totalPages3) ? 'disabled' : ''; ?>">
+              Next &raquo;
+            </a>
+          </div>
         </div>
       </section>
 
@@ -432,6 +577,10 @@ authenticate();
       </section>
     </div>
     <div id="catalog">
+      <div class="calendar-container">
+        <div id="calendar-header"></div>
+        <div id="calendar"></div>
+      </div>
       <div class="notifications-panel">
         <div class="notifications-header">
           <h3>Latest Announcements</h3>
@@ -449,6 +598,75 @@ authenticate();
 
 </body>
 
-  <script src="../js/student.js"></script>
+<!-- CALENDAR -->
+<script>
+  const calendarHeader = document.getElementById("calendar-header");
+  const calendar = document.getElementById("calendar");
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  async function phHolidays(year) {
+    const response = await fetch(
+      `https://date.nager.at/api/v3/PublicHolidays/${year}/PH`
+    );
+    const holidays = await response.json();
+    return holidays.map((h) => h.date);
+  }
+
+  function renderCalendar(year, month, holidayDates) {
+    calendarHeader.innerText = `${monthNames[month]} ${year}`;
+    calendar.innerHTML = "";
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = today.toISOString().split("T")[0];
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      empty.className = "day";
+      calendar.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      const isDate = d.toISOString().split("T")[0];
+      const cell = document.createElement("div");
+      cell.className = "day";
+      cell.innerText = day;
+
+      const dayOfWeek = d.getDay();
+      if (dayOfWeek === 0) cell.classList.add("sunday");
+      if (holidayDates.includes(isDate)) cell.classList.add("holiday");
+      if (isDate === todayStr) cell.classList.add("today");
+
+      calendar.appendChild(cell);
+    }
+  }
+
+  async function initCalendar(year, month) {
+    const holidayDates = await phHolidays(year);
+    renderCalendar(year, month, holidayDates);
+  }
+
+  initCalendar(year, month);
+</script>
+<script src="../js/student.js"></script>
 
 </html>

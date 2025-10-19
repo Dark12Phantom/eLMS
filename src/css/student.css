@@ -775,6 +775,9 @@ footer {
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .notifications-panel {
@@ -1050,4 +1053,79 @@ footer {
   background: #667eea;
   color: white;
   border-color: #667eea;
+}
+
+/* CALENDAR */
+
+.calendar-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: sticky;
+  right: 0;
+}
+
+#calendar-header{
+  font-weight: 600;
+  font-size: 1.2rem;
+  display: flex;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  color: #0e5ced;
+  justify-content: space-evenly;
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 30px);
+  gap: 10px 0;
+  width: 140px;
+}
+
+.day{
+  text-align: center;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+}
+
+.holiday{
+  color: rgb(255, 217, 0);
+}
+.sunday{
+  color: #ff2222;
+}
+
+.day.today {
+    border: 2px solid #0eed3f;
+    background-color: #2b06ff;
+    color: #fbff02;
+    border-radius: 5px;
+}
+
+/* PAGINATION */
+.pagination {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.pagination a {
+  display: inline-block;
+  margin: 0 3px;
+  padding: 5px 10px;
+  border: 1px solid #999;
+  text-decoration: none;
+  color: #333;
+  border-radius: 4px;
+}
+
+.pagination a.active {
+  background-color: var(--secondary-color);
+  color: #fff;
+  border: none;
+}
+
+.pagination a:hover {
+  background-color: var(--accent-color);
+  color: white;
 }
